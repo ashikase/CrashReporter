@@ -1,0 +1,3 @@
+#!/bin/bash
+
+/Developer/Platforms/iPhoneOS.platform/Developer/usr/bin/gcc-4.2 -arch armv6 -std=c99 -isysroot /Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS3.1.sdk -I/Developer/Platforms/iPhoneOS.platform/Developer/usr/include/gcc/darwin/default -I/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS3.1.sdk/usr/lib/gcc/arm-apple-darwin9/4.2.1/include -L/usr/local/lib -F/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS3.1.sdk/System/Library/PrivateFrameworks/ -I/Users/kennytm/XCodeProjects/iphone-private-frameworks -Wall -mcpu=arm1176jzf-s -g symbolicate.m ../xcode/CrashReporter/RegexKitLite.m -I../xcode/CrashReporter/ common.c -framework Foundation -framework Symbolication -licucore -DTEST_SYMBOLICATION=1

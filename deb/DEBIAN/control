@@ -1,0 +1,12 @@
+Package: crash-reporter
+Pre-Depends: firmware (>=3.0)
+Depends: dpkg, grep, coreutils
+Recommends: cydia, sbsettingssyslogd
+Name: Crash Reporter
+Description: Send useful crash info to developers.
+Version: 0.2g
+Homepage: http://code.google.com/p/networkpx/wiki/Using_CrashReporter
+Author: KennyTM~ <kennytm+CrashReporter@gmail.com>
+Section: System
+Installed-Size: 212
+dev: kennytm
