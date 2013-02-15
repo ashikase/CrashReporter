@@ -1,0 +1,21 @@
+APPLICATION_NAME = CrashReporter
+CrashReporter_FILES = \
+    BlameController.m \
+    CrashLogDateChooser.m \
+    CrashLogViewController.m \
+    CrashLogsFolderReader.m \
+    CrashLogsTableController.m \
+    CrashReporterDelegate.m \
+    CustomBlameController.m \
+    ModalActionSheet.m \
+    RegexKitLite.m \
+    SuspectsViewController.m \
+    find_dpkg.m \
+    main.m \
+    pastie.m \
+    reporter.m \
+    symbolicate.m
+CrashReporter_FRAMEWORKS = UIKit
+
+include $(THEOS_MAKE_PATH)/common.mk
+include $(THEOS_MAKE_PATH)/application.mk
