@@ -10,12 +10,15 @@ CrashReporter_FILES = \
     ModalActionSheet.m \
     RegexKitLite.m \
     SuspectsViewController.m \
+    common.c \
     find_dpkg.m \
     main.m \
     pastie.m \
     reporter.m \
     symbolicate.m
-CrashReporter_FRAMEWORKS = UIKit
+CrashReporter_LDFLAGS = -licucore
+CrashReporter_FRAMEWORKS = MessageUI SystemConfiguration UIKit
+CrashReporter_PRIVATE_FRAMEWORKS = Symbolication
 
 include $(THEOS_MAKE_PATH)/common.mk
 include $(THEOS_MAKE_PATH)/application.mk

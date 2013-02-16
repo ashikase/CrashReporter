@@ -21,7 +21,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #import "reporter.h"
 #import <UIKit/UIKit.h>
 #include <stdio.h>
-#import "find_dpkg.h"
 
 extern int canEmailAuthor;
 
@@ -186,7 +185,7 @@ static void parseLinkLine(LinkReporterLine* lrl, NSArray* tokenized) {
 			while (!feof(f)) {
 				char data[1024];
 				size_t chars_read = fread(data, 1, sizeof(data), f);
-				[res appendFormat:@"%.*s", chars_read, data];
+				[res appendFormat:@"%.*s", (int)chars_read, data];
 			}
 			pclose(f);
 		}

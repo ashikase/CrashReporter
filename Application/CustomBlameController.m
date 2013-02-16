@@ -19,7 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #import "CustomBlameController.h"
-#import <UIKit/UIKit2.h>
+#import <UIKit/UIKit.h>
 #import "reporter.h"
 #import "BlameController.h"
 

@@ -18,7 +18,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 */
 
-#import <UIKit/UIKit2.h>
+#import <UIKit/UIKit.h>
+
+@class UIProgressHUD;
 
 @interface ModalActionSheet : NSObject {
 	UIWindow* hudWindow;

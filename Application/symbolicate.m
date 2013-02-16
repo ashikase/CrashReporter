@@ -22,14 +22,71 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #import "symbolicate.h"
 #import "RegexKitLite.h"
 #include "common.h"
-#import <Symbolication/Symbolication.h>
-#import <UIKit/UIKit2.h>
+#import <UIKit/UIKit.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <sys/wait.h>
 #import "ModalActionSheet.h"
 #include <objc/runtime.h>
 #include <mach-o/loader.h>
+
+@interface VMUAddressRange : NSObject <NSCoding> @end
+@interface VMUArchitecture : NSObject <NSCoding, NSCopying>
++ (id)currentArchitecture;
+@end
+@interface VMUHeader : NSObject
++ (id)extractMachOHeadersFromHeader:(id)header matchingArchitecture:(id)architecture considerArchives:(BOOL)archives;
+@end
+@interface VMULoadCommand : NSObject @end
+@interface VMUMachOHeader : VMUHeader
+- (BOOL)isFromSharedCache;
+- (id)loadCommands;
+- (id)memory;
+- (id)segmentNamed:(id)named;
+@end
+@protocol VMUMemory <NSObject>
+- (id)view;
+@end
+@protocol VMUMemoryView <NSObject>
+- (void)advanceCursor:(unsigned long long)cursor;
+- (unsigned long long)cursor;
+- (void)setCursor:(unsigned long long)cursor;
+- (id)stringWithEncoding:(unsigned)encoding;
+- (unsigned)uint32;
+@end
+@interface VMUMemory_Base : NSObject @end
+@interface VMUMemory_File : VMUMemory_Base <VMUMemory>
++ (id)headerFromSharedCacheWithPath:(id)path;
++ (id)headerWithPath:(id)path;
+@end
+typedef struct _VMURange {
+	unsigned long long location;
+	unsigned long long length;
+} VMURange;
+@interface VMUSourceInfo : VMUAddressRange <NSCopying>
+- (unsigned)lineNumber;
+- (id)path;
+@end
+@interface VMUSection : NSObject
+- (unsigned)offset;
+- (unsigned long long)size;
+@end
+@interface VMUSegmentLoadCommand : VMULoadCommand
+- (unsigned long long)fileoff;
+- (id)sectionNamed:(id)named;
+- (unsigned long long)vmaddr;
+@end
+@interface VMUSymbol : VMUAddressRange <NSCopying>
+- (VMURange)addressRange;
+- (id)name;
+@end
+@interface VMUSymbolExtractor : NSObject
++ (id)extractSymbolOwnerFromHeader:(id)header;
+@end
+@interface VMUSymbolOwner : NSObject <NSCopying>
+- (id)sourceInfoForAddress:(unsigned long long)address;
+- (id)symbolForAddress:(unsigned long long)address;
+@end
 
 #if !TARGET_IPHONE_SIMULATOR
 
@@ -338,7 +395,7 @@ finish:
 						if (bi->objcArray == nil) {
 							NSMutableArray* objcArr = [NSMutableArray array];
 
-							id<VMUMemoryView> mem = [[bi->header memory] view];
+							id<VMUMemoryView> mem = (id<VMUMemoryView>)[[bi->header memory] view];
 							VMUSegmentLoadCommand* dataSeg = [bi->header segmentNamed:@"__DATA"];
 							long long vmdiff_data = [dataSeg fileoff] - [dataSeg vmaddr];
 							VMUSegmentLoadCommand* textSeg = [bi->header segmentNamed:@"__TEXT"];

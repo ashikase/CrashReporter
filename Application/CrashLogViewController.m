@@ -19,10 +19,18 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #import "CrashLogViewController.h"
-#import <UIKit/UIKit2.h>
+#import <UIKit/UIKit.h>
 #import "RegexKitLite.h"
 #import "reporter.h"
 #import <MobileCoreServices/MobileCoreServices.h>
+
+@interface UIWebDocumentView : UIView
+- (id)text;
+@end
+
+@interface UIWebView ()
+- (UIWebDocumentView *)_documentView;
+@end
 
 @implementation CrashLogViewController
 @synthesize reporter;

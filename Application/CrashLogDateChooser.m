@@ -21,7 +21,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #import "CrashLogDateChooser.h"
 #import "CrashLogsFolderReader.h"
 #import "SuspectsViewController.h"
-#import <UIKit/UIKit2.h>
+#import <UIKit/UIKit.h>
 #import "symbolicate.h"
 #import "ModalActionSheet.h"
 

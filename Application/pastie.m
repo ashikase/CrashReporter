@@ -23,7 +23,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #if DEBUG_PASTIE
 @class ModalActionSheet;
 #else
-#import <UIKit/UIKit2.h>
+#import <UIKit/UIKit.h>
 #import <SystemConfiguration/SCNetworkReachability.h>
 #import "ModalActionSheet.h"
 #endif
@@ -126,7 +126,7 @@ static NSURLRequest* multipartRequest(NSURL* url, NSDictionary* form) {
 
 //	[req setValue:@"Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10.6; en-US; rv:1.9.1.2) Gecko/20090729 Firefox/3.5.2" forHTTPHeaderField:@"User-Agent"];
 	[req setValue:@"http://pastie.org/pastes/new" forHTTPHeaderField:@"Referer"];
-	[req setValue:[NSString stringWithFormat:@"multipart/form-data; boundary=%.*s", sizeof(boundary)-2, boundary+2] forHTTPHeaderField:@"Content-Type"];
+	[req setValue:[NSString stringWithFormat:@"multipart/form-data; boundary=%.*s", (int)sizeof(boundary)-2, boundary+2] forHTTPHeaderField:@"Content-Type"];
 
 	NSMutableData* data = [[NSMutableData alloc] init];
 

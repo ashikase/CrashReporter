@@ -23,6 +23,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #import "CrashLogsTableController.h"
 #import "reporter.h"
 
+@interface UIAlertView ()
+- (void)setNumberOfRows:(int)rows;
+@end
+
 @interface CrashReporterDelegate : NSObject<UIApplicationDelegate, UIAlertViewDelegate> {
 	UIWindow* _win;
 	UINavigationController* _navCtrler;

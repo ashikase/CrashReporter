@@ -22,11 +22,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #import "BlameController.h"
 #import "reporter.h"
 #import "find_dpkg.h"
-#import <UIKit/UIKit2.h>
+#import <UIKit/UIKit.h>
 #import "CrashLogViewController.h"
 #import "pastie.h"
 #import "RegexKitLite.h"
 #import "ModalActionSheet.h"
+
+@interface UIColor ()
++ (id)tableCellBlueTextColor;
+@end
 
 @implementation BlameController
 -(id)initWithReporters:(NSArray*)reporters
@@ -117,7 +121,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 	} else {
 		UITableViewCell* cell = [tableView dequeueReusableCellWithIdentifier:@"~"];
 		if (cell == nil) {
-			cell = [[[UITableViewCell alloc] initWithStyle:UITableViewStylePlain reuseIdentifier:@"~"] autorelease];
+			cell = [[[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"~"] autorelease];
 			UILabel* lbl = cell.textLabel;
 			lbl.text = [[NSBundle mainBundle] localizedStringForKey:@"COPIED_MESSAGE"
 															  value:@"An appropriate bug report will be copied as you tap on one of these links."

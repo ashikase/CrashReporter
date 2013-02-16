@@ -22,6 +22,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <CoreFoundation/CoreFoundation.h>
 #import <UIKit/UIActionSheet.h>
 
+@interface UIProgressHUD : UIView
+- (void)setText:(id)text;
+- (void)showInView:(id)view;
+@end
+
 @implementation ModalActionSheet
 -(id)init2 {
 	if ((self = [super init])) {
