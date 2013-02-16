@@ -26,7 +26,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <stdlib.h>
 #include <unistd.h>
 #include <sys/wait.h>
-#import "ModalActionSheet.h"
+//#import "ModalActionSheet.h"
 #include <objc/runtime.h>
 #include <mach-o/loader.h>
 
@@ -159,7 +159,7 @@ static const char* move_as_root_path() {
 }
 
 
-NSString* symbolicate(NSString* file, ModalActionSheet* hudReply) {
+NSString* symbolicate(NSString* file, id hudReply) {
 	NSAutoreleasePool* localPool = [[NSAutoreleasePool alloc] init];
 	NSBundle* mainBundle = [NSBundle mainBundle];	// 0
 	NSString* curPath = [[NSFileManager defaultManager] currentDirectoryPath];
@@ -198,9 +198,9 @@ NSString* symbolicate(NSString* file, ModalActionSheet* hudReply) {
 
 	NSMutableArray* file_lines = [[file_content componentsSeparatedByString:@"\n"] mutableCopy];	// 1
 	[file_content release];
-	NSString* symbolicating = [mainBundle localizedStringForKey:@"Symbolicating (%d%%)" value:nil table:nil];	// 0
+	//NSString* symbolicating = [mainBundle localizedStringForKey:@"Symbolicating (%d%%)" value:nil table:nil];	// 0
 
-	[hudReply updateText:[NSString stringWithFormat:symbolicating, 0]];
+	//[hudReply updateText:[NSString stringWithFormat:symbolicating, 0]];
 
 	enum SymbolicationMode mode = SM_CheckingMode;
 
@@ -297,7 +297,7 @@ finish:
 		int this_percent = MIN(100, 200*i / total_lines);
 		if (this_percent != last_percent) {
 			last_percent = this_percent;
-			[hudReply updateText:[NSString stringWithFormat:symbolicating, this_percent]];
+			//[hudReply updateText:[NSString stringWithFormat:symbolicating, this_percent]];
 		}
 
 		if (bti == (id)kCFBooleanTrue)
