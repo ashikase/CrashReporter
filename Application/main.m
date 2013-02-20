@@ -19,27 +19,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #import <UIKit/UIKit.h>
-#import "symbolicate.h"
-#include <string.h>
 
 int main (int argc, char* argv[]) {
 	NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
-
-	int rv = 0;
-
-
-#if !TARGET_IPHONE_SIMULATOR
-	if (argc > 2 && strcmp(argv[1], "-s") == 0) {
-
-		NSString* file = [NSString stringWithUTF8String:argv[2]];
-		NSString* res = symbolicate(file, nil);
-
-		printf("Result written to %s.\n", [res UTF8String]);
-
-	} else
-#endif
-		rv = UIApplicationMain(argc, argv, nil, @"CrashReporterDelegate");
-
+	int ret = UIApplicationMain(argc, argv, nil, @"CrashReporterDelegate");
 	[pool drain];
-	return rv;
+	return ret;
 }

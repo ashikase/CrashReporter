@@ -1,4 +1,4 @@
-SUBPROJECTS = Application move_as_root symbolicate
+SUBPROJECTS = Application move_as_root
 
 export ARCHS =
 
