@@ -65,7 +65,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 	}
 	CrashLogGroup* group = [[GetCrashLogs() objectAtIndex:indexPath.section] objectAtIndex:indexPath.row];
 	cell.textLabel.text = group->app;
-	cell.detailTextLabel.text = [NSString stringWithFormat:@"%u", [group->files count]];
+	cell.detailTextLabel.text = [NSString stringWithFormat:@"%lu", (unsigned long)[group->files count]];
 	cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
 	return cell;
 }

@@ -51,7 +51,8 @@ static NSArray* pack(NSArray* strings, NSUInteger maxBinSize) {
 		lengths[i].length = [s isKindOfClass:NSString_class] ? [s length] : 0;
 		lengths[i].bin = -1;
 		binSizes[i] = maxBinSize;
-		lengths[i].i = i++;
+		lengths[i].i = i;
+		i++;
 	}
 
 	// sort the lengths.
@@ -83,7 +84,7 @@ static NSArray* pack(NSArray* strings, NSUInteger maxBinSize) {
 			stringToPack = @"";
 		int bin = lengths[i].bin;
 		if (bin < 0) {
-			NSLog(@"CrashReporter: Bin index of object %d is negative. The string to pack into should be '%@'.", i, stringToPack);
+			NSLog(@"CrashReporter: Bin index of object %lu is negative. The string to pack into should be '%@'.", (unsigned long)i, stringToPack);
 			continue;
 		}
 		if (packed[bin])

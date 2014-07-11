@@ -302,7 +302,7 @@ static NSCalendar* cal;
 
 	static const char* const month_name[] = {"", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
 	NSDateComponents* comp = [cal components:NSMonthCalendarUnit|NSDayCalendarUnit|NSHourCalendarUnit|NSMinuteCalendarUnit fromDate:date];
-	return [NSString stringWithFormat:@"%s %2d %02d:%02d", month_name[[comp month]], [comp day], [comp hour], [comp minute]];
+	return [NSString stringWithFormat:@"%s %2ld %02ld:%02ld", month_name[[comp month]], (long)[comp day], (long)[comp hour], (long)[comp minute]];
 }
 
 +(NSArray*)reportersWithSuspect:(NSString*)_suspectPath appendReporters:(NSArray*)_reporters package:(struct Package*)pPackage isAppStore:(BOOL*)pIsAppStore {

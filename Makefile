@@ -1,14 +1,7 @@
 SUBPROJECTS = Application move_as_root
 
-export ARCHS =
-
-#export SDKTARGET = arm-apple-darwin11
-#export TARGET_CXX = clang -ccc-host-triple $(SDKTARGET)
-#export TARGET_LD = $(SDKTARGET)-g++
-#export TARGET_CODESIGN_ALLOCATE=$(CODESIGN_ALLOCATE)
-
-#ADDITIONAL_FLAGS = -D__IPHONE_OS_VERSION_MIN_REQUIRED=__IPHONE_3_0
-ADDITIONAL_FLAGS = -miphoneos-version-min=3.0
+export ARCHS = armv6 arm64
+export TARGET = iphone:clang:7.1:3.0
 
 include theos/makefiles/common.mk
 include theos/makefiles/aggregate.mk
