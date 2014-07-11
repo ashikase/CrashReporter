@@ -64,7 +64,7 @@ static inline NSUInteger index_of(NSUInteger sect, NSUInteger row, BOOL deleted_
 
 	NSUInteger row = indexPath.row, section = indexPath.section;
 	NSString* filename = [group->files objectAtIndex:index_of(section, row, deleted_row_0)];
-	BOOL is_reported = [filename hasSuffix:@".symbolicated.plist"];
+	BOOL is_reported = [filename hasSuffix:@".symbolicated.plist"] || [filename hasSuffix:@".symbolicated.ips"];
 
 	UILabel* label = cell.textLabel;
 	NSDateFormatter* formatter = [[NSDateFormatter alloc] init];
@@ -81,7 +81,8 @@ static inline NSUInteger index_of(NSUInteger sect, NSUInteger row, BOOL deleted_
 	NSUInteger idx = index_of(indexPath.section, indexPath.row, deleted_row_0);
 	[[NSFileManager defaultManager] changeCurrentDirectoryPath:group->folder];
 	NSString* file = [group->files objectAtIndex:idx];
-	if (![file hasSuffix:@".symbolicated.plist"]) {
+	BOOL is_reported = [file hasSuffix:@".symbolicated.plist"] || [file hasSuffix:@".symbolicated.ips"];
+	if (!is_reported) {
 		// Symbolicate.
 		ModalActionSheet* sheet = [[ModalActionSheet alloc] init2];
 		[sheet show];

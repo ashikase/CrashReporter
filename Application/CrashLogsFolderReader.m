@@ -64,7 +64,7 @@ static NSArray* getCrashLogInDir(NSString* dir, NSFileManager* fman, NSCalendar*
 	NSMutableDictionary* res = [[NSMutableDictionary alloc] init];
 
 	for (NSString* path in [fman contentsOfDirectoryAtPath:@"." error:NULL]) {
-		NSArray* capture = [path captureComponentsMatchedByRegex:@"(.+)_(\\d{4})-(\\d{2})-(\\d{2})-(\\d{2})(\\d{2})(\\d{2})_[^_]+\\.plist"];
+		NSArray* capture = [path captureComponentsMatchedByRegex:@"(.+)_(\\d{4})-(\\d{2})-(\\d{2})-(\\d{2})(\\d{2})(\\d{2})_[^_]+\\.(?:plist|ips)"];
 
 		if ([capture count] == 8) {
 			NSString* matches[7];
