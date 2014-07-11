@@ -11,6 +11,7 @@ CrashReporter_FILES = \
     RegexKitLite.m \
     SuspectsViewController.m \
     common.c \
+    move_as_root.m \
     find_dpkg.m \
     main.m \
     pastie.m \
