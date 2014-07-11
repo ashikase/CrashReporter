@@ -1,6 +1,6 @@
 SUBPROJECTS = Application move_as_root
 
-export ARCHS = armv6 arm64
+export ARCHS = armv6
 export TARGET = iphone:clang:7.1:3.0
 
 include theos/makefiles/common.mk

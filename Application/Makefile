@@ -17,7 +17,7 @@ CrashReporter_FILES = \
     pastie.m \
     reporter.m
 CrashReporter_CFLAGS = -I../Libraries
-CrashReporter_LDFLAGS = -licucore
+CrashReporter_LDFLAGS = -licucore -lsymbolicate
 CrashReporter_FRAMEWORKS = MessageUI SystemConfiguration UIKit
 CrashReporter_PRIVATE_FRAMEWORKS = Symbolication
 

@@ -19,6 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #import "CrashLogDateChooser.h"
+#import <libsymbolicate/CRCrashReport.h>
 #import "CrashLogsFolderReader.h"
 #import "SuspectsViewController.h"
 #import <UIKit/UIKit.h>
@@ -87,7 +88,31 @@ static inline NSUInteger index_of(NSUInteger sect, NSUInteger row, BOOL deleted_
 		ModalActionSheet* sheet = [[ModalActionSheet alloc] init2];
 		[sheet show];
 #if !TARGET_IPHONE_SIMULATOR
-		//file = symbolicate(file, sheet);
+        // Load crash report.
+        CRCrashReport *report = [[CRCrashReport alloc] initWithFile:file];
+
+        // Symbolicate.
+        if (![report symbolicate]) {
+            NSLog(@"WARNING: Unable to symbolicate file \"%@\".", file);
+        }
+
+        // Process blame.
+        NSDictionary *filters = [[NSDictionary alloc] initWithContentsOfFile:@"/etc/symbolicate/blame_filters.plist"];
+        if (![report blameUsingFilters:filters]) {
+            NSLog(@"WARNING: Failed to process blame.");
+        }
+        [filters release];
+
+        // Write output to file.
+        NSString *outputFilepath = [NSString stringWithFormat:@"%@.symbolicated.%@",
+                 [file stringByDeletingPathExtension], [file pathExtension]];
+        NSError *error = nil;
+        if (![[report stringRepresentation] writeToFile:outputFilepath atomically:YES encoding:NSUTF8StringEncoding error:&error]) {
+            NSLog(@"ERROR: Unable to write to file \"%@\": %@.", outputFilepath, [error localizedDescription]);
+        }
+        [report release];
+
+		file = outputFilepath;
 #endif
 		[group->files replaceObjectAtIndex:idx withObject:file];
 		[sheet hide];
