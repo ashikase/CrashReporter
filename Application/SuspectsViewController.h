@@ -21,11 +21,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #import <UIKit/UIKit.h>
 
-@interface SuspectsViewController : UITableViewController {
-	NSString* _file;
-	NSString* _date;
-	NSString* primarySuspect;
-	NSMutableArray* secondarySuspects, *tertiarySuspects;
-}
--(void)readSuspects:(NSString*)file date:(NSDate*)date;
+@interface SuspectsViewController : UITableViewController
+- (void)readSuspects:(NSString*)file date:(NSDate*)date;
 @end
