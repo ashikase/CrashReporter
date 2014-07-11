@@ -20,7 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #import "CrashLogViewController.h"
 #import <UIKit/UIKit.h>
-#import "RegexKitLite.h"
+#import <RegexKitLite/RegexKitLite.h>
 #import "reporter.h"
 #import <MobileCoreServices/MobileCoreServices.h>
 

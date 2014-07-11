@@ -25,7 +25,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #import <UIKit/UIKit.h>
 #import "CrashLogViewController.h"
 #import "pastie.h"
-#import "RegexKitLite.h"
+#import <RegexKitLite/RegexKitLite.h>
 #import "ModalActionSheet.h"
 
 @interface UIColor ()

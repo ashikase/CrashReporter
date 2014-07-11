@@ -19,7 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #import "CrashLogsFolderReader.h"
-#import "RegexKitLite.h"
+#import <RegexKitLite/RegexKitLite.h>
 #include "common.h"
 #import "move_as_root.h"
 

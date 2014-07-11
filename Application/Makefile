@@ -1,5 +1,6 @@
 APPLICATION_NAME = CrashReporter
 CrashReporter_FILES = \
+    ../Libraries/RegexKitLite/RegexKitLite.m \
     BlameController.m \
     CrashLogDateChooser.m \
     CrashLogViewController.m \
@@ -8,7 +9,6 @@ CrashReporter_FILES = \
     CrashReporterDelegate.m \
     CustomBlameController.m \
     ModalActionSheet.m \
-    RegexKitLite.m \
     SuspectsViewController.m \
     common.c \
     move_as_root.m \
@@ -16,7 +16,7 @@ CrashReporter_FILES = \
     main.m \
     pastie.m \
     reporter.m
-CrashReporter_CFLAGS = -I ../symbolicate
+CrashReporter_CFLAGS = -I../Libraries
 CrashReporter_LDFLAGS = -licucore
 CrashReporter_FRAMEWORKS = MessageUI SystemConfiguration UIKit
 CrashReporter_PRIVATE_FRAMEWORKS = Symbolication

@@ -24,7 +24,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #import "reporter.h"
 #import "BlameController.h"
 #import "find_dpkg.h"
-#import "RegexKitLite.h"
+#import <RegexKitLite/RegexKitLite.h>
 
 static NSComparisonResult blameSorter(id a, id b, void* c) {
 	unsigned au = [[a objectAtIndex:1] unsignedIntValue], bu = [[b objectAtIndex:1] unsignedIntValue];
