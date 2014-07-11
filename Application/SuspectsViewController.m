@@ -22,25 +22,16 @@
 
 #import <Foundation/Foundation.h>
 #import <RegexKitLite/RegexKitLite.h>
+#import <libsymbolicate/CRCrashReport.h>
 #import "BlameController.h"
 #import "CrashLogViewController.h"
 #import "find_dpkg.h"
 #import "reporter.h"
 
-static NSComparisonResult blameSorter(id a, id b, void *c) {
-    unsigned au = [[a objectAtIndex:1] unsignedIntValue];
-    unsigned bu = [[b objectAtIndex:1] unsignedIntValue];
-    if (au < bu) return NSOrderedAscending;
-    if (au > bu) return NSOrderedDescending;
-    return NSOrderedSame;
-}
-
 @implementation SuspectsViewController {
     NSString *file_;
     NSString *date_;
-    NSString *primarySuspect_;
-    NSMutableArray *secondarySuspects_;
-    NSMutableArray *tertiarySuspects_;
+    NSArray *suspects_;
 }
 
 - (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation {
@@ -48,9 +39,7 @@ static NSComparisonResult blameSorter(id a, id b, void *c) {
 }
 
 - (void)dealloc {
-    [primarySuspect_ release];
-    [secondarySuspects_ release];
-    [tertiarySuspects_ release];
+    [suspects_ release];
     [file_ release];
     [date_ release];
     [super dealloc];
@@ -60,29 +49,12 @@ static NSComparisonResult blameSorter(id a, id b, void *c) {
     file_ = [file retain];
     date_ = [[ReporterLine formatSyslogTime:date] retain];
 
-    NSArray *sortedBlames = [[[NSDictionary dictionaryWithContentsOfFile:file] objectForKey:@"blame"] sortedArrayUsingFunction:blameSorter context:NULL];
+    // Retrieve suspects.
+    CRCrashReport *report = [[CRCrashReport alloc] initWithFile:file];
+    suspects_ = [[[report properties] objectForKey:@"blame"] retain];
+    [report release];
 
-    [primarySuspect_ release];
-    primarySuspect_ = nil;
-    [secondarySuspects_ release];
-    secondarySuspects_ = [[NSMutableArray alloc] init];
-    [tertiarySuspects_ release];
-    tertiarySuspects_ = [[NSMutableArray alloc] init];
-
-    for (NSArray *blame in sortedBlames) {
-        unsigned blameRank = [[blame objectAtIndex:1] unsignedIntValue];
-        NSString *blamePath = [blame objectAtIndex:0];
-        if (blameRank & 0x80000000) {
-            [tertiarySuspects_ addObject:blamePath];
-        } else {
-            if (primarySuspect_ == nil) {
-                primarySuspect_ = [blamePath retain];
-            } else {
-                [secondarySuspects_ addObject:blamePath];
-            }
-        }
-    }
-
+    // Set title using date.
     NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
     [formatter setDateFormat:@"HH:mm:ss"];
     self.title = [formatter stringFromDate:date];
@@ -98,19 +70,17 @@ static NSComparisonResult blameSorter(id a, id b, void *c) {
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
     switch (section) {
         case 0: return 2;
-        case 1: return (primarySuspect_ != nil) ? 1 : 0;
-        case 2: return [secondarySuspects_ count];
-        case 3: return [tertiarySuspects_ count];
+        case 1: return (([suspects_ count] > 0) ? 1 : 0);
+        case 2: return ([suspects_ count] - 1);
         default: return 0;
     }
 }
 
-- (NSString *)tableView:(UITableView*)tableView titleForHeaderInSection:(NSInteger)section {
+- (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section {
     NSString *key = nil;
     switch (section) {
         case 1: key = @"Primary suspect"; break;
-        case 2: key = @"Secondary suspects"; break;
-        case 3: key = @"Tertiary suspects"; break;
+        case 2: key = @"Other suspects"; break;
         default: return nil;
     }
     return [[NSBundle mainBundle] localizedStringForKey:key value:nil table:nil];
@@ -126,9 +96,8 @@ static NSComparisonResult blameSorter(id a, id b, void *c) {
     NSUInteger row = indexPath.row;
     NSString *text = nil;
     switch (indexPath.section) {
-        case 1: text = primarySuspect_; break;
-        case 2: text = [secondarySuspects_ objectAtIndex:row]; break;
-        case 3: text = [tertiarySuspects_ objectAtIndex:row]; break;
+        case 1: text = [suspects_ objectAtIndex:0]; break;
+        case 2: text = [suspects_ objectAtIndex:(row + 1)]; break;
         default: text = [[NSBundle mainBundle] localizedStringForKey:((row == 0) ? @"View crash log" : @"View syslog") value:nil table:nil]; break;
     }
     cell.textLabel.text = [text lastPathComponent];
@@ -153,9 +122,8 @@ static NSComparisonResult blameSorter(id a, id b, void *c) {
     } else {
         NSString *path = nil;
         switch (indexPath.section) {
-            case 1: path = primarySuspect_; break;
-            case 2: path = [secondarySuspects_ objectAtIndex:row]; break;
-            case 3: path = [tertiarySuspects_ objectAtIndex:row]; break;
+            case 1: path = [suspects_ objectAtIndex:0]; break;
+            case 2: path = [suspects_ objectAtIndex:(row + 1)]; break;
             default: break;
         }
 
