@@ -19,11 +19,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #import <UIKit/UIKit.h>
-#import "CrashLogsFolderReader.h"
 
-@interface CrashLogDateChooser : UITableViewController {
-	BOOL deleted_row_0;
-	CrashLogGroup* group;
-}
-@property(retain) CrashLogGroup* group;
+@class CrashLogGroup;
+
+@interface CrashLogDateChooser : UITableViewController
+@property(nonatomic, retain) CrashLogGroup *group;
 @end
+
+/* vim: set ft=objc ff=unix sw=4 ts=4 tw=80 expandtab: */
