@@ -7,9 +7,9 @@ CrashReporter_FILES = \
     CrashLogDirectoryReader.m \
     CrashLogGroup.m \
     CrashLogViewController.m \
-    CrashLogsTableController.m \
     CustomBlameController.m \
     ModalActionSheet.m \
+    RootViewController.m \
     SuspectsViewController.m \
     common.c \
     move_as_root.m \

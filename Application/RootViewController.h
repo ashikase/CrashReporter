@@ -20,7 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #import <UIKit/UIKit.h>
 
-@interface CrashLogsTableController : UITableViewController {
-//	NSArray* settingsIcons;
-}
+@interface RootViewController : UITableViewController
 @end
+
+/* vim: set ft=objc ff=unix sw=4 ts=4 tw=80 expandtab: */

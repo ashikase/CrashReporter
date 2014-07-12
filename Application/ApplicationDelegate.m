@@ -20,7 +20,7 @@
 
 #import "ApplicationDelegate.h"
 
-#import "CrashLogsTableController.h"
+#import "RootViewController.h"
 #import "reporter.h"
 
 @interface UIAlertView ()
@@ -37,7 +37,7 @@
 
 - (void)applicationDidFinishLaunching:(UIApplication *)application {
     // Create root view controller.
-    CrashLogsTableController *rootController = [[CrashLogsTableController alloc] initWithStyle:UITableViewStylePlain];
+    RootViewController *rootController = [[RootViewController alloc] initWithStyle:UITableViewStylePlain];
     rootController.title = [[NSBundle mainBundle] localizedStringForKey:@"Crash Reporter" value:nil table:nil];
     navigationController_ = [[UINavigationController alloc] initWithRootViewController:rootController];
     [rootController release];
