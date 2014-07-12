@@ -1,13 +1,13 @@
 APPLICATION_NAME = CrashReporter
 CrashReporter_FILES = \
     ../Libraries/RegexKitLite/RegexKitLite.m \
+    ApplicationDelegate.m \
     BlameController.m \
     CrashLogDateChooser.m \
     CrashLogDirectoryReader.m \
     CrashLogGroup.m \
     CrashLogViewController.m \
     CrashLogsTableController.m \
-    CrashReporterDelegate.m \
     CustomBlameController.m \
     ModalActionSheet.m \
     SuspectsViewController.m \

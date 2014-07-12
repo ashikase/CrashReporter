@@ -22,8 +22,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #import <UIKit/UIKit.h>
 #include <stdio.h>
 
-extern int canEmailAuthor;
-
 static NSString* stripQuotes(NSString* str) {
 	NSUInteger str_len = [str length];
 	if (str_len >= 2) {
@@ -340,6 +338,7 @@ static NSCalendar* cal;
 	} else {
 		// is a dpkg.
 
+        BOOL canEmailAuthor = [[NSUserDefaults standardUserDefaults] boolForKey:@"canEmailAuthor"];
 		if (canEmailAuthor && pkg.author) {
 			ReporterLine* emailLink = [ReporterLine reporterWithLine:[NSString stringWithFormat:@"link email \"%@\" as \"Email developer\"", pkg.author]];
 			[res addObject:emailLink];
