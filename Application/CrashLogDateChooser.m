@@ -21,7 +21,7 @@
 #import "CrashLogDateChooser.h"
 
 #import <libsymbolicate/CRCrashReport.h>
-#import "CrashLogsFolderReader.h"
+#import "CrashLogGroup.h"
 #import "ModalActionSheet.h"
 #import "SuspectsViewController.h"
 
@@ -62,7 +62,7 @@ static inline NSUInteger indexOf(NSUInteger section, NSUInteger row, BOOL delete
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
     NSInteger numRows = 0;
-    NSUInteger count = [group_->files count];
+    NSUInteger count = [group_.files count];
     if (count != 0) {
         numRows = (section == 0) ? 1 : count;
         numRows -= deletedRowZero_ ? 0 : 1;
@@ -79,13 +79,13 @@ static inline NSUInteger indexOf(NSUInteger section, NSUInteger row, BOOL delete
 
     NSUInteger section = indexPath.section;
     NSUInteger row = indexPath.row;
-    NSString *filename = [group_->files objectAtIndex:indexOf(section, row, deletedRowZero_)];
+    NSString *filename = [group_.files objectAtIndex:indexOf(section, row, deletedRowZero_)];
     BOOL isReported = [filename hasSuffix:@".symbolicated.plist"] || [filename hasSuffix:@".symbolicated.ips"];
 
     NSDateFormatter* formatter = [NSDateFormatter new];
     [formatter setDateFormat:@"HH:mm:ss (yyyy MMM d)"];
     UILabel *label = cell.textLabel;
-    label.text = [formatter stringFromDate:[group_->dates objectAtIndex:indexOf(section, row, deletedRowZero_)]];
+    label.text = [formatter stringFromDate:[group_.dates objectAtIndex:indexOf(section, row, deletedRowZero_)]];
     label.textColor = isReported ? [UIColor grayColor] : [UIColor blackColor];
     [formatter release];
 
@@ -98,8 +98,8 @@ static inline NSUInteger indexOf(NSUInteger section, NSUInteger row, BOOL delete
     SuspectsViewController *controller = [SuspectsViewController new];
 
     NSUInteger index = indexOf(indexPath.section, indexPath.row, deletedRowZero_);
-    [[NSFileManager defaultManager] changeCurrentDirectoryPath:group_->folder];
-    NSString *file = [group_->files objectAtIndex:index];
+    [[NSFileManager defaultManager] changeCurrentDirectoryPath:group_.logDirectory];
+    NSString *file = [group_.files objectAtIndex:index];
     BOOL isReported = [file hasSuffix:@".symbolicated.plist"] || [file hasSuffix:@".symbolicated.ips"];
     if (!isReported) {
         // Symbolicate.
@@ -134,13 +134,14 @@ static inline NSUInteger indexOf(NSUInteger section, NSUInteger row, BOOL delete
         file = outputFilepath;
 #endif
 
-        [group_->files replaceObjectAtIndex:index withObject:file];
+        // FIXME:
+        //[group_.files replaceObjectAtIndex:index withObject:file];
         [sheet hide];
         [sheet release];
     }
 
     // FIXME: Just pass blame array (e.g. setSuspects:].
-    [controller readSuspects:file date:[group_->dates objectAtIndex:index]];
+    [controller readSuspects:file date:[group_.dates objectAtIndex:index]];
     [self.navigationController pushViewController:controller animated:YES];
     [controller release];
 }
@@ -148,8 +149,8 @@ static inline NSUInteger indexOf(NSUInteger section, NSUInteger row, BOOL delete
 - (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath {
     NSUInteger section = indexPath.section;
     NSUInteger index = indexOf(section, indexPath.row, deletedRowZero_);
-    NSString *filename = [group_->files objectAtIndex:index];
-    NSString *filepath = [group_->folder stringByAppendingPathComponent:filename];
+    NSString *filename = [group_.files objectAtIndex:index];
+    NSString *filepath = [group_.logDirectory stringByAppendingPathComponent:filename];
     if (![[NSFileManager defaultManager] removeItemAtPath:filepath error:NULL]) {
         // Try to delete as root.
         exec_move_as_root("!", "!", [filepath UTF8String]);
@@ -158,8 +159,9 @@ static inline NSUInteger indexOf(NSUInteger section, NSUInteger row, BOOL delete
         deletedRowZero_ = YES;
     }
 
-    [group_->files removeObjectAtIndex:index];
-    [group_->dates removeObjectAtIndex:index];
+    // FIXME:
+    //[group_.files removeObjectAtIndex:index];
+    //[group_.dates removeObjectAtIndex:index];
     [tableView deleteRowsAtIndexPaths:[NSArray arrayWithObject:indexPath] withRowAnimation:UITableViewRowAnimationLeft];
 }
 

@@ -19,8 +19,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #import "CrashLogsTableController.h"
-#import "CrashLogsFolderReader.h"
 #import "CrashLogDateChooser.h"
+#import "CrashLogDirectoryReader.h"
+#import "CrashLogGroup.h"
 #import "CustomBlameController.h"
 
 @implementation CrashLogsTableController
@@ -55,7 +56,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 -(NSInteger)numberOfSectionsInTableView:(UITableView*)tableView { return 2; }
 -(NSString*)tableView:(UITableView*)tableView titleForHeaderInSection:(NSInteger)section { return section == 0 ? @"mobile" : @"root"; }
 -(NSInteger)tableView:(UITableView*)tableView numberOfRowsInSection:(NSInteger)section {
-	return [[GetCrashLogs() objectAtIndex:section] count];
+    if (section == 0) {
+        return [[CrashLogDirectoryReader crashLogsForMobile] count];
+    } else {
+        return [[CrashLogDirectoryReader crashLogsForRoot] count];
+    }
 }
 
 -(UITableViewCell*)tableView:(UITableView*)tableView cellForRowAtIndexPath:(NSIndexPath*)indexPath {
@@ -63,17 +68,23 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 	if (cell == nil) {
 		cell = [[[UITableViewCell alloc] initWithStyle:UITableViewCellStyleValue1 reuseIdentifier:@"."] autorelease];
 	}
-	CrashLogGroup* group = [[GetCrashLogs() objectAtIndex:indexPath.section] objectAtIndex:indexPath.row];
-	cell.textLabel.text = group->app;
-	cell.detailTextLabel.text = [NSString stringWithFormat:@"%lu", (unsigned long)[group->files count]];
+    NSArray *groups = (indexPath.section == 0) ?
+        [CrashLogDirectoryReader crashLogsForMobile] :
+        [CrashLogDirectoryReader crashLogsForRoot];
+	CrashLogGroup* group = [groups objectAtIndex:indexPath.row];
+	cell.textLabel.text = group.name;
+	cell.detailTextLabel.text = [NSString stringWithFormat:@"%lu", (unsigned long)[group.files count]];
 	cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
 	return cell;
 }
 
 -(void)tableView:(UITableView*)tableView didSelectRowAtIndexPath:(NSIndexPath*)indexPath {
 	CrashLogDateChooser* dateChooser = [[CrashLogDateChooser alloc] initWithStyle:UITableViewStylePlain];
-	CrashLogGroup* group = [[GetCrashLogs() objectAtIndex:indexPath.section] objectAtIndex:indexPath.row];
-	dateChooser.title = group->app;
+    NSArray *groups = (indexPath.section == 0) ?
+        [CrashLogDirectoryReader crashLogsForMobile] :
+        [CrashLogDirectoryReader crashLogsForRoot];
+	CrashLogGroup* group = [groups objectAtIndex:indexPath.row];
+	dateChooser.title = group.name;
 	dateChooser.group = group;
 	[self.navigationController pushViewController:dateChooser animated:YES];
 	[dateChooser release];
@@ -93,7 +104,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 }
 
 -(void)tableView:(UITableView*)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath*)indexPath {
-	DeleteCrashLogs(indexPath.section, indexPath.row);
+	[CrashLogDirectoryReader deleteCrashLogsForUser:indexPath.section group:indexPath.row];
 	[tableView deleteRowsAtIndexPaths:[NSArray arrayWithObject:indexPath] withRowAnimation:UITableViewRowAnimationLeft];
 }
 

@@ -3,8 +3,9 @@ CrashReporter_FILES = \
     ../Libraries/RegexKitLite/RegexKitLite.m \
     BlameController.m \
     CrashLogDateChooser.m \
+    CrashLogDirectoryReader.m \
+    CrashLogGroup.m \
     CrashLogViewController.m \
-    CrashLogsFolderReader.m \
     CrashLogsTableController.m \
     CrashReporterDelegate.m \
     CustomBlameController.m \
