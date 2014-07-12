@@ -19,23 +19,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #import <UIKit/UIKit.h>
-#import <MessageUI/MessageUI.h>
 
-@class ReporterLine;
-
-@interface BlameController : UITableViewController<MFMailComposeViewControllerDelegate> {
-	NSArray* linkReporters;
-	NSArray* includeReporters;
-	NSIndexSet* deniedLinks;
-
-	BOOL isAppStore;
-	NSString* stuffToSend;
-	NSString* suspect, *packageName, *authorName;
-	NSIndexSet* previouslySelectedRows;
-}
--(id)initWithReporters:(NSArray*)reporters
-		   packageName:(NSString*)packageName
-			authorName:(NSString*)authorName
-			   suspect:(NSString*)suspect
-			isAppStore:(BOOL)isAppStore_;
+@interface BlameController : UITableViewController
+- (id)initWithReporters:(NSArray *)reporters packageName:(NSString *)packageName
+    authorName:(NSString *)authorName suspect:(NSString *)suspect isAppStore:(BOOL)isAppStore;
 @end
+
+/* vim: set ft=objc ff=unix sw=4 ts=4 tw=80 expandtab: */
