@@ -62,11 +62,14 @@ static inline NSUInteger indexOf(NSUInteger section, NSUInteger row, BOOL delete
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-    NSInteger numRows = 0;
+    NSUInteger numRows = 0;
     NSUInteger count = [[[self group] crashLogs] count];
     if (count != 0) {
-        numRows = (section == 0) ? 1 : (count - 1);
-        numRows -= deletedRowZero_ ? 1 : 0;
+        if (section == 0) {
+            numRows = deletedRowZero_? 0 : 1;
+        } else {
+            numRows = deletedRowZero_? count : count - 1;
+        }
     }
     return numRows;
 }
