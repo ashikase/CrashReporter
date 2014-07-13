@@ -16,7 +16,7 @@ static NSCalendar *calendar() {
 @synthesize filepath = filepath_;
 @synthesize processName = processName_;
 @synthesize date = date_;
-@synthesize symbolicated = symbolicated_;
+@dynamic symbolicated;
 
 // NOTE: Filename part of path must be of the form [app_name]_date_device-name.
 //       The device-name cannot contain underscores.
@@ -28,12 +28,6 @@ static NSCalendar *calendar() {
         if ([matches count] == 8) {
             filepath_ = [filepath copy];
             processName_ = [[matches objectAtIndex:1] copy];
-
-            // Determine if file has already been symbolicated.
-            // NOTE: This assumes that symbolicated files have a specific extension,
-            //       which may not be the case if the file was symbolicated by a
-            //       tool other than CrashReporter.
-            symbolicated_ = [basename hasSuffix:@".symbolicated"];
 
             // Parse the date.
             NSDateComponents *components = [NSDateComponents new];
@@ -59,6 +53,14 @@ static NSCalendar *calendar() {
     [processName_ release];
     [date_ release];
     [super dealloc];
+}
+
+- (BOOL)isSymbolicated {
+    // NOTE: This assumes that symbolicated files have a specific extension,
+    //       which may not be the case if the file was symbolicated by a
+    //       tool other than CrashReporter.
+    NSString *basename = [[[self filepath] lastPathComponent] stringByDeletingPathExtension];
+    return [basename hasSuffix:@".symbolicated"];
 }
 
 - (void)symbolicate {
