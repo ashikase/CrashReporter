@@ -3,6 +3,8 @@
 #import <RegexKitLite/RegexKitLite.h>
 #import <libsymbolicate/CRCrashReport.h>
 
+#include "move_as_root.h"
+
 static NSCalendar *calendar() {
     static NSCalendar *calendar = nil;
     if (calendar == nil) {
@@ -63,6 +65,19 @@ static NSCalendar *calendar() {
     return [basename hasSuffix:@".symbolicated"];
 }
 
+#pragma mark - Other
+
+static void deleteFileAtPath(NSString *filepath) {
+    if (![[NSFileManager defaultManager] removeItemAtPath:filepath error:NULL]) {
+        // Try to delete as root.
+        exec_move_as_root("!", "!", [filepath UTF8String]);
+    }
+}
+- (void)delete {
+    NSString *filepath = [self filepath];
+    deleteFileAtPath(filepath);
+}
+
 - (void)symbolicate {
     if (![self isSymbolicated]) {
         // Load crash report.
@@ -79,6 +94,9 @@ static NSCalendar *calendar() {
                         [filepath stringByDeletingPathExtension], [filepath pathExtension]];
                 NSError *error = nil;
                 if ([[report stringRepresentation] writeToFile:outputFilepath atomically:YES encoding:NSUTF8StringEncoding error:&error]) {
+                    // Delete input file.
+                    deleteFileAtPath(filepath);
+
                     // Update path for this crash log instance.
                     filepath_ = [outputFilepath retain];
                 } else {

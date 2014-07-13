@@ -6,6 +6,7 @@
 @property(nonatomic, readonly) NSDate *date;
 @property(nonatomic, readonly, getter = isSymbolicated) BOOL symbolicated;
 - (instancetype)initWithFilepath:(NSString *)filepath;
+- (void)delete;
 - (void)symbolicate;
 @end
 

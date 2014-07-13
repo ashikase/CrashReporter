@@ -26,8 +26,6 @@
 #import "ModalActionSheet.h"
 #import "SuspectsViewController.h"
 
-#include "move_as_root.h"
-
 static inline NSUInteger indexOf(NSUInteger section, NSUInteger row, BOOL deletedRowZero) {
     return section + row - (deletedRowZero ? 1 : 0);
 }
@@ -126,22 +124,14 @@ static inline NSUInteger indexOf(NSUInteger section, NSUInteger row, BOOL delete
     CrashLogGroup *group = [self group];
     NSUInteger index = indexOf(section, indexPath.row, deletedRowZero_);
     CrashLog *crashLog = [[group crashLogs] objectAtIndex:index];
-    NSString *filepath = [crashLog filepath];
-
-    // Move to CrashLogGroup.
-    if (![[NSFileManager defaultManager] removeItemAtPath:filepath error:NULL]) {
-        // Try to delete as root.
-        exec_move_as_root("!", "!", [filepath UTF8String]);
+    if ([group deleteCrashLog:crashLog]) {
+        if (section == 0) {
+            deletedRowZero_ = YES;
+        }
+        [tableView deleteRowsAtIndexPaths:[NSArray arrayWithObject:indexPath] withRowAnimation:UITableViewRowAnimationLeft];
+    } else {
+        // FIXME: Display an error stating that file could not be deleted.
     }
-
-    if (section == 0) {
-        deletedRowZero_ = YES;
-    }
-
-    // FIXME:
-    //[group_.files removeObjectAtIndex:index];
-    //[group_.dates removeObjectAtIndex:index];
-    [tableView deleteRowsAtIndexPaths:[NSArray arrayWithObject:indexPath] withRowAnimation:UITableViewRowAnimationLeft];
 }
 
 @end

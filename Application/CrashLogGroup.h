@@ -29,6 +29,7 @@
 + (instancetype)groupWithName:(NSString *)name logDirectory:(NSString *)logDirectory;
 - (instancetype)initWithName:(NSString *)name logDirectory:(NSString *)logDirectory;
 - (void)addCrashLog:(CrashLog *)crashLog;
+- (BOOL)deleteCrashLog:(CrashLog *)crashLog;
 @end
 
 /* vim: set ft=objc ff=unix sw=4 ts=4 tw=80 expandtab: */

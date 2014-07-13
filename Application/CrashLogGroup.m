@@ -54,12 +54,24 @@ static NSInteger reverseCompareCrashLogs(CrashLog *a, CrashLog *b, void *context
     [super dealloc];
 }
 
+- (NSArray *)crashLogs {
+    return [crashLogs_ sortedArrayUsingFunction:reverseCompareCrashLogs context:NULL];
+}
+
 - (void)addCrashLog:(CrashLog *)crashLog {
     [crashLogs_ addObject:crashLog];
 }
 
-- (NSArray *)crashLogs {
-    return [crashLogs_ sortedArrayUsingFunction:reverseCompareCrashLogs context:NULL];
+// FIXME: Update "LatestCrash-*" link, if necessary.
+- (BOOL)deleteCrashLog:(CrashLog *)crashLog {
+    if ([crashLogs_ containsObject:crashLog]) {
+        [crashLog delete];
+        if (![[NSFileManager defaultManager] fileExistsAtPath:[crashLog filepath]]) {
+            [crashLogs_ removeObject:crashLog];
+            return YES;
+        }
+    }
+    return NO;
 }
 
 @end
