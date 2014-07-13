@@ -112,8 +112,7 @@ static inline NSUInteger indexOf(NSUInteger section, NSUInteger row, BOOL delete
         [sheet release];
     }
 
-    // FIXME: Pass CrashLog object instead.
-    [controller readSuspects:[[crashLog filepath] lastPathComponent] date:[crashLog date]];
+    [controller readSuspectsForCrashLog:crashLog];
     [self.navigationController pushViewController:controller animated:YES];
     [controller release];
 }

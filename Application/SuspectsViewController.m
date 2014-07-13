@@ -24,13 +24,14 @@
 #import <RegexKitLite/RegexKitLite.h>
 #import <libsymbolicate/CRCrashReport.h>
 #import "BlameController.h"
+#import "CrashLog.h"
 #import "CrashLogViewController.h"
 #import "find_dpkg.h"
 #import "reporter.h"
 
 @implementation SuspectsViewController {
-    NSString *file_;
-    NSString *date_;
+    CrashLog *crashLog_;
+    NSString *dateString_;
     NSArray *suspects_;
 }
 
@@ -39,23 +40,27 @@
 }
 
 - (void)dealloc {
+    [crashLog_ release];
+    [dateString_ release];
     [suspects_ release];
-    [file_ release];
-    [date_ release];
     [super dealloc];
 }
 
-- (void)readSuspects:(NSString *)file date:(NSDate *)date {
-    file_ = [file retain];
-    date_ = [[ReporterLine formatSyslogTime:date] retain];
+- (void)readSuspectsForCrashLog:(CrashLog *)crashLog {
+    crashLog_ = [crashLog retain];
 
     // Retrieve suspects.
-    CRCrashReport *report = [[CRCrashReport alloc] initWithFile:file];
+    CRCrashReport *report = [[CRCrashReport alloc] initWithFile:[crashLog_ filepath]];
     suspects_ = [[[report properties] objectForKey:@"blame"] retain];
     [report release];
 
+    // Create date string for syslog output.
+    // FIXME: Is it necessary to cache this?
+    NSDate *date = [crashLog date];
+    dateString_ = [[ReporterLine formatSyslogTime:date] retain];
+
     // Set title using date.
-    NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
+    NSDateFormatter *formatter = [NSDateFormatter new];
     [formatter setDateFormat:@"HH:mm:ss"];
     self.title = [formatter stringFromDate:date];
     [formatter release];
@@ -111,8 +116,8 @@
     NSUInteger section = indexPath.section;
     NSUInteger row = indexPath.row;
 
-    NSString *crashlogLine = [NSString stringWithFormat:@"include as \"Crash log\" file \"%@\"", file_];
-    NSString *syslogLine = [NSString stringWithFormat:@"include as syslog command grep -F \"%@\" /var/log/syslog", date_];
+    NSString *crashlogLine = [NSString stringWithFormat:@"include as \"Crash log\" file \"%@\"", [crashLog_ filepath]];
+    NSString *syslogLine = [NSString stringWithFormat:@"include as syslog command grep -F \"%@\" /var/log/syslog", dateString_];
 
     if (section == 0) {
         CrashLogViewController *viewController = [CrashLogViewController new];

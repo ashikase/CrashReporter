@@ -21,6 +21,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #import <UIKit/UIKit.h>
 
+@class CrashLog;
+
 @interface SuspectsViewController : UITableViewController
-- (void)readSuspects:(NSString*)file date:(NSDate*)date;
+- (void)readSuspectsForCrashLog:(CrashLog *)crashLog;
 @end
