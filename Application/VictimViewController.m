@@ -65,8 +65,8 @@ static inline NSUInteger indexOf(NSUInteger section, NSUInteger row, BOOL delete
     NSInteger numRows = 0;
     NSUInteger count = [[[self group] crashLogs] count];
     if (count != 0) {
-        numRows = (section == 0) ? 1 : count;
-        numRows -= deletedRowZero_ ? 0 : 1;
+        numRows = (section == 0) ? 1 : (count - 1);
+        numRows -= deletedRowZero_ ? 1 : 0;
     }
     return numRows;
 }
