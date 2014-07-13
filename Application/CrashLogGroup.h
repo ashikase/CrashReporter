@@ -20,14 +20,15 @@
 
 #import <Foundation/Foundation.h>
 
+@class CrashLog;
+
 @interface CrashLogGroup : NSObject
 @property (nonatomic, readonly) NSString *name;
 @property (nonatomic, readonly) NSString *logDirectory;
-@property (nonatomic, readonly) NSArray *dates;
-@property (nonatomic, readonly) NSArray *files;
+@property (nonatomic, readonly) NSArray *crashLogs;
 + (instancetype)groupWithName:(NSString *)name logDirectory:(NSString *)logDirectory;
 - (instancetype)initWithName:(NSString *)name logDirectory:(NSString *)logDirectory;
-- (void)addFilename:(NSString *)filename forDate:(NSDate *)date;
+- (void)addCrashLog:(CrashLog *)crashLog;
 @end
 
 /* vim: set ft=objc ff=unix sw=4 ts=4 tw=80 expandtab: */

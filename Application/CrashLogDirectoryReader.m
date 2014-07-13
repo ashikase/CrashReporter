@@ -20,23 +20,11 @@
 
 #import "CrashLogDirectoryReader.h"
 
-#import <RegexKitLite/RegexKitLite.h>
+#import "CrashLog.h"
 #import "CrashLogGroup.h"
 #import "move_as_root.h"
 
 #include "common.h"
-
-// user name -> { app name -> {date -> file} }
-// The file name must be of the form [app_name]_date_device-name.
-// The device-name cannot contain underscores.
-
-static NSCalendar *calendar() {
-    static NSCalendar *calendar = nil;
-    if (calendar == nil) {
-        calendar = [[NSCalendar alloc] initWithCalendarIdentifier:NSGregorianCalendar];
-    }
-    return calendar;
-}
 
 static NSArray *crashLogGroupsForDirectory(NSString *directory) {
     NSMutableDictionary *groups = [NSMutableDictionary dictionary];
@@ -44,26 +32,17 @@ static NSArray *crashLogGroupsForDirectory(NSString *directory) {
     // Look in path for crash log files; group logs by app name.
     NSFileManager *fileMan = [NSFileManager defaultManager];
     for (NSString *filename in [fileMan contentsOfDirectoryAtPath:directory error:NULL]) {
-        NSArray *matches = [filename captureComponentsMatchedByRegex:@"(.+)_(\\d{4})-(\\d{2})-(\\d{2})-(\\d{2})(\\d{2})(\\d{2})_[^_]+\\.(?:plist|ips)"];
-        if ([matches count] == 8) {
-            NSDate *date = nil;
-            NSDateComponents *components = [NSDateComponents new];
-            [components setYear:[[matches objectAtIndex:2] integerValue]];
-            [components setMonth:[[matches objectAtIndex:3] integerValue]];
-            [components setDay:[[matches objectAtIndex:4] integerValue]];
-            [components setHour:[[matches objectAtIndex:5] integerValue]];
-            [components setMinute:[[matches objectAtIndex:6] integerValue]];
-            [components setSecond:[[matches objectAtIndex:7] integerValue]];
-            date = [calendar() dateFromComponents:components];
-            [components release];
-
-            NSString *name = [matches objectAtIndex:1];
+        NSString *filepath = [directory stringByAppendingPathComponent:filename];
+        CrashLog *crashLog = [[CrashLog alloc] initWithFilepath:filepath];
+        if (crashLog != nil) {
+            NSString *name = [crashLog processName];
             CrashLogGroup *group = [groups objectForKey:name];
             if (group == nil) {
                 group = [[CrashLogGroup alloc] initWithName:name logDirectory:directory];
                 [groups setObject:group forKey:name];
             }
-            [group addFilename:filename forDate:date];
+            [group addCrashLog:crashLog];
+            [crashLog release];
         }
     }
 
@@ -89,8 +68,8 @@ static NSArray *crashLogGroupsForDirectory(NSString *directory) {
     CrashLogGroup *group = [groups objectAtIndex:groupIndex];
     if (group != nil) {
         NSFileManager *fileMan = [NSFileManager defaultManager];
-        for (NSString *filename in [group files]) {
-            NSString *filepath = [[group logDirectory] stringByAppendingPathComponent:filename];
+        for (CrashLog *crashLog in [group crashLogs]) {
+            NSString *filepath = [crashLog filepath];
             if (![fileMan removeItemAtPath:filepath error:NULL]) {
                 // FIXME: Extremely inefficient!
                 exec_move_as_root("!", "!", [filepath UTF8String]);

@@ -4,6 +4,7 @@ CrashReporter_FILES = \
     ApplicationDelegate.m \
     BlameController.m \
     CrashLogDirectoryReader.m \
+    CrashLog.m \
     CrashLogGroup.m \
     CrashLogViewController.m \
     CustomBlameController.m \

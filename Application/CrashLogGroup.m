@@ -20,14 +20,14 @@
 
 #import "CrashLogGroup.h"
 
-@implementation NSDate (ReverseCompare)
-- (NSComparisonResult)reverseCompare:(NSDate *)date {
-    return -[self compare:date];
+#import "CrashLog.h"
+
+static NSInteger reverseCompareCrashLogs(CrashLog *a, CrashLog *b, void *context) {
+    return [[b filepath] compare:[a filepath]];
 }
-@end
 
 @implementation CrashLogGroup {
-    NSMutableDictionary *datesAndFiles_;
+    NSMutableArray *crashLogs_;
 }
 
 @synthesize name = name_;
@@ -42,7 +42,7 @@
     if (self != nil) {
         name_ = [name copy];
         logDirectory_ = [logDirectory copy];
-        datesAndFiles_ = [NSMutableDictionary new];
+        crashLogs_ = [NSMutableArray new];
     }
     return self;
 }
@@ -50,25 +50,16 @@
 - (void)dealloc {
     [name_ release];
     [logDirectory_ release];
-    [datesAndFiles_ release];
+    [crashLogs_ release];
     [super dealloc];
 }
 
-
-- (void)addFilename:(NSString *)filename forDate:(NSDate *)date {
-    [datesAndFiles_ setObject:filename forKey:date];
+- (void)addCrashLog:(CrashLog *)crashLog {
+    [crashLogs_ addObject:crashLog];
 }
 
-- (NSArray *)dates {
-    return [[datesAndFiles_ allKeys] sortedArrayUsingSelector:@selector(reverseCompare:)];
-}
-
-- (NSArray *)files {
-    NSMutableArray *files = [NSMutableArray array];
-    for (NSDate *date in [self dates]) {
-        [files addObject:[datesAndFiles_ objectForKey:date]];
-    }
-    return files;
+- (NSArray *)crashLogs {
+    return [crashLogs_ sortedArrayUsingFunction:reverseCompareCrashLogs context:NULL];
 }
 
 @end

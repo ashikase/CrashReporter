@@ -21,6 +21,7 @@
 #import "VictimViewController.h"
 
 #import <libsymbolicate/CRCrashReport.h>
+#import "CrashLog.h"
 #import "CrashLogGroup.h"
 #import "ModalActionSheet.h"
 #import "SuspectsViewController.h"
@@ -62,7 +63,7 @@ static inline NSUInteger indexOf(NSUInteger section, NSUInteger row, BOOL delete
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
     NSInteger numRows = 0;
-    NSUInteger count = [group_.files count];
+    NSUInteger count = [[[self group] crashLogs] count];
     if (count != 0) {
         numRows = (section == 0) ? 1 : count;
         numRows -= deletedRowZero_ ? 0 : 1;
@@ -77,16 +78,15 @@ static inline NSUInteger indexOf(NSUInteger section, NSUInteger row, BOOL delete
         cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
     }
 
-    NSUInteger section = indexPath.section;
-    NSUInteger row = indexPath.row;
-    NSString *filename = [group_.files objectAtIndex:indexOf(section, row, deletedRowZero_)];
-    BOOL isReported = [filename hasSuffix:@".symbolicated.plist"] || [filename hasSuffix:@".symbolicated.ips"];
+    NSUInteger index = indexOf(indexPath.section, indexPath.row, deletedRowZero_);
+    CrashLogGroup *group = [self group];
+    CrashLog *crashLog = [[group crashLogs] objectAtIndex:index];
 
-    NSDateFormatter* formatter = [NSDateFormatter new];
+    NSDateFormatter *formatter = [NSDateFormatter new];
     [formatter setDateFormat:@"HH:mm:ss (yyyy MMM d)"];
     UILabel *label = cell.textLabel;
-    label.text = [formatter stringFromDate:[group_.dates objectAtIndex:indexOf(section, row, deletedRowZero_)]];
-    label.textColor = isReported ? [UIColor grayColor] : [UIColor blackColor];
+    label.text = [formatter stringFromDate:[crashLog date]];
+    label.textColor = [crashLog isSymbolicated] ? [UIColor grayColor] : [UIColor blackColor];
     [formatter release];
 
     return cell;
@@ -98,63 +98,39 @@ static inline NSUInteger indexOf(NSUInteger section, NSUInteger row, BOOL delete
     SuspectsViewController *controller = [SuspectsViewController new];
 
     NSUInteger index = indexOf(indexPath.section, indexPath.row, deletedRowZero_);
-    [[NSFileManager defaultManager] changeCurrentDirectoryPath:group_.logDirectory];
-    NSString *file = [group_.files objectAtIndex:index];
-    BOOL isReported = [file hasSuffix:@".symbolicated.plist"] || [file hasSuffix:@".symbolicated.ips"];
-    if (!isReported) {
+    CrashLogGroup *group = [self group];
+    CrashLog *crashLog = [[group crashLogs] objectAtIndex:index];
+    if (![crashLog isSymbolicated]) {
         // Symbolicate.
-        ModalActionSheet* sheet = [[ModalActionSheet alloc] init2];
+        ModalActionSheet *sheet = [[ModalActionSheet alloc] init2];
         [sheet show];
-
 #if !TARGET_IPHONE_SIMULATOR
-        // Load crash report.
-        CRCrashReport *report = [[CRCrashReport alloc] initWithFile:file];
-
-        // Symbolicate.
-        if (![report symbolicate]) {
-            NSLog(@"WARNING: Unable to symbolicate file \"%@\".", file);
-        }
-
-        // Process blame.
-        NSDictionary *filters = [[NSDictionary alloc] initWithContentsOfFile:@"/etc/symbolicate/blame_filters.plist"];
-        if (![report blameUsingFilters:filters]) {
-            NSLog(@"WARNING: Failed to process blame.");
-        }
-        [filters release];
-
-        // Write output to file.
-        NSString *outputFilepath = [NSString stringWithFormat:@"%@.symbolicated.%@",
-                 [file stringByDeletingPathExtension], [file pathExtension]];
-        NSError *error = nil;
-        if (![[report stringRepresentation] writeToFile:outputFilepath atomically:YES encoding:NSUTF8StringEncoding error:&error]) {
-            NSLog(@"ERROR: Unable to write to file \"%@\": %@.", outputFilepath, [error localizedDescription]);
-        }
-        [report release];
-
-        file = outputFilepath;
+        [crashLog symbolicate];
 #endif
-
-        // FIXME:
-        //[group_.files replaceObjectAtIndex:index withObject:file];
         [sheet hide];
         [sheet release];
     }
 
-    // FIXME: Just pass blame array (e.g. setSuspects:].
-    [controller readSuspects:file date:[group_.dates objectAtIndex:index]];
+    // FIXME: Pass CrashLog object instead.
+    [controller readSuspects:[[crashLog filepath] lastPathComponent] date:[crashLog date]];
     [self.navigationController pushViewController:controller animated:YES];
     [controller release];
 }
 
 - (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath {
     NSUInteger section = indexPath.section;
+
+    CrashLogGroup *group = [self group];
     NSUInteger index = indexOf(section, indexPath.row, deletedRowZero_);
-    NSString *filename = [group_.files objectAtIndex:index];
-    NSString *filepath = [group_.logDirectory stringByAppendingPathComponent:filename];
+    CrashLog *crashLog = [[group crashLogs] objectAtIndex:index];
+    NSString *filepath = [crashLog filepath];
+
+    // Move to CrashLogGroup.
     if (![[NSFileManager defaultManager] removeItemAtPath:filepath error:NULL]) {
         // Try to delete as root.
         exec_move_as_root("!", "!", [filepath UTF8String]);
     }
+
     if (section == 0) {
         deletedRowZero_ = YES;
     }
