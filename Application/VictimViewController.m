@@ -129,7 +129,15 @@ static inline NSUInteger indexOf(NSUInteger section, NSUInteger row, BOOL delete
         }
         [tableView deleteRowsAtIndexPaths:[NSArray arrayWithObject:indexPath] withRowAnimation:UITableViewRowAnimationLeft];
     } else {
-        // FIXME: Display an error stating that file could not be deleted.
+        NSBundle *mainBundle = [NSBundle mainBundle];
+        NSString *title = [mainBundle localizedStringForKey:@"Error" value:nil table:nil];
+        NSString *message = [mainBundle localizedStringForKey:@"FILE_DELETION_FAILED"
+            value:@"Could not delete the selected file." table:nil];
+        NSString *okMessage = [mainBundle localizedStringForKey:@"OK" value:nil table:nil];
+        UIAlertView* alert = [[UIAlertView alloc] initWithTitle:title message:message delegate:nil
+            cancelButtonTitle:okMessage otherButtonTitles:nil];
+        [alert show];
+        [alert release];
     }
 }
 
