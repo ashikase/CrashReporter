@@ -1,6 +1,6 @@
 /*
 
-   CrashLogDateChooser.m ... Crash log selector by date.
+   VictimViewController.m ... Crash log selector by date.
    Copyright (C) 2009  KennyTM~ <kennytm@gmail.com>
 
    This program is free software: you can redistribute it and/or modify
@@ -18,7 +18,7 @@
 
 */
 
-#import "CrashLogDateChooser.h"
+#import "VictimViewController.h"
 
 #import <libsymbolicate/CRCrashReport.h>
 #import "CrashLogGroup.h"
@@ -31,7 +31,7 @@ static inline NSUInteger indexOf(NSUInteger section, NSUInteger row, BOOL delete
     return section + row - (deletedRowZero ? 1 : 0);
 }
 
-@implementation CrashLogDateChooser {
+@implementation VictimViewController {
     BOOL deletedRowZero_;
 }
 

@@ -1,6 +1,6 @@
 /*
 
-CrashLogDateChooser.h ... Crash log selector by date.
+VictimViewController.h ... Crash log selector by date.
 Copyright (C) 2009  KennyTM~ <kennytm@gmail.com>
 
 This program is free software: you can redistribute it and/or modify
@@ -22,7 +22,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 @class CrashLogGroup;
 
-@interface CrashLogDateChooser : UITableViewController
+@interface VictimViewController : UITableViewController
 @property(nonatomic, retain) CrashLogGroup *group;
 @end
 

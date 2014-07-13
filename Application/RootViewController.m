@@ -20,9 +20,9 @@
 
 #import "RootViewController.h"
 
-#import "CrashLogDateChooser.h"
 #import "CrashLogDirectoryReader.h"
 #import "CrashLogGroup.h"
+#import "VictimViewController.h"
 #import "CustomBlameController.h"
 
 @implementation RootViewController {
@@ -93,7 +93,7 @@
     NSArray *crashLogs = (indexPath.section == 0) ?  mobileCrashLogs_ : rootCrashLogs_;
     CrashLogGroup *group = [crashLogs objectAtIndex:indexPath.row];
     cell.textLabel.text = group.name;
-    cell.detailTextLabel.text = [NSString stringWithFormat:@"%lu", (unsigned long)[group.files count]];
+    cell.detailTextLabel.text = [NSString stringWithFormat:@"%lu", (unsigned long)[group.crashLogs count]];
     return cell;
 }
 
@@ -103,11 +103,11 @@
     NSArray *crashLogs = (indexPath.section == 0) ?  mobileCrashLogs_ : rootCrashLogs_;
     CrashLogGroup *group = [crashLogs objectAtIndex:indexPath.row];
 
-    CrashLogDateChooser *dateChooser = [[CrashLogDateChooser alloc] initWithStyle:UITableViewStylePlain];
-    dateChooser.title = group.name;
-    dateChooser.group = group;
-    [self.navigationController pushViewController:dateChooser animated:YES];
-    [dateChooser release];
+    VictimViewController *controller = [[VictimViewController alloc] initWithStyle:UITableViewStylePlain];
+    controller.title = group.name;
+    controller.group = group;
+    [self.navigationController pushViewController:controller animated:YES];
+    [controller release];
 }
 
 - (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath*)indexPath {

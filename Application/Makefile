@@ -3,7 +3,6 @@ CrashReporter_FILES = \
     ../Libraries/RegexKitLite/RegexKitLite.m \
     ApplicationDelegate.m \
     BlameController.m \
-    CrashLogDateChooser.m \
     CrashLogDirectoryReader.m \
     CrashLogGroup.m \
     CrashLogViewController.m \
@@ -11,6 +10,7 @@ CrashReporter_FILES = \
     ModalActionSheet.m \
     RootViewController.m \
     SuspectsViewController.m \
+    VictimViewController.m \
     common.c \
     move_as_root.m \
     find_dpkg.m \
