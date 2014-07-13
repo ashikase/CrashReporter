@@ -14,6 +14,9 @@ after-stage::
 	# Remove repository-related files
 	- find $(THEOS_STAGING_DIR) -name '.gitkeep' -delete
 
+after-install::
+	- ssh idevice killall CrashReporter
+
 distclean: clean
 	- rm -f $(THEOS_PROJECT_DIR)/$(APP_ID)*.deb
 	- rm -f $(THEOS_PROJECT_DIR)/.theos/packages/*
