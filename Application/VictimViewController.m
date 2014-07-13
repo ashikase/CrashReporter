@@ -38,16 +38,16 @@ static inline NSUInteger indexOf(NSUInteger section, NSUInteger row, BOOL delete
 
 @synthesize group = group_;
 
-- (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation {
-    return interfaceOrientation != UIInterfaceOrientationPortraitUpsideDown;
-}
-
 - (void)viewDidLoad {
     self.navigationItem.rightBarButtonItem = [self editButtonItem];
 }
 
 - (void)viewWillAppear:(BOOL)animated {
     [self.tableView reloadData];
+}
+
+- (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation {
+    return interfaceOrientation != UIInterfaceOrientationPortraitUpsideDown;
 }
 
 #pragma mark - UITableViewDataSource
