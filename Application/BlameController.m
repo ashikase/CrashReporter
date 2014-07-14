@@ -27,7 +27,11 @@
 #import "ModalActionSheet.h"
 #import "find_dpkg.h"
 #import "pastie.h"
-#import "reporter.h"
+
+#import "DenyReporterLine.h"
+#import "IncludeReporterLine.h"
+#import "LinkReporterLine.h"
+#import "ReporterLine.h"
 
 @interface UIColor ()
 + (id)tableCellBlueTextColor;
@@ -62,19 +66,23 @@
         NSMutableArray *links = [NSMutableArray new];
         NSMutableArray *includes = [NSMutableArray new];
         NSMutableIndexSet *denies = [NSMutableIndexSet new];
-        for (ReporterLine *line in reporters) {
-            if (line->type == RLType_Deny) {
+        Class $DenyReporterLine = [DenyReporterLine class];
+        Class $IncludeReporterLine = [IncludeReporterLine class];
+        for (ReporterLine *reporter in reporters) {
+            Class klass = [reporter class];
+            if (klass == $DenyReporterLine) {
                 NSUInteger i = 0;
+                NSString *title = [reporter title];
                 for (LinkReporterLine *link in links) {
-                    if ([link->unlocalizedTitle isEqualToString:line->title]) {
+                    if ([[link unlocalizedTitle] isEqualToString:title]) {
                         [denies addIndex:i];
                         break;
                     }
                     ++i;
                 }
             } else {
-                NSMutableArray *array = (line->type == RLType_Include) ? includes : links;
-                [array addObject:line];
+                NSMutableArray *array = (klass == $IncludeReporterLine) ? includes : links;
+                [array addObject:reporter];
             }
         }
         linkReporters_ = links;
@@ -251,12 +259,12 @@
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     if (indexPath.section == 0) {
         NSUInteger row = indexPath.row;
-        LinkReporterLine *rep = [linkReporters_ objectAtIndex:row];
+        LinkReporterLine *reporter = [linkReporters_ objectAtIndex:row];
         NSBundle *mainBundle = [NSBundle mainBundle];
         NSString *okMessage = [mainBundle localizedStringForKey:@"OK" value:nil table:nil];
 
         if ([deniedLinks_ containsIndex:row]) {
-            NSString *denyMessage = [mainBundle localizedStringForKey:(rep->isEmail ? @"EMAIL_DENIED" : @"URL_DENIED")
+            NSString *denyMessage = [mainBundle localizedStringForKey:([reporter isEmail] ? @"EMAIL_DENIED" : @"URL_DENIED")
                 value:@"The developer has chosen not to receive crash reports by this means."
                 table:nil];
             UIAlertView *alert = [[UIAlertView alloc] initWithTitle:nil message:denyMessage delegate:nil cancelButtonTitle:okMessage otherButtonTitles:nil];
@@ -264,11 +272,11 @@
             [alert release];
             [tableView deselectRowAtIndexPath:indexPath animated:YES];
         } else {
-            if (rep->isEmail) {
+            if ([reporter isEmail]) {
                 if ([MFMailComposeViewController canSendMail]) {
                     MFMailComposeViewController *controller = [[MFMailComposeViewController alloc] init];
                     [controller setSubject:[@"Crash report regarding " stringByAppendingString:(packageName_ ?: @"(unknown product)")]];
-                    [controller setToRecipients:[rep->url componentsSeparatedByRegex:@",\\s*"]];
+                    [controller setToRecipients:[[reporter urlString] componentsSeparatedByRegex:@",\\s*"]];
                     [controller setMessageBody:[self stuffToSendForTableView:tableView] isHTML:NO];
                     [controller setMailComposeDelegate:self];
                     [self presentModalViewController:controller animated:YES];
@@ -282,7 +290,7 @@
                 }
             } else {
                 [UIPasteboard generalPasteboard].string = [self stuffToSendForTableView:tableView];
-                [[UIApplication sharedApplication] openURL:[NSURL URLWithString:rep->url]];
+                [[UIApplication sharedApplication] openURL:[NSURL URLWithString:[reporter urlString]]];
                 [tableView deselectRowAtIndexPath:indexPath animated:YES];
             }
         }

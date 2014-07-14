@@ -9,6 +9,10 @@ CrashReporter_FILES = \
     CrashLogViewController.m \
     CustomBlameController.m \
     ModalActionSheet.m \
+    DenyReporterLine.m \
+    IncludeReporterLine.m \
+    LinkReporterLine.m \
+    ReporterLine.m \
     RootViewController.m \
     SuspectsViewController.m \
     VictimViewController.m \
@@ -16,8 +20,7 @@ CrashReporter_FILES = \
     move_as_root.m \
     find_dpkg.m \
     main.m \
-    pastie.m \
-    reporter.m
+    pastie.m
 CrashReporter_CFLAGS = -I../Libraries
 CrashReporter_LDFLAGS = -licucore -lsymbolicate
 CrashReporter_FRAMEWORKS = MessageUI SystemConfiguration UIKit

@@ -26,8 +26,9 @@
 #import "BlameController.h"
 #import "CrashLog.h"
 #import "CrashLogViewController.h"
+#import "IncludeReporterLine.h"
+#import "ReporterLine.h"
 #import "find_dpkg.h"
-#import "reporter.h"
 
 @implementation SuspectsViewController {
     CrashLog *crashLog_;

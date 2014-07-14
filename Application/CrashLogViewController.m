@@ -22,7 +22,7 @@
 
 #import <MobileCoreServices/MobileCoreServices.h>
 #import <RegexKitLite/RegexKitLite.h>
-#import "reporter.h"
+#import "IncludeReporterLine.h"
 
 @interface UIWebDocumentView : UIView
 - (id)text;
@@ -60,7 +60,8 @@
     webView_ = webView;
 
     NSBundle *mainBundle = [NSBundle mainBundle];
-    self.title = reporter_ ? reporter_->title : [mainBundle localizedStringForKey:@"Untitled" value:nil table:nil];
+    IncludeReporterLine *reporter = [self reporter];
+    self.title = reporter ? [reporter title] : [mainBundle localizedStringForKey:@"Untitled" value:nil table:nil];
 
     NSString *title = [mainBundle localizedStringForKey:@"Copy" value:nil table:nil];
     UIBarButtonItem *copyButton = [[UIBarButtonItem alloc] initWithTitle:title
@@ -68,7 +69,7 @@
     self.navigationItem.rightBarButtonItem = copyButton;
     [copyButton release];
 
-    NSMutableString *crashLogString = [[reporter_ content] mutableCopy];
+    NSMutableString *crashLogString = [[reporter content] mutableCopy];
     [CrashLogViewController escapeHTML:crashLogString];
     [crashLogString insertString:@"<html><head><title>.</title></head><body><pre style=\"font-size:8pt;\">" atIndex:0];
     [crashLogString appendString:@"</pre></body></html>"];

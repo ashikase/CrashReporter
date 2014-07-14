@@ -21,7 +21,7 @@
 #import "ApplicationDelegate.h"
 
 #import "RootViewController.h"
-#import "reporter.h"
+#import "ReporterLine.h"
 
 @interface UIAlertView ()
 - (void)setNumberOfRows:(int)rows;
