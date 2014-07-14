@@ -13,13 +13,13 @@ CrashReporter_FILES = \
     DenyReporterLine.m \
     IncludeReporterLine.m \
     LinkReporterLine.m \
+    Package.m \
     ReporterLine.m \
     RootViewController.m \
     SuspectsViewController.m \
     VictimViewController.m \
     common.c \
     move_as_root.m \
-    find_dpkg.m \
     main.m \
     pastie.m
 CrashReporter_CFLAGS = -I../Libraries

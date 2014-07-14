@@ -23,6 +23,7 @@
 #import "DenyReporterLine.h"
 #import "IncludeReporterLine.h"
 #import "LinkReporterLine.h"
+#import "Package.h"
 
 static NSArray *tokenize(NSString *string) {
     NSMutableArray *result = [NSMutableArray array];
@@ -70,7 +71,7 @@ static NSMutableDictionary *reporters$ = nil;
 @synthesize title = title_;
 @synthesize tokens = tokens_;
 
-+ (ReporterLine *)reporterWithLine:(NSString *)line {
++ (instancetype)reporterWithLine:(NSString *)line {
     if (reporters$ == nil) {
         reporters$ = [NSMutableDictionary new];
     }
@@ -125,65 +126,41 @@ static NSCalendar *calendar$ = nil;
            (long)[components day], (long)[components hour], (long)[components minute]];
 }
 
-+ (NSArray *)reportersWithSuspect:(NSString *)suspectPath appendReporters:(NSArray *)reporters package:(struct Package *)package isAppStore:(BOOL *)isAppStore {
-    NSMutableArray *result = [reporters mutableCopy];
++ (NSArray *)reportersForPackage:(Package *)package {
+    NSMutableArray *result = [NSMutableArray array];
 
-    NSParameterAssert(package != NULL);
-
-    *package = findPackage(suspectPath);
-    if (package->identifier != nil) {
-        // Is a dpkg.
-        BOOL canEmailAuthor = [[NSUserDefaults standardUserDefaults] boolForKey:@"canEmailAuthor"];
-        if (canEmailAuthor && package->author != nil) {
-            NSString *line = [NSString stringWithFormat:@"link email \"%@\" as \"Email developer\"", package->author];
-            [result addObject:[ReporterLine reporterWithLine:line]];
-        }
-
-        NSString *line = [NSString stringWithFormat:@"link url \"cydia://package/%@\" as \"Find package in Cydia\"", package->identifier];
-        [result addObject:[ReporterLine reporterWithLine:line]];
-    } else {
-        // Not a dpkg package. Check if it's an AppStore app.
-        if ([suspectPath hasPrefix:@"/var/mobile/Applications/"]) {
-            // Check if any component in the path has a .app suffix.
-            NSString *appBundlePath = suspectPath;
-            do {
-                appBundlePath = [appBundlePath stringByDeletingLastPathComponent];
-                if ([appBundlePath length] == 0) {
-                    return reporters;
-                }
-            } while (![appBundlePath hasSuffix:@".app"]);
-
-            // Check if app bundle includes a CrashReporter config file.
-            NSString *configPath = [appBundlePath stringByAppendingPathComponent:@"crash_reporter"];
-            NSString *configString = [[NSString alloc] initWithContentsOfFile:configPath usedEncoding:NULL error:NULL];
-            package->blameConfig = [configString componentsSeparatedByString:@"\n"];
-            [configString release];
-
-            // Add a contact link.
-            NSString *metadataPath = [[appBundlePath stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"iTunesMetadata.plist"];
-            NSDictionary *metadata = [[NSDictionary alloc] initWithContentsOfFile:metadataPath];
-            long long item = [[metadata objectForKey:@"itemId"] longLongValue]; // we need long long here because there are 2 billion apps on AppStore already... :)
+    if (package != nil) {
+        if (package.isAppStore) {
+            // Add AppStore link.
+            long long item = [package.identifier longLongValue]; // we need long long here because there are 2 billion apps on AppStore already... :)
             NSString *line = [NSString stringWithFormat:@"link url \"http://itunes.apple.com/WebObjects/MZStore.woa/wa/viewSoftware?id=%lld&mt=8\" as \"Report to AppStore\"", item];
             [result addObject:[ReporterLine reporterWithLine:line]];
+        } else {
+            // Add Cydia link.
+            NSString *line = [NSString stringWithFormat:@"link url \"cydia://package/%@\" as \"Find package in Cydia\"", package.identifier];
+            [result addObject:[ReporterLine reporterWithLine:line]];
 
-            // FIXME: Why retain/autorelease?
-            package->name = [[[metadata objectForKey:@"itemName"] retain] autorelease];
-            package->author = [[[metadata objectForKey:@"artistName"] retain] autorelease];
-            [metadata release];
-
-            *isAppStore = YES;
+            // Add email link.
+            BOOL canEmailAuthor = [[NSUserDefaults standardUserDefaults] boolForKey:@"canEmailAuthor"];
+            if (canEmailAuthor) {
+                NSString *author = package.author;
+                if (author != nil) {
+                    NSString *line = [NSString stringWithFormat:@"link email \"%@\" as \"Email developer\"", author];
+                    [result addObject:[ReporterLine reporterWithLine:line]];
+                }
+            }
         }
+
+        // Append configs.
+        for (NSString *line in package.config) {
+            [result addObject:[ReporterLine reporterWithLine:line]];
+        }
+
+        // Sort the lines.
+        [result sortUsingSelector:@selector(compare:)];
     }
 
-    // Append blame configs.
-    for (NSString *line in package->blameConfig) {
-        [result addObject:[ReporterLine reporterWithLine:line]];
-    }
-
-    // Sort the lines.
-    [result sortUsingSelector:@selector(compare:)];
-
-    return [result autorelease];
+    return result;
 }
 
 - (instancetype)initWithTokens:(NSArray *)tokens {

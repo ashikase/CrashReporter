@@ -32,16 +32,17 @@
  */
 
 #import <UIKit/UIKit.h>
-#import "find_dpkg.h"
+
+@class Package;
 
 @interface ReporterLine : NSObject
-@property(nonatomic, readonly) NSString *title;
+@property(nonatomic, copy) NSString *title;
 @property(nonatomic, readonly) NSArray *tokens;
-+ (ReporterLine *)reporterWithLine:(NSString *)line;
-- (instancetype)initWithTokens:(NSArray *)tokens;
++ (instancetype)reporterWithLine:(NSString *)line;
 + (void)flushReporters;
 + (NSString *)formatSyslogTime:(NSDate *)date;
-+ (NSArray *)reportersWithSuspect:(NSString *)suspectPath appendReporters:(NSArray *)reporters package:(struct Package *)pPackage isAppStore:(BOOL *)pIsAppStore;
++ (NSArray *)reportersForPackage:(Package *)package;
+- (instancetype)initWithTokens:(NSArray *)tokens;
 - (NSComparisonResult)compare:(ReporterLine *)other;
 - (UITableViewCell *)format:(UITableViewCell *)cell;
 @end

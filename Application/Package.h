@@ -20,13 +20,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 // Referenced from searchfiles() of query.c of the dpkg source package.
 
-@class NSString;
+#import <Foundation/Foundation.h>
 
-struct Package {
-	NSString* identifier;
-	NSString* name;
-	NSArray* blameConfig;
-	NSString* author;
-};
+@interface Package : NSObject
+@property(nonatomic, readonly) NSString *identifier;
+@property(nonatomic, readonly) NSString *name;
+@property(nonatomic, readonly) NSString *author;
+@property(nonatomic, readonly) NSArray *config;
+@property(nonatomic, readonly) BOOL isAppStore;
++ (instancetype)packageForFile:(NSString *)path;
+@end
 
-struct Package findPackage(NSString* file);
+/* vim: set ft=objc ff=unix sw=4 ts=4 tw=80 expandtab: */

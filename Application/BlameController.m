@@ -25,7 +25,6 @@
 
 #import "CrashLogViewController.h"
 #import "ModalActionSheet.h"
-#import "find_dpkg.h"
 #import "pastie.h"
 
 #import "DenyReporterLine.h"

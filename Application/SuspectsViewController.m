@@ -27,8 +27,8 @@
 #import "CrashLog.h"
 #import "CrashLogViewController.h"
 #import "IncludeReporterLine.h"
+#import "Package.h"
 #import "ReporterLine.h"
-#import "find_dpkg.h"
 
 @implementation SuspectsViewController {
     CrashLog *crashLog_;
@@ -133,17 +133,23 @@
             default: break;
         }
 
-        NSArray *reporters = [NSArray arrayWithObjects:
+        // Gather reporters.
+        NSMutableArray *reporters = [NSMutableArray arrayWithObjects:
                 [ReporterLine reporterWithLine:crashlogLine],
                 [ReporterLine reporterWithLine:syslogLine],
                 nil];
-        struct Package package;
-        BOOL isAppStore = NO;
-        reporters = [ReporterLine reportersWithSuspect:path appendReporters:reporters package:&package isAppStore:&isAppStore];
+        Package *package = [Package packageForFile:path];
+        NSArray *packageReporters = [ReporterLine reportersForPackage:package];
+        if (packageReporters != nil) {
+            [reporters addObjectsFromArray:packageReporters];
+        }
+
+        // Show blame view controller.
+        // FIXME: Show alert instead.
         NSString *authorStripped = [package.author stringByReplacingOccurrencesOfRegex:@"\\s*<[^>]+>" withString:@""] ?: @"developer";
         BlameController *viewController = [[BlameController alloc] initWithReporters:reporters
             packageName:(package.name ?: [path lastPathComponent])
-            authorName:authorStripped suspect:path isAppStore:isAppStore];
+            authorName:authorStripped suspect:path isAppStore:package.isAppStore];
         viewController.title = [path lastPathComponent];
         [self.navigationController pushViewController:viewController animated:YES];
         [viewController release];
