@@ -130,7 +130,7 @@
         [stuffToSend_ release];
         stuffToSend_ = nil;
 
-        ModalActionSheet *hud = [[ModalActionSheet alloc] init2];
+        ModalActionSheet *hud = [ModalActionSheet new];
         [hud show];
 
         NSArray *theStrings = [[includeReporters_ valueForKey:@"content"] objectsAtIndexes:previouslySelectedRows_];

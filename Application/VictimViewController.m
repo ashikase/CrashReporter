@@ -103,7 +103,7 @@ static inline NSUInteger indexOf(NSUInteger section, NSUInteger row, BOOL delete
     CrashLog *crashLog = [[group crashLogs] objectAtIndex:index];
     if (![crashLog isSymbolicated]) {
         // Symbolicate.
-        ModalActionSheet *sheet = [[ModalActionSheet alloc] init2];
+        ModalActionSheet *sheet = [ModalActionSheet new];
         [sheet show];
 #if !TARGET_IPHONE_SIMULATOR
         [crashLog symbolicate];
