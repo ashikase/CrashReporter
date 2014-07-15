@@ -104,18 +104,18 @@
     [super dealloc];
 }
 
-- (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation {
-    return interfaceOrientation != UIInterfaceOrientationPortraitUpsideDown;
-}
-
 - (void)viewDidLoad {
     self.editing = YES;
     self.tableView.allowsSelectionDuringEditing = YES;
 }
 
+- (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation {
+    return interfaceOrientation != UIInterfaceOrientationPortraitUpsideDown;
+}
+
 #pragma mark - Other
 
--(NSString *)stuffToSendForTableView:(UITableView *)tableView {
+- (NSString *)stuffToSendForTableView:(UITableView *)tableView {
     NSMutableIndexSet *currentlySelectedIndexSet = [NSMutableIndexSet new];
     NSArray *currentSelectedIndexPaths = [tableView indexPathsForSelectedRows];
     for (NSIndexPath *path in currentSelectedIndexPaths) {
