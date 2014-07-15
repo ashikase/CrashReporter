@@ -14,10 +14,10 @@ typedef enum {
 
 @implementation IncludeReporterLine {
     IncludeReporterLineCommandType commandType_;
-    NSString *filepath_;
 }
 
 @synthesize content = content_;
+@synthesize filepath = filepath_;
 
 - (instancetype)initWithTokens:(NSArray *)tokens {
     self = [super initWithTokens:tokens];
