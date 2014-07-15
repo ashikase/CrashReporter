@@ -124,7 +124,7 @@
         NSString *msgPath = [mainBundle pathForResource:@"Message_Cydia" ofType:@"txt"];
         NSString *msg = [NSString stringWithContentsOfFile:msgPath usedEncoding:NULL error:NULL];
         string = [NSString stringWithFormat:msg, authorName_, suspect_, packageName_];
-        }
+    }
     return string;
 }
 
@@ -134,7 +134,7 @@
     for (NSIndexPath *indexPath in [self.tableView indexPathsForSelectedRows]) {
         if (indexPath.section == 1) {
             [indexSet addIndex:indexPath.row];
-    }
+        }
     }
     return [includeReporters_ objectsAtIndexes:indexSet];
 }
@@ -142,8 +142,8 @@
 - (NSString *)uploadAttachments {
     NSMutableString *urlsString = nil;
 
-        ModalActionSheet *hud = [ModalActionSheet new];
-        [hud show];
+    ModalActionSheet *hud = [ModalActionSheet new];
+    [hud show];
 
     NSArray *contents = [[self selectedAttachments] valueForKey:@"content"];
     if ([contents count] > 0) {
@@ -156,18 +156,18 @@
             }
         } else {
             NSBundle *mainBundle = [NSBundle mainBundle];
-                NSString *title = [mainBundle localizedStringForKey:@"Upload failed" value:nil table:nil];
-                NSString *message = [mainBundle localizedStringForKey:@"pastie.org is unreachable." value:nil table:nil];
-                NSString *cancel = [mainBundle localizedStringForKey:@"OK" value:nil table:nil];
-                UIAlertView *alert = [[UIAlertView alloc] initWithTitle:title message:message delegate:nil
-                    cancelButtonTitle:cancel otherButtonTitles:nil];
-                [alert show];
-                [alert release];
-            }
+            NSString *title = [mainBundle localizedStringForKey:@"Upload failed" value:nil table:nil];
+            NSString *message = [mainBundle localizedStringForKey:@"pastie.org is unreachable." value:nil table:nil];
+            NSString *cancel = [mainBundle localizedStringForKey:@"OK" value:nil table:nil];
+            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:title message:message delegate:nil
+                cancelButtonTitle:cancel otherButtonTitles:nil];
+            [alert show];
+            [alert release];
         }
+    }
 
-        [hud hide];
-        [hud release];
+    [hud hide];
+    [hud release];
 
     return urlsString;
 }
@@ -269,11 +269,26 @@
         } else {
             if ([reporter isEmail]) {
                 if ([MFMailComposeViewController canSendMail]) {
+                    // Setup mail controller.
                     MFMailComposeViewController *controller = [[MFMailComposeViewController alloc] init];
+                    [controller setMailComposeDelegate:self];
+                    [controller setMessageBody:[self defaultMessageBody] isHTML:NO];
                     [controller setSubject:[@"Crash Report: " stringByAppendingString:(packageName_ ?: @"(unknown product)")]];
                     [controller setToRecipients:[[reporter urlString] componentsSeparatedByRegex:@",\\s*"]];
-                    [controller setMessageBody:[self defaultMessageBody] isHTML:NO];
-                    [controller setMailComposeDelegate:self];
+
+                    // Add attachments.
+                    for (IncludeReporterLine *reporter in [self selectedAttachments]) {
+                        // Attach to the email.
+                        NSData *data = [[reporter content] dataUsingEncoding:NSUTF8StringEncoding];
+                        if (data != nil) {
+                            NSString *filepath = [reporter filepath];
+                            NSString *mimeType = [[filepath pathExtension] isEqualToString:@"plist"] ?
+                                @"application/x-plist" : @"text/plain";
+                            [controller addAttachmentData:data mimeType:mimeType fileName:[filepath lastPathComponent]];
+                        }
+                    }
+
+                    // Present the mail controller for confirmation.
                     [self presentModalViewController:controller animated:YES];
                     [controller release];
                 } else {
@@ -284,13 +299,14 @@
                     [tableView deselectRowAtIndexPath:indexPath animated:YES];
                 }
             } else {
+                // Upload attachments to paste site and open support link.
                 NSString *urlsString = [self uploadAttachments];
                 if (urlsString != nil) {
                     NSMutableString *string = [[self defaultMessageBody] mutableCopy];
                     [string appendString:@"\n"];
                     [string appendString:urlsString];
                     [UIPasteboard generalPasteboard].string = string;
-                [[UIApplication sharedApplication] openURL:[NSURL URLWithString:[reporter urlString]]];
+                    [[UIApplication sharedApplication] openURL:[NSURL URLWithString:[reporter urlString]]];
                     [string release];
                 }
                 [tableView deselectRowAtIndexPath:indexPath animated:YES];
