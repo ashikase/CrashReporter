@@ -197,7 +197,7 @@
     }
 }
 
--(NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section {
+- (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section {
     if (section == 2) {
         return [[NSBundle mainBundle] localizedStringForKey:@"Attachments" value:nil table:nil];
     } else {
@@ -206,7 +206,10 @@
 }
 
 - (UITableViewCellEditingStyle)tableView:(UITableView *)tableView editingStyleForRowAtIndexPath:(NSIndexPath *)indexPath {
-    // FIXME: The value "3" appears to be private and thus could possibly change.
+    // Returning "3" enables multiple cell selection.
+    // NOTE: Versions of iOS prior to 5.0 supported multiple cell
+    //       selection, but only via the private API.
+    // FIXME: As this is private, this might change in a future release.
     return (indexPath.section == 2) ?  3 : UITableViewCellEditingStyleNone;
 }
 
