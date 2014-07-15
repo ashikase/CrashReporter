@@ -217,14 +217,7 @@
     UITableViewCell *cell = nil;
 
     NSUInteger section = indexPath.section;
-    if (section == 0) {
-        NSUInteger row = indexPath.row;
-        cell = [[linkReporters_ objectAtIndex:row] format:[tableView dequeueReusableCellWithIdentifier:@"."]];
-        if ([deniedLinks_ containsIndex:row]) {
-            cell.textLabel.textColor = [UIColor grayColor];
-        }
-        cell.editingAccessoryType = UITableViewCellAccessoryDisclosureIndicator;
-    } else if (section == 1) {
+    if (section == 1) {
         cell = [tableView dequeueReusableCellWithIdentifier:@"~"];
         if (cell == nil) {
             cell = [[[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"~"] autorelease];
@@ -238,11 +231,41 @@
             cell.indentationWidth = 0.0;
         }
     } else {
-        cell = [[includeReporters_ objectAtIndex:indexPath.row] format:[tableView dequeueReusableCellWithIdentifier:@"."]];
-        cell.editingAccessoryType = UITableViewCellAccessoryDetailDisclosureButton;
-        cell.indentationWidth = 0.0;
-        if (cell.tag == 0) {
-            cell.tag = 1;
+        UILabel *textLabel = nil;
+        UILabel *detailTextLabel = nil;
+
+        cell = [tableView dequeueReusableCellWithIdentifier:@"."];
+        if (cell == nil) {
+            cell = [[[UITableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:@"."] autorelease];
+            cell.indentationWidth = 0.0;
+
+            textLabel = cell.textLabel;
+
+            detailTextLabel = cell.detailTextLabel;
+            detailTextLabel.font = [UIFont systemFontOfSize:9.0];
+            detailTextLabel.lineBreakMode = UILineBreakModeMiddleTruncation;
+            detailTextLabel.numberOfLines = 2;
+        }
+
+        NSUInteger row = indexPath.row;
+        if (section == 0) {
+            cell.editingAccessoryType = UITableViewCellAccessoryDisclosureIndicator;
+            if ([deniedLinks_ containsIndex:row]) {
+                textLabel.textColor = [UIColor grayColor];
+            } else {
+                textLabel.textColor = [UIColor blackColor];
+            }
+
+            LinkReporterLine *reporter = [linkReporters_ objectAtIndex:row];
+            textLabel.text = [reporter title];
+            detailTextLabel.text = [reporter urlString];
+        } else {
+            cell.editingAccessoryType = UITableViewCellAccessoryDetailDisclosureButton;
+            textLabel.textColor = [UIColor blackColor];
+
+            IncludeReporterLine *reporter = [includeReporters_ objectAtIndex:row];
+            textLabel.text = [reporter title];
+            detailTextLabel.text = [reporter filepath];
             [tableView selectRowAtIndexPath:indexPath animated:NO scrollPosition:UITableViewScrollPositionNone];
         }
     }
