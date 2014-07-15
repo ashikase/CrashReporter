@@ -319,17 +319,6 @@
                 [tableView deselectRowAtIndexPath:indexPath animated:YES];
             }
         }
-    } else {
-        CrashLogViewController *controller = [CrashLogViewController new];
-        NSMutableString *stuffToSendEscaped = [[self stuffToSendForTableView:tableView] mutableCopy];
-        [CrashLogViewController escapeHTML:stuffToSendEscaped];
-        [stuffToSendEscaped replaceOccurrencesOfString:@"\n" withString:@"<br />" options:0 range:NSMakeRange(0, [stuffToSendEscaped length])];
-        [stuffToSendEscaped insertString:@"<html><head><title>.</title></head><body><p>" atIndex:0];
-        [stuffToSendEscaped appendString:@"</p></body></html>"];
-        [controller setHTMLContent:stuffToSendEscaped withDataDetector:UIDataDetectorTypeLink];
-        [stuffToSendEscaped release];
-        [self.navigationController pushViewController:controller animated:YES];
-        [controller release];
     }
 }
 
