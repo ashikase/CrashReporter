@@ -134,11 +134,17 @@ static NSCalendar *calendar$ = nil;
             // Add AppStore link.
             long long item = [package.identifier longLongValue]; // we need long long here because there are 2 billion apps on AppStore already... :)
             NSString *line = [NSString stringWithFormat:@"link url \"http://itunes.apple.com/WebObjects/MZStore.woa/wa/viewSoftware?id=%lld&mt=8\" as \"Report to AppStore\"", item];
-            [result addObject:[ReporterLine reporterWithLine:line]];
+            ReporterLine *reporter = [ReporterLine reporterWithLine:line];
+            if (reporter != nil) {
+                [result addObject:reporter];
+            }
         } else {
             // Add Cydia link.
             NSString *line = [NSString stringWithFormat:@"link url \"cydia://package/%@\" as \"Find package in Cydia\"", package.identifier];
-            [result addObject:[ReporterLine reporterWithLine:line]];
+            ReporterLine *reporter = [ReporterLine reporterWithLine:line];
+            if (reporter != nil) {
+                [result addObject:reporter];
+            }
 
             // Add email link.
             BOOL canEmailAuthor = [[NSUserDefaults standardUserDefaults] boolForKey:@"canEmailAuthor"];
@@ -146,14 +152,20 @@ static NSCalendar *calendar$ = nil;
                 NSString *author = package.author;
                 if (author != nil) {
                     NSString *line = [NSString stringWithFormat:@"link email \"%@\" as \"Email developer\"", author];
-                    [result addObject:[ReporterLine reporterWithLine:line]];
+                    ReporterLine *reporter = [ReporterLine reporterWithLine:line];
+                    if (reporter != nil) {
+                        [result addObject:reporter];
+                    }
                 }
             }
         }
 
         // Append configs.
         for (NSString *line in package.config) {
-            [result addObject:[ReporterLine reporterWithLine:line]];
+            ReporterLine *reporter = [ReporterLine reporterWithLine:line];
+            if (reporter != nil) {
+                [result addObject:reporter];
+            }
         }
 
         // Sort the lines.
