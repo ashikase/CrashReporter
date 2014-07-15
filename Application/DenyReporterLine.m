@@ -1,6 +1,5 @@
 #import "DenyReporterLine.h"
 
-#import "NSString+CrashReporter.h"
 #import "Package.h"
 
 @interface ReporterLine (Private)
@@ -32,7 +31,7 @@
     if (self != nil) {
         NSUInteger count = [tokens count];
         NSString *string = [[tokens subarrayWithRange:NSMakeRange(1, count - 1)] componentsJoinedByString:@" "];
-        [self setTitle:[string stripQuotes]];
+        [self setTitle:string];
     }
     return self;
 }

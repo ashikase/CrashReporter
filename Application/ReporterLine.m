@@ -38,9 +38,9 @@ static NSArray *tokenize(NSString *string) {
     while (![scanner isAtEnd]) {
         token = nil;
         if (inQuote) {
-            // Scan and capture the text quoted text.
+            // Scan and capture the quoted text.
             [scanner scanUpToString:@"\"" intoString:&token];
-            token = [NSString stringWithFormat:@"\"%@\"", token];
+            token = [NSString stringWithFormat:@"%@", token];
             [scanner scanString:@"\"" intoString:NULL];
             inQuote = NO;
         } else {

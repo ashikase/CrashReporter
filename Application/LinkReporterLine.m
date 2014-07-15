@@ -1,6 +1,5 @@
 #import "LinkReporterLine.h"
 
-#import "NSString+CrashReporter.h"
 #import "Package.h"
 
 @interface ReporterLine (Private)
@@ -87,17 +86,17 @@
                     break;
 
                 case PLL_Title:
-                    unlocalizedTitle_ = [[command stripQuotes] retain];
+                    unlocalizedTitle_ = [command retain];
                     mode = PLL_Command;
                     break;
 
                 case PLL_Recipients:
-                    recipients_ = [[command stripQuotes] retain];
+                    recipients_ = [command retain];
                     mode = PLL_Command;
                     break;
 
                 case PLL_URL:
-                    url_ = [[NSURL alloc] initWithString:[command stripQuotes]];
+                    url_ = [[NSURL alloc] initWithString:command];
                     mode = PLL_Command;
                     break;
 

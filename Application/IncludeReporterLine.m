@@ -1,6 +1,5 @@
 #import "IncludeReporterLine.h"
 
-#import "NSString+CrashReporter.h"
 #import "Package.h"
 
 @interface ReporterLine (Private)
@@ -55,7 +54,7 @@ typedef enum {
                 [self release];
                 return nil;
             }
-            title = [[tokens objectAtIndex:2] stripQuotes];
+            title = [tokens objectAtIndex:2];
             command = [tokens objectAtIndex:3];
             filepathIndex = 4;
         }
@@ -68,7 +67,7 @@ typedef enum {
             commandType_ = IncludeReporterLineCommandTypeFile;
         }
 
-        filepath_ = [[[[tokens subarrayWithRange:NSMakeRange(filepathIndex, (count - filepathIndex))] componentsJoinedByString:@" "] stripQuotes] retain];
+        filepath_ = [[[tokens subarrayWithRange:NSMakeRange(filepathIndex, (count - filepathIndex))] componentsJoinedByString:@" "] retain];
 
         [self setTitle:(title ?: filepath_)];
     }
