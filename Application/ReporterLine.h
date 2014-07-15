@@ -41,7 +41,6 @@
 + (instancetype)reporterWithLine:(NSString *)line;
 + (void)flushReporters;
 + (NSString *)formatSyslogTime:(NSDate *)date;
-+ (NSArray *)reportersForPackage:(Package *)package;
 - (instancetype)initWithTokens:(NSArray *)tokens;
 - (NSComparisonResult)compare:(ReporterLine *)other;
 - (UITableViewCell *)format:(UITableViewCell *)cell;

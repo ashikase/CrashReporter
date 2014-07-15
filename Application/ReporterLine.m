@@ -126,52 +126,6 @@ static NSCalendar *calendar$ = nil;
            (long)[components day], (long)[components hour], (long)[components minute]];
 }
 
-+ (NSArray *)reportersForPackage:(Package *)package {
-    NSMutableArray *result = [NSMutableArray array];
-
-    if (package != nil) {
-        if (package.isAppStore) {
-            // Add AppStore link.
-            long long item = [package.storeIdentifier longLongValue]; // we need long long here because there are 2 billion apps on AppStore already... :)
-            NSString *line = [NSString stringWithFormat:@"link url \"http://itunes.apple.com/WebObjects/MZStore.woa/wa/viewSoftware?id=%lld&mt=8\" as \"Report via AppStore\"", item];
-            ReporterLine *reporter = [ReporterLine reporterWithLine:line];
-            if (reporter != nil) {
-                [result addObject:reporter];
-            }
-        } else {
-            // Add Cydia link.
-            NSString *line = [NSString stringWithFormat:@"link url \"cydia://package/%@\" as \"Find package in Cydia\"", package.storeIdentifier];
-            ReporterLine *reporter = [ReporterLine reporterWithLine:line];
-            if (reporter != nil) {
-                [result addObject:reporter];
-            }
-
-            // Add email link.
-            NSString *author = package.author;
-            if (author != nil) {
-                NSString *line = [NSString stringWithFormat:@"link email \"%@\" as \"Email developer\"", author];
-                ReporterLine *reporter = [ReporterLine reporterWithLine:line];
-                if (reporter != nil) {
-                    [result addObject:reporter];
-                }
-            }
-        }
-
-        // Add configs.
-        for (NSString *line in package.config) {
-            ReporterLine *reporter = [ReporterLine reporterWithLine:line];
-            if (reporter != nil) {
-                [result addObject:reporter];
-            }
-        }
-
-        // Sort the lines.
-        [result sortUsingSelector:@selector(compare:)];
-    }
-
-    return result;
-}
-
 - (instancetype)initWithTokens:(NSArray *)tokens {
     self = [super init];
     if (self != nil) {

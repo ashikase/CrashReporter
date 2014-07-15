@@ -1,6 +1,7 @@
 #import "IncludeReporterLine.h"
 
 #import "NSString+CrashReporter.h"
+#import "Package.h"
 
 @interface ReporterLine (Private)
 @property(nonatomic, copy) NSString *title;
@@ -18,6 +19,24 @@ typedef enum {
 
 @synthesize content = content_;
 @synthesize filepath = filepath_;
+
++ (NSArray *)includeReportersForPackage:(Package *)package {
+    NSMutableArray *result = [NSMutableArray array];
+
+    if (package != nil) {
+        // Add (optional) include commands.
+        for (NSString *line in package.config) {
+            if ([line hasPrefix:@"include"]) {
+                IncludeReporterLine *reporter = [IncludeReporterLine reporterWithLine:line];
+                if (reporter != nil) {
+                    [result addObject:reporter];
+                }
+            }
+        }
+    }
+
+    return result;
+}
 
 - (instancetype)initWithTokens:(NSArray *)tokens {
     self = [super initWithTokens:tokens];

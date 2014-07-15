@@ -1,12 +1,31 @@
 #import "DenyReporterLine.h"
 
 #import "NSString+CrashReporter.h"
+#import "Package.h"
 
 @interface ReporterLine (Private)
 @property(nonatomic, copy) NSString *title;
 @end
 
 @implementation DenyReporterLine
+
++ (NSArray *)denyReportersForPackage:(Package *)package {
+    NSMutableArray *result = [NSMutableArray array];
+
+    if (package != nil) {
+        // Add (optional) deny commands.
+        for (NSString *line in package.config) {
+            if ([line hasPrefix:@"deny"]) {
+                DenyReporterLine *reporter = [DenyReporterLine reporterWithLine:line];
+                if (reporter != nil) {
+                    [result addObject:reporter];
+                }
+            }
+        }
+    }
+
+    return result;
+}
 
 - (instancetype)initWithTokens:(NSArray *)tokens {
     self = [super initWithTokens:tokens];

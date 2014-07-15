@@ -26,14 +26,25 @@
 #import "BlameController.h"
 #import "CrashLog.h"
 #import "CrashLogViewController.h"
+#import "DenyReporterLine.h"
 #import "IncludeReporterLine.h"
+#import "LinkReporterLine.h"
 #import "Package.h"
-#import "ReporterLine.h"
+
+@interface UIAlertView ()
+- (void)setNumberOfRows:(int)rows;
+@end
+
+@interface SuspectsViewController () <UIAlertViewDelegate>
+@end
 
 @implementation SuspectsViewController {
     CrashLog *crashLog_;
     NSString *dateString_;
     NSArray *suspects_;
+    NSArray *lastSelectedLinkReporters_;
+    Package *lastSelectedPackage_;
+    NSString *lastSelectedPath_;
 }
 
 - (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation {
@@ -44,6 +55,9 @@
     [crashLog_ release];
     [dateString_ release];
     [suspects_ release];
+    [lastSelectedLinkReporters_ release];
+    [lastSelectedPackage_ release];
+    [lastSelectedPath_ release];
     [super dealloc];
 }
 
@@ -117,43 +131,89 @@
     NSUInteger section = indexPath.section;
     NSUInteger row = indexPath.row;
 
-    NSString *crashlogLine = [NSString stringWithFormat:@"include as \"Crash log\" file \"%@\"", [crashLog_ filepath]];
-    NSString *syslogLine = [NSString stringWithFormat:@"include as syslog command grep -F \"%@\" /var/log/syslog", dateString_];
-
     if (section == 0) {
+        NSString *crashlogLine = [NSString stringWithFormat:@"include as \"Crash log\" file \"%@\"", [crashLog_ filepath]];
+        NSString *syslogLine = [NSString stringWithFormat:@"include as syslog command grep -F \"%@\" /var/log/syslog", dateString_];
         CrashLogViewController *viewController = [CrashLogViewController new];
         viewController.reporter = (IncludeReporterLine *)[ReporterLine reporterWithLine:((row == 0) ? crashlogLine : syslogLine)];
         [self.navigationController pushViewController:viewController animated:YES];
         [viewController release];
     } else {
+        // Get package for selected row.
         NSString *path = nil;
         switch (indexPath.section) {
             case 1: path = [suspects_ objectAtIndex:0]; break;
             case 2: path = [suspects_ objectAtIndex:(row + 1)]; break;
             default: break;
         }
-
-        // Gather reporters.
-        NSMutableArray *reporters = [NSMutableArray arrayWithObjects:
-                [ReporterLine reporterWithLine:crashlogLine],
-                [ReporterLine reporterWithLine:syslogLine],
-                nil];
         Package *package = [Package packageForFile:path];
-        NSArray *packageReporters = [ReporterLine reportersForPackage:package];
-        if (packageReporters != nil) {
-            [reporters addObjectsFromArray:packageReporters];
-        }
 
-        // Show blame view controller.
-        // FIXME: Show alert instead.
-        NSString *authorStripped = [package.author stringByReplacingOccurrencesOfRegex:@"\\s*<[^>]+>" withString:@""] ?: @"developer";
-        BlameController *viewController = [[BlameController alloc] initWithReporters:reporters
-            packageName:(package.name ?: [path lastPathComponent])
-            authorName:authorStripped suspect:path isAppStore:package.isAppStore];
-        viewController.title = [path lastPathComponent];
-        [self.navigationController pushViewController:viewController animated:YES];
-        [viewController release];
+        // Get links for package.
+        NSArray *linkReporters = [LinkReporterLine linkReportersForPackage:package];
+        NSArray *denyReporters = [DenyReporterLine denyReportersForPackage:package];
+        NSArray *denyTitles = [denyReporters valueForKey:@"title"];
+
+        // Determine and present choices.
+        NSBundle *mainBundle = [NSBundle mainBundle];
+        NSString *cancelTitle = [mainBundle localizedStringForKey:@"Cancel" value:nil table:nil];
+        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:package.name message:nil delegate:self
+            cancelButtonTitle:cancelTitle otherButtonTitles:nil];
+        NSMutableArray *allowedLinkReporters = [NSMutableArray new];
+        for (LinkReporterLine *linkReporter in linkReporters) {
+            NSString *title = [linkReporter title];
+            if (![denyTitles containsObject:title]) {
+                [alert addButtonWithTitle:title];
+                [allowedLinkReporters addObject:linkReporter];
+            }
+        }
+        [alert setNumberOfRows:(1 + [allowedLinkReporters count])];
+        [alert show];
+        [alert release];
+
+        lastSelectedLinkReporters_ = allowedLinkReporters;
+        lastSelectedPackage_ = [package retain];
+        lastSelectedPath_ = [path retain];
     }
+}
+
+#pragma mark - UIAlertViewDelegate
+
+- (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
+    if (buttonIndex > 0) {
+        if (YES) {
+            // Open associated link.
+            LinkReporterLine *linkReporter = [lastSelectedLinkReporters_ objectAtIndex:(buttonIndex - 1)];
+            [[UIApplication sharedApplication] openURL:[linkReporter url]];
+        } else {
+            // Report issue.
+            NSString *crashlogLine = [NSString stringWithFormat:@"include as \"Crash log\" file \"%@\"", [crashLog_ filepath]];
+            NSString *syslogLine = [NSString stringWithFormat:@"include as syslog command grep -F \"%@\" /var/log/syslog", dateString_];
+            NSMutableArray *reporters = [[NSMutableArray alloc] initWithObjects:
+                [IncludeReporterLine reporterWithLine:crashlogLine],
+                [IncludeReporterLine reporterWithLine:syslogLine],
+                nil];
+            NSArray *packageReporters = [IncludeReporterLine includeReportersForPackage:lastSelectedPackage_];
+            if (packageReporters != nil) {
+                [reporters addObjectsFromArray:packageReporters];
+            }
+
+            NSString *authorStripped = [lastSelectedPackage_.author stringByReplacingOccurrencesOfRegex:@"\\s*<[^>]+>" withString:@""] ?: @"developer";
+            BlameController *viewController = [[BlameController alloc] initWithReporters:reporters
+                packageName:lastSelectedPackage_.name authorName:authorStripped suspect:lastSelectedPath_
+                isAppStore:lastSelectedPackage_.isAppStore];
+            viewController.title = [lastSelectedPath_ lastPathComponent];
+            [self.navigationController pushViewController:viewController animated:YES];
+            [viewController release];
+            [reporters release];
+        }
+    }
+
+    [lastSelectedLinkReporters_ release];
+    lastSelectedLinkReporters_ = nil;
+    [lastSelectedPackage_ release];
+    lastSelectedPackage_ = nil;
+    [lastSelectedPath_ release];
+    lastSelectedPath_ = nil;
 }
 
 @end
