@@ -185,20 +185,16 @@
 #pragma mark - UITableViewDataSource
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
-    return 3;
+    return 2;
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-    if (section == 1) {
-        return 1;
-    } else {
-        NSArray *array = (section == 0) ? linkReporters_ : includeReporters_;
-        return [array count];
-    }
+    NSArray *array = (section == 0) ? linkReporters_ : includeReporters_;
+    return [array count];
 }
 
 - (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section {
-    if (section == 2) {
+    if (section == 1) {
         return [[NSBundle mainBundle] localizedStringForKey:@"Attachments" value:nil table:nil];
     } else {
         return nil;
@@ -210,64 +206,48 @@
     // NOTE: Versions of iOS prior to 5.0 supported multiple cell
     //       selection, but only via the private API.
     // FIXME: As this is private, this might change in a future release.
-    return (indexPath.section == 2) ?  3 : UITableViewCellEditingStyleNone;
+    return (indexPath.section == 1) ?  3 : UITableViewCellEditingStyleNone;
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
     UITableViewCell *cell = nil;
 
-    NSUInteger section = indexPath.section;
-    if (section == 1) {
-        cell = [tableView dequeueReusableCellWithIdentifier:@"~"];
-        if (cell == nil) {
-            cell = [[[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"~"] autorelease];
-            UILabel *label = cell.textLabel;
-            label.text = [[NSBundle mainBundle] localizedStringForKey:@"COPIED_MESSAGE"
-                value:@"An appropriate bug report will be copied as you tap on one of these links."
-                table:nil];
-            label.font = [UIFont systemFontOfSize:[UIFont smallSystemFontSize]];
-            label.textColor = [UIColor tableCellBlueTextColor];
-            label.numberOfLines = 0;
-            cell.indentationWidth = 0.0;
-        }
-    } else {
-        UILabel *textLabel = nil;
-        UILabel *detailTextLabel = nil;
+    UILabel *textLabel = nil;
+    UILabel *detailTextLabel = nil;
 
-        cell = [tableView dequeueReusableCellWithIdentifier:@"."];
-        if (cell == nil) {
-            cell = [[[UITableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:@"."] autorelease];
-            cell.indentationWidth = 0.0;
+    cell = [tableView dequeueReusableCellWithIdentifier:@"."];
+    if (cell == nil) {
+        cell = [[[UITableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:@"."] autorelease];
+        cell.indentationWidth = 0.0;
 
-            textLabel = cell.textLabel;
+        textLabel = cell.textLabel;
 
-            detailTextLabel = cell.detailTextLabel;
-            detailTextLabel.font = [UIFont systemFontOfSize:9.0];
-            detailTextLabel.lineBreakMode = UILineBreakModeMiddleTruncation;
-            detailTextLabel.numberOfLines = 2;
-        }
+        detailTextLabel = cell.detailTextLabel;
+        detailTextLabel.font = [UIFont systemFontOfSize:9.0];
+        detailTextLabel.lineBreakMode = UILineBreakModeMiddleTruncation;
+        detailTextLabel.numberOfLines = 2;
+    }
 
-        NSUInteger row = indexPath.row;
-        if (section == 0) {
-            cell.editingAccessoryType = UITableViewCellAccessoryDisclosureIndicator;
-            if ([deniedLinks_ containsIndex:row]) {
-                textLabel.textColor = [UIColor grayColor];
-            } else {
-                textLabel.textColor = [UIColor blackColor];
-            }
-
-            LinkReporterLine *reporter = [linkReporters_ objectAtIndex:row];
-            textLabel.text = [reporter title];
-            detailTextLabel.text = [reporter urlString];
+    NSUInteger row = indexPath.row;
+    if (indexPath.section == 0) {
+        cell.editingAccessoryType = UITableViewCellAccessoryDisclosureIndicator;
+        if ([deniedLinks_ containsIndex:row]) {
+            textLabel.textColor = [UIColor grayColor];
         } else {
-            cell.editingAccessoryType = UITableViewCellAccessoryDetailDisclosureButton;
             textLabel.textColor = [UIColor blackColor];
-
-            IncludeReporterLine *reporter = [includeReporters_ objectAtIndex:row];
-            textLabel.text = [reporter title];
-            detailTextLabel.text = [reporter filepath];
-            [tableView selectRowAtIndexPath:indexPath animated:NO scrollPosition:UITableViewScrollPositionNone];
         }
+
+        LinkReporterLine *reporter = [linkReporters_ objectAtIndex:row];
+        textLabel.text = [reporter title];
+        detailTextLabel.text = [reporter urlString];
+    } else {
+        cell.editingAccessoryType = UITableViewCellAccessoryDetailDisclosureButton;
+        textLabel.textColor = [UIColor blackColor];
+
+        IncludeReporterLine *reporter = [includeReporters_ objectAtIndex:row];
+        textLabel.text = [reporter title];
+        detailTextLabel.text = [reporter filepath];
+        [tableView selectRowAtIndexPath:indexPath animated:NO scrollPosition:UITableViewScrollPositionNone];
     }
     return cell;
 }
