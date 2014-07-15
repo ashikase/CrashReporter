@@ -70,33 +70,34 @@ typedef enum {
 
 - (NSString *)content {
     if (content_ == nil) {
-        NSMutableString *result = nil;
+        NSString *filepath = [self filepath];
         if (commandType_ == IncludeReporterLineCommandTypeFile) {
-            result = [[NSMutableString alloc] initWithContentsOfFile:filepath_ usedEncoding:NULL error:NULL];
+            content_ = [[NSString alloc] initWithContentsOfFile:filepath usedEncoding:NULL error:NULL];
         } else if (commandType_ == IncludeReporterLineCommandTypePlist) {
-            NSData *data = [NSData dataWithContentsOfFile:filepath_];
-            id prop = [NSPropertyListSerialization propertyListFromData:data
-                mutabilityOption:NSPropertyListImmutable
-                format:NULL errorDescription:NULL];
-            result = [[prop description] mutableCopy];
+            NSData *data = [NSData dataWithContentsOfFile:filepath];
+            id plist = nil;
+            if ([NSPropertyListSerialization respondsToSelector:@selector(propertyListWithData:options:format:error:)]) {
+                plist = [NSPropertyListSerialization propertyListWithData:data options:0 format:NULL error:NULL];
+            } else {
+                plist = [NSPropertyListSerialization propertyListFromData:data mutabilityOption:0 format:NULL errorDescription:NULL];
+            }
+            content_ = [[plist description] retain];
         } else {
             fflush(stdout);
-            FILE *f = popen([filepath_ UTF8String], "r");
+            FILE *f = popen([filepath UTF8String], "r");
             if (f == NULL) {
                 return nil;
             }
 
-            result = [NSMutableString new];
+            NSMutableString *string = [NSMutableString new];
             while (!feof(f)) {
                 char buf[1024];
                 size_t charsRead = fread(buf, 1, sizeof(buf), f);
-                [result appendFormat:@"%.*s", (int)charsRead, buf];
+                [string appendFormat:@"%.*s", (int)charsRead, buf];
             }
             pclose(f);
+            content_ = string;
         }
-        [result insertString:[NSString stringWithFormat:@"## %@\n", [self title]] atIndex:0];
-        [result appendString:@"\n"];
-        content_ = result;
     }
     return content_;
 }
