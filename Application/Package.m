@@ -110,6 +110,12 @@
                 pclose(f);
             }
 
+            // Ensure that package has a name.
+            if (name_ == nil) {
+                // Use name of contained file.
+                name_ = [[path lastPathComponent] retain];
+            }
+
             // Determine store identifier.
             storeIdentifier_ = [identifier_ copy];
 
