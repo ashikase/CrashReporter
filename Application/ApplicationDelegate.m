@@ -58,7 +58,7 @@
         NSString *installSyslogdTitle = [mainBundle localizedStringForKey:@"Install syslogd" value:nil table:nil];
         NSString *ignoreOnceTitle = [mainBundle localizedStringForKey:@"Ignore once" value:nil table:nil];
 
-        UIAlertView* alert = [[UIAlertView alloc] initWithTitle:title message:message delegate:self
+        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:title message:message delegate:self
             cancelButtonTitle:ignoreOnceTitle otherButtonTitles:installSyslogToggleTitle, installSyslogdTitle, nil];
         [alert setNumberOfRows:3];
         [alert show];
@@ -78,7 +78,7 @@
 
 #pragma mark - UIAlertViewDelegate
 
-- (void)alertView:(UIAlertView*)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
+- (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
     if (buttonIndex != 0) {
         NSString* url = buttonIndex == 1 ? @"cydia://package/sbsettingssyslogd" : @"cydia://package/syslogd";
         [[UIApplication sharedApplication] openURL:[NSURL URLWithString:url]];
