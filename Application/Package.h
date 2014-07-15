@@ -24,6 +24,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 @interface Package : NSObject
 @property(nonatomic, readonly) NSString *identifier;
+@property(nonatomic, readonly) NSString *storeIdentifier;
 @property(nonatomic, readonly) NSString *name;
 @property(nonatomic, readonly) NSString *author;
 @property(nonatomic, readonly) NSArray *config;

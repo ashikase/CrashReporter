@@ -132,15 +132,15 @@ static NSCalendar *calendar$ = nil;
     if (package != nil) {
         if (package.isAppStore) {
             // Add AppStore link.
-            long long item = [package.identifier longLongValue]; // we need long long here because there are 2 billion apps on AppStore already... :)
-            NSString *line = [NSString stringWithFormat:@"link url \"http://itunes.apple.com/WebObjects/MZStore.woa/wa/viewSoftware?id=%lld&mt=8\" as \"Report to AppStore\"", item];
+            long long item = [package.storeIdentifier longLongValue]; // we need long long here because there are 2 billion apps on AppStore already... :)
+            NSString *line = [NSString stringWithFormat:@"link url \"http://itunes.apple.com/WebObjects/MZStore.woa/wa/viewSoftware?id=%lld&mt=8\" as \"Report via AppStore\"", item];
             ReporterLine *reporter = [ReporterLine reporterWithLine:line];
             if (reporter != nil) {
                 [result addObject:reporter];
             }
         } else {
             // Add Cydia link.
-            NSString *line = [NSString stringWithFormat:@"link url \"cydia://package/%@\" as \"Find package in Cydia\"", package.identifier];
+            NSString *line = [NSString stringWithFormat:@"link url \"cydia://package/%@\" as \"Find package in Cydia\"", package.storeIdentifier];
             ReporterLine *reporter = [ReporterLine reporterWithLine:line];
             if (reporter != nil) {
                 [result addObject:reporter];
@@ -157,7 +157,7 @@ static NSCalendar *calendar$ = nil;
             }
         }
 
-        // Append configs.
+        // Add configs.
         for (NSString *line in package.config) {
             ReporterLine *reporter = [ReporterLine reporterWithLine:line];
             if (reporter != nil) {

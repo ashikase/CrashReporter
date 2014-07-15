@@ -27,6 +27,7 @@
 @implementation Package
 
 @synthesize identifier = identifier_;
+@synthesize storeIdentifier = storeIdentifier_;
 @synthesize name = name_;
 @synthesize author = author_;
 @synthesize config = config_;
@@ -107,46 +108,75 @@
                 }
                 [data release];
                 pclose(f);
+            }
 
-                // Load optional config file.
-                NSString *configFile = [NSString stringWithFormat:@"/var/lib/dpkg/info/%@.crash_reporter", identifier_];
-                NSString *configString = [[NSString alloc] initWithContentsOfFile:configFile usedEncoding:NULL error:NULL];
+            // Determine store identifier.
+            storeIdentifier_ = [identifier_ copy];
+
+            // Add preferences file include command (if file exists).
+            NSMutableArray *config = [NSMutableArray new];
+            NSString *filepath = [[NSString alloc] initWithFormat:@"/var/mobile/Library/Preferences/%@.plist", identifier_];
+            if ([[NSFileManager defaultManager] fileExistsAtPath:filepath]) {
+                NSString *string = [[NSString alloc] initWithFormat:@"include as Preferences plist \"%@\"", filepath];
+                [config addObject:string];
+                [string release];
+            }
+            [filepath release];
+
+            // Load commands from optional config file.
+            NSString *configFile = [NSString stringWithFormat:@"/var/lib/dpkg/info/%@.crash_reporter", identifier_];
+            NSString *configString = [[NSString alloc] initWithContentsOfFile:configFile usedEncoding:NULL error:NULL];
+            if ([configString length] > 0) {
+                [config addObjectsFromArray:[configString componentsSeparatedByString:@"\n"]];
+            }
+            [configString release];
+
+            config_ = config;
+        } else {
+            // Not a dpkg package. Check if it's an AppStore app.
+            if ([path hasPrefix:@"/var/mobile/Applications/"]) {
+                // Check if any component in the path has a .app suffix.
+                NSString *appBundlePath = path;
+                do {
+                    appBundlePath = [appBundlePath stringByDeletingLastPathComponent];
+                    if ([appBundlePath length] == 0) {
+                        [self release];
+                        return nil;
+                    }
+                } while (![appBundlePath hasSuffix:@".app"]);
+
+                // If we made it this far, this is an AppStore package.
+                isAppStore_ = YES;
+
+                // Determine identifier, store identifier, name and author.
+                NSString *metadataPath = [[appBundlePath stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"iTunesMetadata.plist"];
+                NSDictionary *metadata = [[NSDictionary alloc] initWithContentsOfFile:metadataPath];
+                identifier_ = [[metadata objectForKey:@"softwareVersionBundleId"] retain];
+                storeIdentifier_ = [[metadata objectForKey:@"itemId"] retain];
+                name_ = [[metadata objectForKey:@"itemName"] retain];
+                author_ = [[metadata objectForKey:@"artistName"] retain];
+                [metadata release];
+
+                // Add preferences file include command (if file exists).
+                NSMutableArray *config = [NSMutableArray new];
+                NSString *filepath = [[NSString alloc] initWithFormat:@"%@/Library/Preferences/%@.plist",
+                         [appBundlePath stringByDeletingLastPathComponent], identifier_];
+                if ([[NSFileManager defaultManager] fileExistsAtPath:filepath]) {
+                    NSString *string = [[NSString alloc] initWithFormat:@"include as Preferences plist \"%@\"", filepath];
+                    [config addObject:string];
+                    [string release];
+                }
+                [filepath release];
+
+                // Load commands from optional config file.
+                NSString *configPath = [appBundlePath stringByAppendingPathComponent:@"crash_reporter"];
+                NSString *configString = [[NSString alloc] initWithContentsOfFile:configPath usedEncoding:NULL error:NULL];
                 if ([configString length] > 0) {
-                    config_ = [[configString componentsSeparatedByString:@"\n"] retain];
+                    [config addObjectsFromArray:[configString componentsSeparatedByString:@"\n"]];
                 }
                 [configString release];
-            } else {
-                // Not a dpkg package. Check if it's an AppStore app.
-                if ([path hasPrefix:@"/var/mobile/Applications/"]) {
-                    // Check if any component in the path has a .app suffix.
-                    NSString *appBundlePath = path;
-                    do {
-                        appBundlePath = [appBundlePath stringByDeletingLastPathComponent];
-                        if ([appBundlePath length] == 0) {
-                            [self release];
-                            return nil;
-                        }
-                    } while (![appBundlePath hasSuffix:@".app"]);
 
-                    // If we made it this far, this is an AppStore package.
-                    isAppStore_ = YES;
-
-                    // Determine identifier, name and author.
-                    NSString *metadataPath = [[appBundlePath stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"iTunesMetadata.plist"];
-                    NSDictionary *metadata = [[NSDictionary alloc] initWithContentsOfFile:metadataPath];
-                    identifier_ = [[metadata objectForKey:@"itemId"] retain];
-                    name_ = [[metadata objectForKey:@"itemName"] retain];
-                    author_ = [[metadata objectForKey:@"artistName"] retain];
-                    [metadata release];
-
-                    // Load optional config file.
-                    NSString *configPath = [appBundlePath stringByAppendingPathComponent:@"crash_reporter"];
-                    NSString *configString = [[NSString alloc] initWithContentsOfFile:configPath usedEncoding:NULL error:NULL];
-                    if ([configString length] > 0) {
-                        config_ = [[configString componentsSeparatedByString:@"\n"] retain];
-                    }
-                    [configString release];
-                }
+                config_ = config;
             }
         }
     }
@@ -155,6 +185,7 @@
 
 - (void)dealloc {
     [identifier_ release];
+    [storeIdentifier_ release];
     [name_ release];
     [author_ release];
     [config_ release];
