@@ -141,19 +141,15 @@ static NSCalendar *calendar$ = nil;
         } else {
             // Add Cydia link.
             NSString *line = [NSString stringWithFormat:@"link url \"cydia://package/%@\" as \"Find package in Cydia\"", package.identifier];
-            NSLog(@"01: %@", line);
             ReporterLine *reporter = [ReporterLine reporterWithLine:line];
             if (reporter != nil) {
                 [result addObject:reporter];
             }
 
             // Add email link.
-            NSLog(@"====HEY====");
             NSString *author = package.author;
-            NSLog(@"02: %@", author);
             if (author != nil) {
                 NSString *line = [NSString stringWithFormat:@"link email \"%@\" as \"Email developer\"", author];
-                NSLog(@"03: %@", line);
                 ReporterLine *reporter = [ReporterLine reporterWithLine:line];
                 if (reporter != nil) {
                     [result addObject:reporter];
