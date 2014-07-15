@@ -45,7 +45,6 @@
     NSIndexSet *deniedLinks_;
 
     BOOL isAppStore_;
-    NSString *stuffToSend_;
     NSString *suspect_;
     NSString *packageName_;
     NSString *authorName_;
@@ -95,7 +94,6 @@
     [linkReporters_ release];
     [includeReporters_ release];
     [deniedLinks_ release];
-    [stuffToSend_ release];
     [suspect_ release];
     [packageName_ release];
     [authorName_ release];
@@ -115,30 +113,49 @@
 
 #pragma mark - Other
 
-- (NSString *)stuffToSendForTableView:(UITableView *)tableView {
-    NSMutableIndexSet *currentlySelectedIndexSet = [NSMutableIndexSet new];
-    NSArray *currentSelectedIndexPaths = [tableView indexPathsForSelectedRows];
-    for (NSIndexPath *path in currentSelectedIndexPaths) {
-        if (path.section == 2) {
-            [currentlySelectedIndexSet addIndex:path.row];
+- (NSString *)defaultMessageBody {
+    NSString *string = nil;
+    NSBundle *mainBundle = [NSBundle mainBundle];
+    if (isAppStore_) {
+        NSString *msgPath = [mainBundle pathForResource:@"Message_AppStore" ofType:@"txt"];
+        NSString *msg = [NSString stringWithContentsOfFile:msgPath usedEncoding:NULL error:NULL];
+        string = [NSString stringWithFormat:msg, authorName_, packageName_];
+    } else {
+        NSString *msgPath = [mainBundle pathForResource:@"Message_Cydia" ofType:@"txt"];
+        NSString *msg = [NSString stringWithContentsOfFile:msgPath usedEncoding:NULL error:NULL];
+        string = [NSString stringWithFormat:msg, authorName_, suspect_, packageName_];
         }
-    }
+    return string;
+}
 
-    if (![previouslySelectedRows_ isEqualToIndexSet:currentlySelectedIndexSet]) {
-        [previouslySelectedRows_ release];
-        previouslySelectedRows_ = [currentlySelectedIndexSet retain];
-        [stuffToSend_ release];
-        stuffToSend_ = nil;
+- (NSArray *)selectedAttachments {
+    // Determine selected attachments.
+    NSMutableIndexSet *indexSet = [NSMutableIndexSet indexSet];
+    for (NSIndexPath *indexPath in [self.tableView indexPathsForSelectedRows]) {
+        if (indexPath.section == 1) {
+            [indexSet addIndex:indexPath.row];
+    }
+    }
+    return [includeReporters_ objectsAtIndexes:indexSet];
+}
+
+- (NSString *)uploadAttachments {
+    NSMutableString *urlsString = nil;
 
         ModalActionSheet *hud = [ModalActionSheet new];
         [hud show];
 
-        NSArray *theStrings = [[includeReporters_ valueForKey:@"content"] objectsAtIndexes:previouslySelectedRows_];
-        if ([theStrings count] > 0) {
+    NSArray *contents = [[self selectedAttachments] valueForKey:@"content"];
+    if ([contents count] > 0) {
+        NSArray *urls = pastie(contents, hud);
+        if (urls != nil) {
+            urlsString = [NSMutableString string];
+            for (NSURL *url in urls) {
+                [urlsString appendString:[url absoluteString]];
+                [urlsString appendString:@"\n"];
+            }
+        } else {
             NSBundle *mainBundle = [NSBundle mainBundle];
-
-            NSArray *urls = pastie(theStrings, hud);
-            if (urls == nil) {
                 NSString *title = [mainBundle localizedStringForKey:@"Upload failed" value:nil table:nil];
                 NSString *message = [mainBundle localizedStringForKey:@"pastie.org is unreachable." value:nil table:nil];
                 NSString *cancel = [mainBundle localizedStringForKey:@"OK" value:nil table:nil];
@@ -146,31 +163,13 @@
                     cancelButtonTitle:cancel otherButtonTitles:nil];
                 [alert show];
                 [alert release];
-            } else {
-                NSMutableString *togetherURLs = [NSMutableString new];
-                for (NSURL *url in urls) {
-                    [togetherURLs appendString:[url absoluteString]];
-                    [togetherURLs appendString:@"\n"];
-                }
-
-                if (isAppStore_) {
-                    NSString *msgPath = [mainBundle pathForResource:@"Message_AppStore" ofType:@"txt"];
-                    NSString *msg = [NSString stringWithContentsOfFile:msgPath usedEncoding:NULL error:NULL];
-                    stuffToSend_ = [[NSString alloc] initWithFormat:msg, authorName_, packageName_, togetherURLs];
-                } else {
-                    NSString *msgPath = [mainBundle pathForResource:@"Message" ofType:@"txt"];
-                    NSString *msg = [NSString stringWithContentsOfFile:msgPath usedEncoding:NULL error:NULL];
-                    stuffToSend_ = [[NSString alloc] initWithFormat:msg, authorName_, suspect_, packageName_, togetherURLs];
-                }
-                [togetherURLs release];
             }
         }
+
         [hud hide];
         [hud release];
-    }
-    [currentlySelectedIndexSet release];
 
-    return stuffToSend_;
+    return urlsString;
 }
 
 #pragma mark - UITableViewDataSource
@@ -271,9 +270,9 @@
             if ([reporter isEmail]) {
                 if ([MFMailComposeViewController canSendMail]) {
                     MFMailComposeViewController *controller = [[MFMailComposeViewController alloc] init];
-                    [controller setSubject:[@"Crash report regarding " stringByAppendingString:(packageName_ ?: @"(unknown product)")]];
+                    [controller setSubject:[@"Crash Report: " stringByAppendingString:(packageName_ ?: @"(unknown product)")]];
                     [controller setToRecipients:[[reporter urlString] componentsSeparatedByRegex:@",\\s*"]];
-                    [controller setMessageBody:[self stuffToSendForTableView:tableView] isHTML:NO];
+                    [controller setMessageBody:[self defaultMessageBody] isHTML:NO];
                     [controller setMailComposeDelegate:self];
                     [self presentModalViewController:controller animated:YES];
                     [controller release];
@@ -285,8 +284,15 @@
                     [tableView deselectRowAtIndexPath:indexPath animated:YES];
                 }
             } else {
-                [UIPasteboard generalPasteboard].string = [self stuffToSendForTableView:tableView];
+                NSString *urlsString = [self uploadAttachments];
+                if (urlsString != nil) {
+                    NSMutableString *string = [[self defaultMessageBody] mutableCopy];
+                    [string appendString:@"\n"];
+                    [string appendString:urlsString];
+                    [UIPasteboard generalPasteboard].string = string;
                 [[UIApplication sharedApplication] openURL:[NSURL URLWithString:[reporter urlString]]];
+                    [string release];
+                }
                 [tableView deselectRowAtIndexPath:indexPath animated:YES];
             }
         }
