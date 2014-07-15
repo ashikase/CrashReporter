@@ -92,9 +92,9 @@
                                     NSRange range = NSMakeRange((firstColon + 1), (length - firstColon - 1));
                                     NSUInteger firstNonSpace = [string rangeOfCharacterFromSet:set options:0 range:range].location;
                                     if ([string hasPrefix:@"Name:"]) {
-                                        name_ = [string substringFromIndex:firstNonSpace];
+                                        name_ = [[string substringFromIndex:firstNonSpace] retain];
                                     } else {
-                                        author_ = [string substringFromIndex:firstNonSpace];
+                                        author_ = [[string substringFromIndex:firstNonSpace] retain];
                                     }
                                 }
                             }
@@ -111,7 +111,9 @@
                 // Load optional config file.
                 NSString *configFile = [NSString stringWithFormat:@"/var/lib/dpkg/info/%@.crash_reporter", identifier_];
                 NSString *configString = [[NSString alloc] initWithContentsOfFile:configFile usedEncoding:NULL error:NULL];
-                config_ = [configString componentsSeparatedByString:@"\n"];
+                if ([configString length] > 0) {
+                    config_ = [[configString componentsSeparatedByString:@"\n"] retain];
+                }
                 [configString release];
             } else {
                 // Not a dpkg package. Check if it's an AppStore app.
@@ -140,7 +142,9 @@
                     // Load optional config file.
                     NSString *configPath = [appBundlePath stringByAppendingPathComponent:@"crash_reporter"];
                     NSString *configString = [[NSString alloc] initWithContentsOfFile:configPath usedEncoding:NULL error:NULL];
-                    config_ = [configString componentsSeparatedByString:@"\n"];
+                    if ([configString length] > 0) {
+                        config_ = [[configString componentsSeparatedByString:@"\n"] retain];
+                    }
                     [configString release];
                 }
             }
