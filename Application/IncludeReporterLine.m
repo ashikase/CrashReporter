@@ -6,18 +6,11 @@
 @property(nonatomic, copy) NSString *title;
 @end
 
-typedef enum {
-    IncludeReporterLineCommandTypeFile,
-    IncludeReporterLineCommandTypePlist,
-    IncludeReporterLineCommandTypeCommand
-} IncludeReporterLineCommandType;
-
-@implementation IncludeReporterLine {
-    IncludeReporterLineCommandType commandType_;
-}
+@implementation IncludeReporterLine
 
 @synthesize content = content_;
 @synthesize filepath = filepath_;
+@synthesize type = type_;
 
 + (NSArray *)includeReportersForPackage:(Package *)package {
     NSMutableArray *result = [NSMutableArray array];
@@ -63,13 +56,13 @@ typedef enum {
                     if ([token isEqualToString:@"as"]) {
                         mode = ModeTitle;
                     } else if ([token isEqualToString:@"file"]) {
-                        commandType_ = IncludeReporterLineCommandTypeFile;
+                        type_ = IncludeReporterLineCommandTypeFile;
                         mode = ModeFilepath;
                     } else if ([token isEqualToString:@"command"]) {
-                        commandType_ = IncludeReporterLineCommandTypeCommand;
+                        type_ = IncludeReporterLineCommandTypeCommand;
                         mode = ModeFilepath;
                     } else if ([token isEqualToString:@"plist"]) {
-                        commandType_ = IncludeReporterLineCommandTypePlist;
+                        type_ = IncludeReporterLineCommandTypePlist;
                         mode = ModeFilepath;
                     }
                     break;
@@ -107,9 +100,9 @@ loop_exit:
 - (NSString *)content {
     if (content_ == nil) {
         NSString *filepath = [self filepath];
-        if (commandType_ == IncludeReporterLineCommandTypeFile) {
+        if (type_ == IncludeReporterLineCommandTypeFile) {
             content_ = [[NSString alloc] initWithContentsOfFile:filepath usedEncoding:NULL error:NULL];
-        } else if (commandType_ == IncludeReporterLineCommandTypePlist) {
+        } else if (type_ == IncludeReporterLineCommandTypePlist) {
             NSLog(@"1:FILEPATH: %@", filepath);
             NSData *data = [NSData dataWithContentsOfFile:filepath];
             id plist = nil;
