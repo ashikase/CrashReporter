@@ -30,7 +30,7 @@
             // Add email link.
             NSString *author = package.author;
             if (author != nil) {
-                NSString *line = [NSString stringWithFormat:@"email to \"%@\" as \"Email author\"", author];
+                NSString *line = [NSString stringWithFormat:@"link email \"%@\" as \"Email author\" is_support yes", author];
                 LinkReporterLine *reporter = [self reporterWithLine:line];
                 if (reporter != nil) {
                     [result addObject:reporter];
@@ -95,7 +95,6 @@
                     break;
                 case ModeSupport:
                     isSupport_ = [[token lowercaseString] isEqualToString:@"yes"];
-                    unlocalizedTitle_ = [token retain];
                     mode = ModeAttribute;
                     break;
                 case ModeTitle:
