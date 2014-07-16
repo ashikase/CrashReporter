@@ -18,10 +18,10 @@
 
 */
 
-#import "ReporterLine.h"
+#import "Instruction.h"
 
-#import "IncludeReporterLine.h"
-#import "LinkReporterLine.h"
+#import "IncludeInstruction.h"
+#import "LinkInstruction.h"
 #import "Package.h"
 
 static NSArray *tokenize(NSString *string) {
@@ -63,20 +63,20 @@ static NSArray *tokenize(NSString *string) {
     return result;
 }
 
-static NSMutableDictionary *reporters$ = nil;
+static NSMutableDictionary *instructions$ = nil;
 
-@implementation ReporterLine
+@implementation Instruction
 
 @synthesize title = title_;
 @synthesize tokens = tokens_;
 
-+ (instancetype)reporterWithLine:(NSString *)line {
-    if (reporters$ == nil) {
-        reporters$ = [NSMutableDictionary new];
++ (instancetype)instructionWithLine:(NSString *)line {
+    if (instructions$ == nil) {
+        instructions$ = [NSMutableDictionary new];
     }
 
-    ReporterLine *reporter = [reporters$ objectForKey:line];
-    if (reporter == nil) {
+    Instruction *instruction = [instructions$ objectForKey:line];
+    if (instruction == nil) {
         NSArray *tokens = tokenize(line);
         NSUInteger count = [tokens count];
         if (count > 0) {
@@ -84,26 +84,26 @@ static NSMutableDictionary *reporters$ = nil;
 
             NSString *firstToken = [tokens objectAtIndex:0];
             if ([firstToken isEqualToString:@"include" ]) {
-                klass = [IncludeReporterLine class];
+                klass = [IncludeInstruction class];
             } else if ([firstToken isEqualToString:@"link"]) {
-                klass = [LinkReporterLine class];
+                klass = [LinkInstruction class];
             }
 
             if (klass != Nil) {
-                reporter = [[klass alloc] initWithTokens:tokens];
-                if (reporter != nil) {
-                    [reporters$ setObject:reporter forKey:line];
-                    [reporter release];
+                instruction = [[klass alloc] initWithTokens:tokens];
+                if (instruction != nil) {
+                    [instructions$ setObject:instruction forKey:line];
+                    [instruction release];
                 }
             }
         }
     }
-    return reporter;
+    return instruction;
 }
 
-+ (void)flushReporters {
-    [reporters$ release];
-    reporters$ = nil;
++ (void)flushInstructions {
+    [instructions$ release];
+    instructions$ = nil;
 }
 
 static NSCalendar *calendar$ = nil;
@@ -138,13 +138,13 @@ static NSCalendar *calendar$ = nil;
     [super dealloc];
 }
 
-- (NSComparisonResult)compare:(ReporterLine *)reporter {
+- (NSComparisonResult)compare:(Instruction *)instruction {
     Class thisClass = [self class];
-    Class thatClass = [reporter class];
+    Class thatClass = [instruction class];
     if (thisClass == thatClass) {
-        return [[self title] compare:[reporter title]];
+        return [[self title] compare:[instruction title]];
     } else {
-        return (thisClass == [LinkReporterLine class]) ? NSOrderedAscending : NSOrderedDescending;
+        return (thisClass == [LinkInstruction class]) ? NSOrderedAscending : NSOrderedDescending;
     }
 }
 

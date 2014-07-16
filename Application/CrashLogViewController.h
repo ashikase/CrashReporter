@@ -20,10 +20,10 @@
 
 #import <UIKit/UIKit.h>
 
-@class IncludeReporterLine;
+@class IncludeInstruction;
 
 @interface CrashLogViewController : UIViewController
-@property(nonatomic, retain) IncludeReporterLine *reporter;
+@property(nonatomic, retain) IncludeInstruction *instruction;
 + (void)escapeHTML:(NSMutableString *)string;
 - (void)setHTMLContent:(NSString *)content withDataDetector:(UIDataDetectorTypes)dataDetectors;
 @end

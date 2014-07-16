@@ -1,28 +1,28 @@
-#import "IncludeReporterLine.h"
+#import "IncludeInstruction.h"
 
 #import "NSString+CrashReporter.h"
 #import "Package.h"
 
-@interface ReporterLine (Private)
+@interface Instruction (Private)
 @property(nonatomic, copy) NSString *title;
 @end
 
-@implementation IncludeReporterLine
+@implementation IncludeInstruction
 
 @synthesize content = content_;
 @synthesize filepath = filepath_;
 @synthesize type = type_;
 
-+ (NSArray *)includeReportersForPackage:(Package *)package {
++ (NSArray *)includeInstructionsForPackage:(Package *)package {
     NSMutableArray *result = [NSMutableArray array];
 
     if (package != nil) {
         // Add (optional) include commands.
         for (NSString *line in package.config) {
             if ([line hasPrefix:@"include"]) {
-                IncludeReporterLine *reporter = [self reporterWithLine:line];
-                if (reporter != nil) {
-                    [result addObject:reporter];
+                IncludeInstruction *instruction = [self instructionWithLine:line];
+                if (instruction != nil) {
+                    [result addObject:instruction];
                 }
             }
         }
@@ -57,13 +57,13 @@
                     if ([token isEqualToString:@"as"]) {
                         mode = ModeTitle;
                     } else if ([token isEqualToString:@"file"]) {
-                        type_ = IncludeReporterLineCommandTypeFile;
+                        type_ = IncludeInstructionTypeFile;
                         mode = ModeFilepath;
                     } else if ([token isEqualToString:@"command"]) {
-                        type_ = IncludeReporterLineCommandTypeCommand;
+                        type_ = IncludeInstructionTypeCommand;
                         mode = ModeFilepath;
                     } else if ([token isEqualToString:@"plist"]) {
-                        type_ = IncludeReporterLineCommandTypePlist;
+                        type_ = IncludeInstructionTypePlist;
                         mode = ModeFilepath;
                     }
                     break;
@@ -100,9 +100,9 @@ loop_exit:
 - (NSString *)content {
     if (content_ == nil) {
         NSString *filepath = [self filepath];
-        if (type_ == IncludeReporterLineCommandTypeFile) {
+        if (type_ == IncludeInstructionTypeFile) {
             content_ = [[NSString alloc] initWithContentsOfFile:filepath usedEncoding:NULL error:NULL];
-        } else if (type_ == IncludeReporterLineCommandTypePlist) {
+        } else if (type_ == IncludeInstructionTypePlist) {
             NSData *data = [NSData dataWithContentsOfFile:filepath];
             id plist = nil;
             if ([NSPropertyListSerialization respondsToSelector:@selector(propertyListWithData:options:format:error:)]) {

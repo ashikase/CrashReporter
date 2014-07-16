@@ -22,14 +22,14 @@
 
 @class Package;
 
-@interface ReporterLine : NSObject
+@interface Instruction : NSObject
 @property(nonatomic, copy) NSString *title;
 @property(nonatomic, readonly) NSArray *tokens;
-+ (instancetype)reporterWithLine:(NSString *)line;
-+ (void)flushReporters;
++ (instancetype)instructionWithLine:(NSString *)line;
++ (void)flushInstructions;
 + (NSString *)formatSyslogTime:(NSDate *)date;
 - (instancetype)initWithTokens:(NSArray *)tokens;
-- (NSComparisonResult)compare:(ReporterLine *)other;
+- (NSComparisonResult)compare:(Instruction *)other;
 - (UITableViewCell *)format:(UITableViewCell *)cell;
 @end
 

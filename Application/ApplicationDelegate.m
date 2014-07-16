@@ -21,7 +21,7 @@
 #import "ApplicationDelegate.h"
 
 #import "RootViewController.h"
-#import "ReporterLine.h"
+#import "Instruction.h"
 
 #ifndef kCFCoreFoundationVersionNumber_iOS_4_0
 #define kCFCoreFoundationVersionNumber_iOS_4_0 550.32
@@ -81,7 +81,7 @@
 }
 
 - (void)applicationDidReceiveMemoryWarning:(UIApplication *)application {
-    [ReporterLine flushReporters];
+    [Instruction flushInstructions];
 }
 
 #pragma mark - UIAlertViewDelegate

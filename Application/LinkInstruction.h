@@ -1,12 +1,12 @@
-#import "ReporterLine.h"
+#import "Instruction.h"
 
-@interface LinkReporterLine : ReporterLine
+@interface LinkInstruction : Instruction
 @property(nonatomic, readonly) NSString *recipients;
 @property(nonatomic, readonly) NSString *unlocalizedTitle;
 @property(nonatomic, readonly) NSURL *url;
 @property(nonatomic, readonly) BOOL isEmail;
 @property(nonatomic, readonly) BOOL isSupport;
-+ (NSArray *)linkReportersForPackage:(Package *)package;
++ (NSArray *)linkInstructionsForPackage:(Package *)package;
 @end
 
 /* vim: set ft=objc ff=unix sw=4 ts=4 tw=80 expandtab: */

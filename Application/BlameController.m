@@ -27,8 +27,8 @@
 #import "ModalActionSheet.h"
 #import "pastie.h"
 
-#import "IncludeReporterLine.h"
-#import "LinkReporterLine.h"
+#import "IncludeInstruction.h"
+#import "LinkInstruction.h"
 #import "Package.h"
 
 @interface UIColor ()
@@ -44,17 +44,17 @@
 
     Package *package_;
     NSString *suspect_;
-    LinkReporterLine *linkReporter_;
-    NSArray *includeReporters_;
+    LinkInstruction *linkInstruction_;
+    NSArray *includeInstructions_;
 }
 
-- (id)initWithPackage:(Package *)package suspect:(NSString *)suspect linkReporter:(LinkReporterLine *)linkReporter includeReporters:(NSArray *)includeReporters {
+- (id)initWithPackage:(Package *)package suspect:(NSString *)suspect linkInstruction:(LinkInstruction *)linkInstruction includeInstructions:(NSArray *)includeInstructions {
     self = [super init];
     if (self != nil) {
         package_ = [package retain];
         suspect_ = [suspect copy];
-        linkReporter_ = [linkReporter retain];
-        includeReporters_ = [includeReporters copy];
+        linkInstruction_ = [linkInstruction retain];
+        includeInstructions_ = [includeInstructions copy];
 
         self.title = [suspect lastPathComponent];
         UIBarButtonItem *buttonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAction target:self action:@selector(barButtonTapped)];
@@ -70,15 +70,15 @@
 
     [package_ release];
     [suspect_ release];
-    [linkReporter_ release];
-    [includeReporters_ release];
+    [linkInstruction_ release];
+    [includeInstructions_ release];
 
     [super dealloc];
 }
 
 - (void)loadView {
     CGRect screenBounds = [[UIScreen mainScreen] bounds];
-    CGFloat tableViewHeight = 23.0 + 44.0 * MIN(4.0, [includeReporters_ count]);
+    CGFloat tableViewHeight = 23.0 + 44.0 * MIN(4.0, [includeInstructions_ count]);
     CGFloat textViewHeight = (screenBounds.size.height - tableViewHeight);
 
     UITextView *textView = [[UITextView alloc] initWithFrame:CGRectMake(0.0, 0.0, screenBounds.size.width, textViewHeight)];
@@ -133,7 +133,7 @@
     for (NSIndexPath *indexPath in [tableView_ indexPathsForSelectedRows]) {
         [indexSet addIndex:indexPath.row];
     }
-    return [includeReporters_ objectsAtIndexes:indexSet];
+    return [includeInstructions_ objectsAtIndexes:indexSet];
 }
 
 - (NSString *)uploadAttachments {
@@ -176,7 +176,7 @@
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-    return [includeReporters_ count];
+    return [includeInstructions_ count];
 }
 
 - (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section {
@@ -211,9 +211,9 @@
     cell.editingAccessoryType = UITableViewCellAccessoryDetailDisclosureButton;
     textLabel.textColor = [UIColor blackColor];
 
-    IncludeReporterLine *reporter = [includeReporters_ objectAtIndex:indexPath.row];
-    textLabel.text = [reporter title];
-    detailTextLabel.text = [reporter filepath];
+    IncludeInstruction *instruction = [includeInstructions_ objectAtIndex:indexPath.row];
+    textLabel.text = [instruction title];
+    detailTextLabel.text = [instruction filepath];
     [tableView selectRowAtIndexPath:indexPath animated:NO scrollPosition:UITableViewScrollPositionNone];
     return cell;
 }
@@ -222,7 +222,7 @@
 
 - (void)tableView:(UITableView *)tableView accessoryButtonTappedForRowWithIndexPath:(NSIndexPath *)indexPath {
     CrashLogViewController *controller = [CrashLogViewController new];
-    controller.reporter = [includeReporters_ objectAtIndex:indexPath.row];
+    controller.instruction = [includeInstructions_ objectAtIndex:indexPath.row];
     [self.navigationController pushViewController:controller animated:YES];
     [controller release];
 }
@@ -234,24 +234,24 @@
     NSBundle *mainBundle = [NSBundle mainBundle];
     NSString *okMessage = [mainBundle localizedStringForKey:@"OK" value:nil table:nil];
 
-    if ([linkReporter_ isEmail]) {
+    if ([linkInstruction_ isEmail]) {
         if ([MFMailComposeViewController canSendMail]) {
             // Setup mail controller.
             MFMailComposeViewController *controller = [MFMailComposeViewController new];
             [controller setMailComposeDelegate:self];
             [controller setMessageBody:textView_.text isHTML:NO];
             [controller setSubject:[@"Crash Report: " stringByAppendingString:(package_.name ?: @"(unknown product)")]];
-            [controller setToRecipients:[[linkReporter_ recipients] componentsSeparatedByRegex:@",\\s*"]];
+            [controller setToRecipients:[[linkInstruction_ recipients] componentsSeparatedByRegex:@",\\s*"]];
 
             // Add attachments.
-            for (IncludeReporterLine *reporter in [self selectedAttachments]) {
+            for (IncludeInstruction *instruction in [self selectedAttachments]) {
                 // Attach to the email.
-                NSData *data = [[reporter content] dataUsingEncoding:NSUTF8StringEncoding];
+                NSData *data = [[instruction content] dataUsingEncoding:NSUTF8StringEncoding];
                 if (data != nil) {
-                    NSString *filepath = [reporter filepath];
-                    NSString *filename = ([reporter type] == IncludeReporterLineCommandTypeCommand) ?
-                        [[reporter title] stringByAppendingPathExtension:@"txt"] : [filepath lastPathComponent];
-                    NSString *mimeType = ([reporter type] == IncludeReporterLineCommandTypePlist) ?
+                    NSString *filepath = [instruction filepath];
+                    NSString *filename = ([instruction type] == IncludeInstructionTypeCommand) ?
+                        [[instruction title] stringByAppendingPathExtension:@"txt"] : [filepath lastPathComponent];
+                    NSString *mimeType = ([instruction type] == IncludeInstructionTypePlist) ?
                         @"application/x-plist" : @"text/plain";
                     [controller addAttachmentData:data mimeType:mimeType fileName:filename];
                 }
@@ -274,7 +274,7 @@
             [string appendString:@"\n"];
             [string appendString:urlsString];
             [UIPasteboard generalPasteboard].string = string;
-            [[UIApplication sharedApplication] openURL:[linkReporter_ url]];
+            [[UIApplication sharedApplication] openURL:[linkInstruction_ url]];
             [string release];
         }
     }

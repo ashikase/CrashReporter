@@ -3,23 +3,23 @@ CrashReporter_FILES = \
     ../Libraries/RegexKitLite/RegexKitLite.m \
     ApplicationDelegate.m \
     BlameController.m \
-    CrashLogDirectoryReader.m \
     CrashLog.m \
+    CrashLogDirectoryReader.m \
     CrashLogGroup.m \
     CrashLogViewController.m \
     CustomBlameController.m \
+    IncludeInstruction.m \
+    Instruction.m \
+    LinkInstruction.m \
     ModalActionSheet.m \
     NSString+CrashReporter.m \
-    IncludeReporterLine.m \
-    LinkReporterLine.m \
     Package.m \
-    ReporterLine.m \
     RootViewController.m \
     SuspectsViewController.m \
     VictimViewController.m \
     common.c \
-    move_as_root.m \
     main.m \
+    move_as_root.m \
     pastie.m
 CrashReporter_CFLAGS = -I../Libraries
 CrashReporter_LDFLAGS = -licucore -lsymbolicate

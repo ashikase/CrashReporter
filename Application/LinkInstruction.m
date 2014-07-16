@@ -1,13 +1,13 @@
-#import "LinkReporterLine.h"
+#import "LinkInstruction.h"
 
 #import "NSString+CrashReporter.h"
 #import "Package.h"
 
-@interface ReporterLine (Private)
+@interface Instruction (Private)
 @property(nonatomic, copy) NSString *title;
 @end
 
-@implementation LinkReporterLine
+@implementation LinkInstruction
 
 @synthesize recipients = recipients_;
 @synthesize unlocalizedTitle = unlocalizedTitle_;
@@ -15,7 +15,7 @@
 @synthesize isEmail = isEmail_;
 @synthesize isSupport = isSupport_;
 
-+ (NSArray *)linkReportersForPackage:(Package *)package {
++ (NSArray *)linkInstructionsForPackage:(Package *)package {
     NSMutableArray *result = [NSMutableArray array];
 
     if (package != nil) {
@@ -23,9 +23,9 @@
             // Add AppStore link.
             long long item = [package.storeIdentifier longLongValue]; // we need long long here because there are 2 billion apps on AppStore already... :)
             NSString *line = [NSString stringWithFormat:@"link url \"http://itunes.apple.com/WebObjects/MZStore.woa/wa/viewSoftware?id=%lld&mt=8\" as \"View package in AppStore\"", item];
-            LinkReporterLine *reporter = [self reporterWithLine:line];
-            if (reporter != nil) {
-                [result addObject:reporter];
+            LinkInstruction *instruction = [self instructionWithLine:line];
+            if (instruction != nil) {
+                [result addObject:instruction];
             }
         } else {
             // Add email link.
@@ -39,9 +39,9 @@
                             NSRange range = NSMakeRange(leftAngleRange.location + 1, rightAngleRange.location - leftAngleRange.location - 1);
                             NSString *emailAddress = [author substringWithRange:range];
                             NSString *line = [NSString stringWithFormat:@"link email %@ as \"Contact author\" is_support yes", emailAddress];
-                            LinkReporterLine *reporter = [self reporterWithLine:line];
-                            if (reporter != nil) {
-                                [result addObject:reporter];
+                            LinkInstruction *instruction = [self instructionWithLine:line];
+                            if (instruction != nil) {
+                                [result addObject:instruction];
                             }
                         }
                     }
@@ -50,18 +50,18 @@
 
             // Add Cydia link.
             NSString *line = [NSString stringWithFormat:@"link url \"cydia://package/%@\" as \"View package in Cydia\"", package.storeIdentifier];
-            LinkReporterLine *reporter = [self reporterWithLine:line];
-            if (reporter != nil) {
-                [result addObject:reporter];
+            LinkInstruction *instruction = [self instructionWithLine:line];
+            if (instruction != nil) {
+                [result addObject:instruction];
             }
         }
 
         // Add other (optional) link commands.
         for (NSString *line in package.config) {
             if ([line hasPrefix:@"link"]) {
-                LinkReporterLine *reporter = [self reporterWithLine:line];
-                if (reporter != nil) {
-                    [result addObject:reporter];
+                LinkInstruction *instruction = [self instructionWithLine:line];
+                if (instruction != nil) {
+                    [result addObject:instruction];
                 }
             }
         }

@@ -22,7 +22,7 @@
 
 #import <MobileCoreServices/MobileCoreServices.h>
 #import <RegexKitLite/RegexKitLite.h>
-#import "IncludeReporterLine.h"
+#import "IncludeInstruction.h"
 
 @interface UIWebDocumentView : UIView
 - (id)text;
@@ -36,7 +36,7 @@
     UIWebView *webView_;
 }
 
-@synthesize reporter = reporter_;
+@synthesize instruction = instruction_;
 
 + (void)escapeHTML:(NSMutableString *)string {
     [string replaceOccurrencesOfString:@"&" withString:@"&amp;" options:0 range:NSMakeRange(0, [string length])];
@@ -46,7 +46,7 @@
 
 - (void)dealloc {
     [webView_ release];
-    [reporter_ release];
+    [instruction_ release];
     [super dealloc];
 }
 
@@ -61,8 +61,8 @@
     webView_ = webView;
 
     NSBundle *mainBundle = [NSBundle mainBundle];
-    IncludeReporterLine *reporter = [self reporter];
-    self.title = reporter ? [reporter title] : [mainBundle localizedStringForKey:@"Untitled" value:nil table:nil];
+    IncludeInstruction *instruction = [self instruction];
+    self.title = instruction ? [instruction title] : [mainBundle localizedStringForKey:@"Untitled" value:nil table:nil];
 
     NSString *title = [mainBundle localizedStringForKey:@"Copy" value:nil table:nil];
     UIBarButtonItem *copyButton = [[UIBarButtonItem alloc] initWithTitle:title
@@ -70,7 +70,7 @@
     self.navigationItem.rightBarButtonItem = copyButton;
     [copyButton release];
 
-    NSMutableString *crashLogString = [[reporter content] mutableCopy];
+    NSMutableString *crashLogString = [[instruction content] mutableCopy];
     [CrashLogViewController escapeHTML:crashLogString];
     [crashLogString insertString:@"<html><head><title>.</title></head><body><pre style=\"font-size:8pt;\">" atIndex:0];
     [crashLogString appendString:@"</pre></body></html>"];

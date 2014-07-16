@@ -27,8 +27,8 @@
 #import "BlameController.h"
 #import "CrashLog.h"
 #import "CrashLogViewController.h"
-#import "IncludeReporterLine.h"
-#import "LinkReporterLine.h"
+#import "IncludeInstruction.h"
+#import "LinkInstruction.h"
 #import "Package.h"
 
 @interface UIAlertView ()
@@ -42,7 +42,7 @@
     CrashLog *crashLog_;
     NSString *dateString_;
     NSArray *suspects_;
-    NSArray *lastSelectedLinkReporters_;
+    NSArray *lastSelectedLinkInstructions_;
     Package *lastSelectedPackage_;
     NSString *lastSelectedPath_;
 }
@@ -51,7 +51,7 @@
     [crashLog_ release];
     [dateString_ release];
     [suspects_ release];
-    [lastSelectedLinkReporters_ release];
+    [lastSelectedLinkInstructions_ release];
     [lastSelectedPackage_ release];
     [lastSelectedPath_ release];
     [super dealloc];
@@ -134,7 +134,7 @@ static UIButton *logButton() {
     // Create date string for syslog output.
     // FIXME: Is it necessary to cache this?
     NSDate *date = [crashLog date];
-    dateString_ = [[ReporterLine formatSyslogTime:date] retain];
+    dateString_ = [[Instruction formatSyslogTime:date] retain];
 
     // Set title using date.
     NSDateFormatter *formatter = [NSDateFormatter new];
@@ -147,7 +147,7 @@ static UIButton *logButton() {
 
 - (void)presentViewerWithLine:(NSString *)line {
     CrashLogViewController *viewController = [CrashLogViewController new];
-    viewController.reporter = (IncludeReporterLine *)[ReporterLine reporterWithLine:line];
+    viewController.instruction = (IncludeInstruction *)[Instruction instructionWithLine:line];
     [self.navigationController pushViewController:viewController animated:YES];
     [viewController release];
 }
@@ -204,21 +204,21 @@ static UIButton *logButton() {
     Package *package = [Package packageForFile:path];
 
     // Get links for package.
-    NSArray *linkReporters = [LinkReporterLine linkReportersForPackage:package];
-    if ([linkReporters count] > 0) {
+    NSArray *linkInstructions = [LinkInstruction linkInstructionsForPackage:package];
+    if ([linkInstructions count] > 0) {
         // Determine and present choices.
         NSBundle *mainBundle = [NSBundle mainBundle];
         NSString *cancelTitle = [mainBundle localizedStringForKey:@"Cancel" value:nil table:nil];
         UIAlertView *alert = [[UIAlertView alloc] initWithTitle:package.name message:nil delegate:self
             cancelButtonTitle:cancelTitle otherButtonTitles:nil];
-        for (LinkReporterLine *linkReporter in linkReporters) {
-            [alert addButtonWithTitle:[linkReporter title]];
+        for (LinkInstruction *linkInstruction in linkInstructions) {
+            [alert addButtonWithTitle:[linkInstruction title]];
         }
-        [alert setNumberOfRows:(1 + [linkReporters count])];
+        [alert setNumberOfRows:(1 + [linkInstructions count])];
         [alert show];
         [alert release];
 
-        lastSelectedLinkReporters_ = [linkReporters retain];
+        lastSelectedLinkInstructions_ = [linkInstructions retain];
         lastSelectedPackage_ = [package retain];
         lastSelectedPath_ = [path retain];
     } else {
@@ -236,31 +236,31 @@ static UIButton *logButton() {
 
 - (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
     if (buttonIndex > 0) {
-        LinkReporterLine *linkReporter = [lastSelectedLinkReporters_ objectAtIndex:(buttonIndex - 1)];
-        if (linkReporter.isSupport) {
+        LinkInstruction *linkInstruction = [lastSelectedLinkInstructions_ objectAtIndex:(buttonIndex - 1)];
+        if (linkInstruction.isSupport) {
             // Report issue.
             NSString *crashlogLine = [NSString stringWithFormat:@"include as \"Crash log\" file \"%@\"", [crashLog_ filepath]];
             NSString *syslogLine = [NSString stringWithFormat:@"include as syslog command grep -E \"^%@\" /var/log/syslog", dateString_];
-            NSMutableArray *includeReporters = [[NSMutableArray alloc] initWithObjects:
-                [IncludeReporterLine reporterWithLine:crashlogLine],
-                [IncludeReporterLine reporterWithLine:syslogLine],
-                [IncludeReporterLine reporterWithLine:@"include as \"Package List\" command dpkg -l"],
+            NSMutableArray *includeInstructions = [[NSMutableArray alloc] initWithObjects:
+                [IncludeInstruction instructionWithLine:crashlogLine],
+                [IncludeInstruction instructionWithLine:syslogLine],
+                [IncludeInstruction instructionWithLine:@"include as \"Package List\" command dpkg -l"],
                 nil];
-            [includeReporters addObjectsFromArray:[IncludeReporterLine includeReportersForPackage:lastSelectedPackage_]];
+            [includeInstructions addObjectsFromArray:[IncludeInstruction includeInstructionsForPackage:lastSelectedPackage_]];
 
             BlameController *viewController = [[BlameController alloc] initWithPackage:lastSelectedPackage_ suspect:lastSelectedPath_
-                linkReporter:linkReporter includeReporters:includeReporters];
+                linkInstruction:linkInstruction includeInstructions:includeInstructions];
             viewController.title = [lastSelectedPath_ lastPathComponent];
             [self.navigationController pushViewController:viewController animated:YES];
             [viewController release];
-            [includeReporters release];
+            [includeInstructions release];
         } else {
-            if (linkReporter.isEmail) {
+            if (linkInstruction.isEmail) {
                 // Present mail controller.
                 if ([MFMailComposeViewController canSendMail]) {
                     MFMailComposeViewController *controller = [MFMailComposeViewController new];
                     [controller setMailComposeDelegate:self];
-                    [controller setToRecipients:[[linkReporter recipients] componentsSeparatedByRegex:@",\\s*"]];
+                    [controller setToRecipients:[[linkInstruction recipients] componentsSeparatedByRegex:@",\\s*"]];
                     [self presentModalViewController:controller animated:YES];
                     [controller release];
                 } else {
@@ -273,13 +273,13 @@ static UIButton *logButton() {
                 }
             } else {
                 // Open associated link.
-                [[UIApplication sharedApplication] openURL:[linkReporter url]];
+                [[UIApplication sharedApplication] openURL:[linkInstruction url]];
             }
         }
     }
 
-    [lastSelectedLinkReporters_ release];
-    lastSelectedLinkReporters_ = nil;
+    [lastSelectedLinkInstructions_ release];
+    lastSelectedLinkInstructions_ = nil;
     [lastSelectedPackage_ release];
     lastSelectedPackage_ = nil;
     [lastSelectedPath_ release];

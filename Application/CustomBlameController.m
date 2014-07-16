@@ -21,8 +21,8 @@
 #import "CustomBlameController.h"
 
 #import "BlameController.h"
-#import "IncludeReporterLine.h"
-#import "LinkReporterLine.h"
+#import "IncludeInstruction.h"
+#import "LinkInstruction.h"
 
 @interface CustomBlameController () <UIAlertViewDelegate>
 @end
@@ -85,27 +85,27 @@
 }
 
 - (void)submit {
-    LinkReporterLine *linkReporter = nil;
-    NSMutableArray *includeReporters = [NSMutableArray new];
+    LinkInstruction *linkInstruction = nil;
+    NSMutableArray *includeInstructions = [NSMutableArray new];
 
     NSArray *lines = [textView_.text componentsSeparatedByString:@"\n"];
-    Class $LinkReporterLine = [LinkReporterLine class];
+    Class $LinkInstruction = [LinkInstruction class];
     for (NSString *line in lines) {
-        ReporterLine *reporter = [ReporterLine reporterWithLine:line];
-        if (reporter != nil) {
-            if ([reporter isKindOfClass:$LinkReporterLine]) {
-                linkReporter = [LinkReporterLine reporterWithLine:line];
+        Instruction *instruction = [Instruction instructionWithLine:line];
+        if (instruction != nil) {
+            if ([instruction isKindOfClass:$LinkInstruction]) {
+                linkInstruction = [LinkInstruction instructionWithLine:line];
             } else {
-                [includeReporters addObject:reporter];
+                [includeInstructions addObject:instruction];
             }
         }
     }
 
-    BlameController *controller = [[BlameController alloc] initWithPackage:nil suspect:nil linkReporter:linkReporter includeReporters:includeReporters];
+    BlameController *controller = [[BlameController alloc] initWithPackage:nil suspect:nil linkInstruction:linkInstruction includeInstructions:includeInstructions];
     [self.navigationController pushViewController:controller animated:YES];
     [controller release];
 
-    [includeReporters release];
+    [includeInstructions release];
 }
 
 @end
