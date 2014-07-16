@@ -54,6 +54,9 @@
         includeReporters_ = [includeReporters copy];
 
         self.title = [suspect lastPathComponent];
+        UIBarButtonItem *buttonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAction target:self action:@selector(barButtonTapped)];
+        self.navigationItem.rightBarButtonItem = buttonItem;
+        [buttonItem release];
     }
     return self;
 }
@@ -198,54 +201,53 @@
     [controller release];
 }
 
-- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
-    if (indexPath.section == 0) {
-        NSBundle *mainBundle = [NSBundle mainBundle];
-        NSString *okMessage = [mainBundle localizedStringForKey:@"OK" value:nil table:nil];
 
-        if ([linkReporter_ isEmail]) {
-            if ([MFMailComposeViewController canSendMail]) {
-                // Setup mail controller.
-                MFMailComposeViewController *controller = [MFMailComposeViewController new];
-                [controller setMailComposeDelegate:self];
-                [controller setMessageBody:[self defaultMessageBody] isHTML:NO];
-                [controller setSubject:[@"Crash Report: " stringByAppendingString:(package_.name ?: @"(unknown product)")]];
-                [controller setToRecipients:[[linkReporter_ recipients] componentsSeparatedByRegex:@",\\s*"]];
+#pragma mark - UIBarButtonItem Actions
 
-                // Add attachments.
-                for (IncludeReporterLine *reporter in [self selectedAttachments]) {
-                    // Attach to the email.
-                    NSData *data = [[reporter content] dataUsingEncoding:NSUTF8StringEncoding];
-                    if (data != nil) {
-                        NSString *filepath = [reporter filepath];
+- (void)barButtonTapped {
+    NSBundle *mainBundle = [NSBundle mainBundle];
+    NSString *okMessage = [mainBundle localizedStringForKey:@"OK" value:nil table:nil];
+
+    if ([linkReporter_ isEmail]) {
+        if ([MFMailComposeViewController canSendMail]) {
+            // Setup mail controller.
+            MFMailComposeViewController *controller = [MFMailComposeViewController new];
+            [controller setMailComposeDelegate:self];
+            [controller setMessageBody:[self defaultMessageBody] isHTML:NO];
+            [controller setSubject:[@"Crash Report: " stringByAppendingString:(package_.name ?: @"(unknown product)")]];
+            [controller setToRecipients:[[linkReporter_ recipients] componentsSeparatedByRegex:@",\\s*"]];
+
+            // Add attachments.
+            for (IncludeReporterLine *reporter in [self selectedAttachments]) {
+                // Attach to the email.
+                NSData *data = [[reporter content] dataUsingEncoding:NSUTF8StringEncoding];
+                if (data != nil) {
+                    NSString *filepath = [reporter filepath];
                     NSString *mimeType = ([reporter type] == IncludeReporterLineCommandTypePlist) ?
-                            @"application/x-plist" : @"text/plain";
-                        [controller addAttachmentData:data mimeType:mimeType fileName:[filepath lastPathComponent]];
-                    }
+                        @"application/x-plist" : @"text/plain";
+                    [controller addAttachmentData:data mimeType:mimeType fileName:[filepath lastPathComponent]];
                 }
+            }
 
-                // Present the mail controller for confirmation.
-                [self presentModalViewController:controller animated:YES];
-                [controller release];
-            } else {
-                NSString *cannotMailMessage = [mainBundle localizedStringForKey:@"CANNOT_EMAIL" value:@"Cannot send email from this device." table:nil];
-                UIAlertView *alert = [[UIAlertView alloc] initWithTitle:cannotMailMessage message:nil delegate:nil cancelButtonTitle:okMessage otherButtonTitles:nil];
-                [alert show];
-                [alert release];
-                [tableView deselectRowAtIndexPath:indexPath animated:YES];
-            }
+            // Present the mail controller for confirmation.
+            [self presentModalViewController:controller animated:YES];
+            [controller release];
         } else {
-            // Upload attachments to paste site and open support link.
-            NSString *urlsString = [self uploadAttachments];
-            if (urlsString != nil) {
-                NSMutableString *string = [[self defaultMessageBody] mutableCopy];
-                [string appendString:@"\n"];
-                [string appendString:urlsString];
-                [UIPasteboard generalPasteboard].string = string;
-                [[UIApplication sharedApplication] openURL:[linkReporter_ url]];
-                [string release];
-            }
-            [tableView deselectRowAtIndexPath:indexPath animated:YES];
+            NSString *cannotMailMessage = [mainBundle localizedStringForKey:@"CANNOT_EMAIL" value:@"Cannot send email from this device." table:nil];
+            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:cannotMailMessage message:nil delegate:nil cancelButtonTitle:okMessage otherButtonTitles:nil];
+            [alert show];
+            [alert release];
+        }
+    } else {
+        // Upload attachments to paste site and open support link.
+        NSString *urlsString = [self uploadAttachments];
+        if (urlsString != nil) {
+            NSMutableString *string = [[self defaultMessageBody] mutableCopy];
+            [string appendString:@"\n"];
+            [string appendString:urlsString];
+            [UIPasteboard generalPasteboard].string = string;
+            [[UIApplication sharedApplication] openURL:[linkReporter_ url]];
+            [string release];
         }
     }
 }
