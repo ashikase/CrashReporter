@@ -21,6 +21,7 @@
 #import "SuspectsViewController.h"
 
 #import <Foundation/Foundation.h>
+#import <MessageUI/MessageUI.h>
 #import <RegexKitLite/RegexKitLite.h>
 #import <libsymbolicate/CRCrashReport.h>
 #import "BlameController.h"
@@ -34,7 +35,7 @@
 - (void)setNumberOfRows:(int)rows;
 @end
 
-@interface SuspectsViewController () <UIAlertViewDelegate>
+@interface SuspectsViewController () <MFMailComposeViewControllerDelegate, UIAlertViewDelegate>
 @end
 
 @implementation SuspectsViewController {
@@ -172,11 +173,8 @@
 
 - (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
     if (buttonIndex > 0) {
-        if (YES) {
-            // Open associated link.
-            LinkReporterLine *linkReporter = [lastSelectedLinkReporters_ objectAtIndex:(buttonIndex - 1)];
-            [[UIApplication sharedApplication] openURL:[linkReporter url]];
-        } else {
+        LinkReporterLine *linkReporter = [lastSelectedLinkReporters_ objectAtIndex:(buttonIndex - 1)];
+        if (linkReporter.isSupport) {
             // Report issue.
             NSString *crashlogLine = [NSString stringWithFormat:@"include as \"Crash log\" file \"%@\"", [crashLog_ filepath]];
             NSString *syslogLine = [NSString stringWithFormat:@"include as syslog command grep -F \"%@\" /var/log/syslog", dateString_];
@@ -184,10 +182,7 @@
                 [IncludeReporterLine reporterWithLine:crashlogLine],
                 [IncludeReporterLine reporterWithLine:syslogLine],
                 nil];
-            NSArray *packageReporters = [IncludeReporterLine includeReportersForPackage:lastSelectedPackage_];
-            if (packageReporters != nil) {
-                [reporters addObjectsFromArray:packageReporters];
-            }
+            [includeReporters addObjectsFromArray:[IncludeReporterLine includeReportersForPackage:lastSelectedPackage_]];
 
             BlameController *viewController = [[BlameController alloc] initWithPackage:lastSelectedPackage_ suspect:lastSelectedPath_
                 linkReporter:linkReporter includeReporters:includeReporters];
@@ -195,6 +190,18 @@
             [self.navigationController pushViewController:viewController animated:YES];
             [viewController release];
             [includeReporters release];
+        } else {
+            if (linkReporter.isEmail) {
+                // Present mail controller.
+                MFMailComposeViewController *controller = [MFMailComposeViewController new];
+                [controller setMailComposeDelegate:self];
+                [controller setToRecipients:[[linkReporter recipients] componentsSeparatedByRegex:@",\\s*"]];
+                [self presentModalViewController:controller animated:YES];
+                [controller release];
+            } else {
+                // Open associated link.
+                [[UIApplication sharedApplication] openURL:[linkReporter url]];
+            }
         }
     }
 
@@ -204,6 +211,23 @@
     lastSelectedPackage_ = nil;
     [lastSelectedPath_ release];
     lastSelectedPath_ = nil;
+}
+
+#pragma mark - MFMailComposeViewControllerDelegate
+
+- (void)mailComposeController:(MFMailComposeViewController *)controller didFinishWithResult:(MFMailComposeResult)result error:(NSError *)error {
+    [self dismissModalViewControllerAnimated:YES];
+
+    if (result == MFMailComposeResultFailed) {
+        NSBundle *mainBundle = [NSBundle mainBundle];
+        NSString *message = [[mainBundle localizedStringForKey:@"EMAIL_FAILED_1" value:@"Failed to send email.\nError: " table:nil]
+            stringByAppendingString:[error localizedDescription]];
+        NSString *okMessage = [mainBundle localizedStringForKey:@"OK" value:nil table:nil];
+        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:nil message:message delegate:nil
+            cancelButtonTitle:okMessage otherButtonTitles:nil];
+        [alert show];
+        [alert release];
+    }
 }
 
 @end
