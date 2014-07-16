@@ -20,9 +20,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #import <UIKit/UIKit.h>
 
+@class LinkReporterLine;
+@class Package;
+
 @interface BlameController : UITableViewController
-- (id)initWithReporters:(NSArray *)reporters packageName:(NSString *)packageName
-    authorName:(NSString *)authorName suspect:(NSString *)suspect isAppStore:(BOOL)isAppStore;
+- (id)initWithPackage:(Package *)package suspect:(NSString *)suspect linkReporter:(LinkReporterLine *)linkReporter includeReporters:(NSArray *)includeReporters;
 @end
 
 /* vim: set ft=objc ff=unix sw=4 ts=4 tw=80 expandtab: */

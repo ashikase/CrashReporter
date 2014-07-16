@@ -29,7 +29,7 @@
 
 #import "IncludeReporterLine.h"
 #import "LinkReporterLine.h"
-#import "ReporterLine.h"
+#import "Package.h"
 
 @interface UIColor ()
 + (id)tableCellBlueTextColor;
@@ -39,49 +39,30 @@
 @end
 
 @implementation BlameController {
-    NSArray *linkReporters_;
-    NSArray *includeReporters_;
-
-    BOOL isAppStore_;
+    Package *package_;
     NSString *suspect_;
-    NSString *packageName_;
-    NSString *authorName_;
-    NSIndexSet *previouslySelectedRows_;
+    LinkReporterLine *linkReporter_;
+    NSArray *includeReporters_;
 }
 
-- (id)initWithReporters:(NSArray *)reporters packageName:(NSString *)packageName
-        authorName:(NSString *)authorName suspect:(NSString *)suspect isAppStore:(BOOL)isAppStore {
+- (id)initWithPackage:(Package *)package suspect:(NSString *)suspect linkReporter:(LinkReporterLine *)linkReporter includeReporters:(NSArray *)includeReporters {
     self = [super initWithStyle:UITableViewStylePlain];
     if (self != nil) {
-        packageName_ = [packageName copy];
-        authorName_ = [authorName copy];
+        package_ = [package retain];
         suspect_ = [suspect copy];
-        isAppStore_ = isAppStore;
+        linkReporter_ = [linkReporter retain];
+        includeReporters_ = [includeReporters copy];
 
-        // Assume reporters are sorted in a way that there is a Link -> Deny -> Include order.
-        NSMutableArray *links = [NSMutableArray new];
-        NSMutableArray *includes = [NSMutableArray new];
-        Class $IncludeReporterLine = [IncludeReporterLine class];
-        for (ReporterLine *reporter in reporters) {
-            if ([reporter class] == $IncludeReporterLine) {
-                [includes addObject:reporter];
-            } else {
-                [links addObject:reporter];
-            }
-        }
-        linkReporters_ = links;
-        includeReporters_ = includes;
+        self.title = [suspect lastPathComponent];
     }
     return self;
 }
 
 - (void)dealloc {
-    [linkReporters_ release];
-    [includeReporters_ release];
+    [package_ release];
     [suspect_ release];
-    [packageName_ release];
-    [authorName_ release];
-    [previouslySelectedRows_ release];
+    [linkReporter_ release];
+    [includeReporters_ release];
 
     [super dealloc];
 }
@@ -99,16 +80,19 @@
 
 - (NSString *)defaultMessageBody {
     NSString *string = nil;
+
     NSBundle *mainBundle = [NSBundle mainBundle];
-    if (isAppStore_) {
+    NSString *author = [package_.author stringByReplacingOccurrencesOfRegex:@"\\s*<[^>]+>" withString:@""] ?: @"developer";
+    if (package_.isAppStore) {
         NSString *msgPath = [mainBundle pathForResource:@"Message_AppStore" ofType:@"txt"];
         NSString *msg = [NSString stringWithContentsOfFile:msgPath usedEncoding:NULL error:NULL];
-        string = [NSString stringWithFormat:msg, authorName_, packageName_];
+        string = [NSString stringWithFormat:msg, author, package_.name];
     } else {
         NSString *msgPath = [mainBundle pathForResource:@"Message_Cydia" ofType:@"txt"];
         NSString *msg = [NSString stringWithContentsOfFile:msgPath usedEncoding:NULL error:NULL];
-        string = [NSString stringWithFormat:msg, authorName_, suspect_, packageName_];
+        string = [NSString stringWithFormat:msg, author, suspect_, package_.name];
     }
+
     return string;
 }
 
@@ -216,19 +200,17 @@
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     if (indexPath.section == 0) {
-        NSUInteger row = indexPath.row;
-        LinkReporterLine *reporter = [linkReporters_ objectAtIndex:row];
         NSBundle *mainBundle = [NSBundle mainBundle];
         NSString *okMessage = [mainBundle localizedStringForKey:@"OK" value:nil table:nil];
 
-        if ([reporter isEmail]) {
+        if ([linkReporter_ isEmail]) {
             if ([MFMailComposeViewController canSendMail]) {
                 // Setup mail controller.
                 MFMailComposeViewController *controller = [[MFMailComposeViewController alloc] init];
                 [controller setMailComposeDelegate:self];
                 [controller setMessageBody:[self defaultMessageBody] isHTML:NO];
-                [controller setSubject:[@"Crash Report: " stringByAppendingString:(packageName_ ?: @"(unknown product)")]];
-                [controller setToRecipients:[[reporter recipients] componentsSeparatedByRegex:@",\\s*"]];
+                [controller setSubject:[@"Crash Report: " stringByAppendingString:(package_.name ?: @"(unknown product)")]];
+                [controller setToRecipients:[[linkReporter_ recipients] componentsSeparatedByRegex:@",\\s*"]];
 
                 // Add attachments.
                 for (IncludeReporterLine *reporter in [self selectedAttachments]) {
@@ -260,7 +242,7 @@
                 [string appendString:@"\n"];
                 [string appendString:urlsString];
                 [UIPasteboard generalPasteboard].string = string;
-                [[UIApplication sharedApplication] openURL:[reporter url]];
+                [[UIApplication sharedApplication] openURL:[linkReporter_ url]];
                 [string release];
             }
             [tableView deselectRowAtIndexPath:indexPath animated:YES];

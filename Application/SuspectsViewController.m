@@ -180,7 +180,7 @@
             // Report issue.
             NSString *crashlogLine = [NSString stringWithFormat:@"include as \"Crash log\" file \"%@\"", [crashLog_ filepath]];
             NSString *syslogLine = [NSString stringWithFormat:@"include as syslog command grep -F \"%@\" /var/log/syslog", dateString_];
-            NSMutableArray *reporters = [[NSMutableArray alloc] initWithObjects:
+            NSMutableArray *includeReporters = [[NSMutableArray alloc] initWithObjects:
                 [IncludeReporterLine reporterWithLine:crashlogLine],
                 [IncludeReporterLine reporterWithLine:syslogLine],
                 nil];
@@ -189,14 +189,12 @@
                 [reporters addObjectsFromArray:packageReporters];
             }
 
-            NSString *authorStripped = [lastSelectedPackage_.author stringByReplacingOccurrencesOfRegex:@"\\s*<[^>]+>" withString:@""] ?: @"developer";
-            BlameController *viewController = [[BlameController alloc] initWithReporters:reporters
-                packageName:lastSelectedPackage_.name authorName:authorStripped suspect:lastSelectedPath_
-                isAppStore:lastSelectedPackage_.isAppStore];
+            BlameController *viewController = [[BlameController alloc] initWithPackage:lastSelectedPackage_ suspect:lastSelectedPath_
+                linkReporter:linkReporter includeReporters:includeReporters];
             viewController.title = [lastSelectedPath_ lastPathComponent];
             [self.navigationController pushViewController:viewController animated:YES];
             [viewController release];
-            [reporters release];
+            [includeReporters release];
         }
     }
 
