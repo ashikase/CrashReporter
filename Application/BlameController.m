@@ -35,10 +35,13 @@
 + (id)tableCellBlueTextColor;
 @end
 
-@interface BlameController () <MFMailComposeViewControllerDelegate>
+@interface BlameController () <MFMailComposeViewControllerDelegate, UITableViewDataSource, UITableViewDelegate>
 @end
 
 @implementation BlameController {
+    UITextView *textView_;
+    UITableView *tableView_;
+
     Package *package_;
     NSString *suspect_;
     LinkReporterLine *linkReporter_;
@@ -46,7 +49,7 @@
 }
 
 - (id)initWithPackage:(Package *)package suspect:(NSString *)suspect linkReporter:(LinkReporterLine *)linkReporter includeReporters:(NSArray *)includeReporters {
-    self = [super initWithStyle:UITableViewStylePlain];
+    self = [super init];
     if (self != nil) {
         package_ = [package retain];
         suspect_ = [suspect copy];
@@ -62,6 +65,9 @@
 }
 
 - (void)dealloc {
+    [textView_ release];
+    [tableView_ release];
+
     [package_ release];
     [suspect_ release];
     [linkReporter_ release];
@@ -70,9 +76,31 @@
     [super dealloc];
 }
 
-- (void)viewDidLoad {
-    self.editing = YES;
-    self.tableView.allowsSelectionDuringEditing = YES;
+- (void)loadView {
+    CGRect screenBounds = [[UIScreen mainScreen] bounds];
+    CGFloat tableViewHeight = 23.0 + 44.0 * MIN(4.0, [includeReporters_ count]);
+    CGFloat textViewHeight = (screenBounds.size.height - tableViewHeight);
+
+    UITextView *textView = [[UITextView alloc] initWithFrame:CGRectMake(0.0, 0.0, screenBounds.size.width, textViewHeight)];
+    textView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+    textView.text = [self defaultMessageBody];
+    textView_ = textView;
+
+    UITableView *tableView = [[UITableView alloc] initWithFrame:CGRectMake(0.0, textViewHeight, screenBounds.size.width, tableViewHeight)];
+    tableView.allowsSelectionDuringEditing = YES;
+    tableView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleTopMargin;
+    tableView.dataSource = self;
+    tableView.delegate = self;
+    tableView.editing = YES;
+    tableView_ = tableView;
+
+    UIView *view = [[UIView alloc] initWithFrame:CGRectMake(0.0, 0.0, screenBounds.size.width, screenBounds.size.height)];
+    view.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+    view.backgroundColor = [UIColor whiteColor];
+    [view addSubview:textView];
+    [view addSubview:tableView];
+    self.view = view;
+    [view release];
 }
 
 - (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation {
@@ -102,7 +130,7 @@
 - (NSArray *)selectedAttachments {
     // Determine selected attachments.
     NSMutableIndexSet *indexSet = [NSMutableIndexSet indexSet];
-    for (NSIndexPath *indexPath in [self.tableView indexPathsForSelectedRows]) {
+    for (NSIndexPath *indexPath in [tableView_ indexPathsForSelectedRows]) {
         [indexSet addIndex:indexPath.row];
     }
     return [includeReporters_ objectsAtIndexes:indexSet];
@@ -211,7 +239,7 @@
             // Setup mail controller.
             MFMailComposeViewController *controller = [MFMailComposeViewController new];
             [controller setMailComposeDelegate:self];
-            [controller setMessageBody:[self defaultMessageBody] isHTML:NO];
+            [controller setMessageBody:textView_.text isHTML:NO];
             [controller setSubject:[@"Crash Report: " stringByAppendingString:(package_.name ?: @"(unknown product)")]];
             [controller setToRecipients:[[linkReporter_ recipients] componentsSeparatedByRegex:@",\\s*"]];
 
@@ -242,7 +270,7 @@
         // Upload attachments to paste site and open support link.
         NSString *urlsString = [self uploadAttachments];
         if (urlsString != nil) {
-            NSMutableString *string = [[self defaultMessageBody] mutableCopy];
+            NSMutableString *string = [textView_.text mutableCopy];
             [string appendString:@"\n"];
             [string appendString:urlsString];
             [UIPasteboard generalPasteboard].string = string;

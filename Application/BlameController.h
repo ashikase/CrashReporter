@@ -23,7 +23,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 @class LinkReporterLine;
 @class Package;
 
-@interface BlameController : UITableViewController
+@interface BlameController : UIViewController
 - (id)initWithPackage:(Package *)package suspect:(NSString *)suspect linkReporter:(LinkReporterLine *)linkReporter includeReporters:(NSArray *)includeReporters;
 @end
 
