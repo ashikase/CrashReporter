@@ -181,6 +181,7 @@
             NSMutableArray *includeReporters = [[NSMutableArray alloc] initWithObjects:
                 [IncludeReporterLine reporterWithLine:crashlogLine],
                 [IncludeReporterLine reporterWithLine:syslogLine],
+                [IncludeReporterLine reporterWithLine:@"include as \"Package List\" command /use/bin/dpkg --get-selections"],
                 nil];
             [includeReporters addObjectsFromArray:[IncludeReporterLine includeReportersForPackage:lastSelectedPackage_]];
 
@@ -193,11 +194,20 @@
         } else {
             if (linkReporter.isEmail) {
                 // Present mail controller.
-                MFMailComposeViewController *controller = [MFMailComposeViewController new];
-                [controller setMailComposeDelegate:self];
-                [controller setToRecipients:[[linkReporter recipients] componentsSeparatedByRegex:@",\\s*"]];
-                [self presentModalViewController:controller animated:YES];
-                [controller release];
+                if ([MFMailComposeViewController canSendMail]) {
+                    MFMailComposeViewController *controller = [MFMailComposeViewController new];
+                    [controller setMailComposeDelegate:self];
+                    [controller setToRecipients:[[linkReporter recipients] componentsSeparatedByRegex:@",\\s*"]];
+                    [self presentModalViewController:controller animated:YES];
+                    [controller release];
+                } else {
+                    NSBundle *mainBundle = [NSBundle mainBundle];
+                    NSString *okMessage = [mainBundle localizedStringForKey:@"OK" value:nil table:nil];
+                    NSString *cannotMailMessage = [mainBundle localizedStringForKey:@"CANNOT_EMAIL" value:@"Cannot send email from this device." table:nil];
+                    UIAlertView *alert = [[UIAlertView alloc] initWithTitle:cannotMailMessage message:nil delegate:nil cancelButtonTitle:okMessage otherButtonTitles:nil];
+                    [alert show];
+                    [alert release];
+                }
             } else {
                 // Open associated link.
                 [[UIApplication sharedApplication] openURL:[linkReporter url]];
