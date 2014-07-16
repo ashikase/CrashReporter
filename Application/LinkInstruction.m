@@ -97,8 +97,8 @@
 
 // NOTE: Format is:
 //
-//       link [as "<title>"] [is_support <yes/no>] url <URL>
-//       link [as "<title>"] [is_support <yes/no>] email <comma-separated email addresses>
+//       link [as "<title>"] [is_support] url <URL>
+//       link [as "<title>"] [is_support] email <comma-separated email addresses>
 //
 - (instancetype)initWithTokens:(NSArray *)tokens {
     self = [super initWithTokens:tokens];
@@ -106,7 +106,6 @@
         enum {
             ModeAttribute,
             ModeRecipients,
-            ModeSupport,
             ModeTitle,
             ModeURL
         } mode = ModeAttribute;
@@ -117,20 +116,16 @@
                     if ([token isEqualToString:@"as"]) {
                         mode = ModeTitle;
                     } else if ([token isEqualToString:@"email"]) {
+                        isEmail_ = YES;
                         mode = ModeRecipients;
                     } else if ([token isEqualToString:@"is_support"]) {
-                        mode = ModeSupport;
+                        isSupport_ = YES;
                     } else if ([token isEqualToString:@"url"]) {
                         mode = ModeURL;
                     }
                     break;
                 case ModeRecipients:
-                    isEmail_ = YES;
                     recipients_ = [token retain];
-                    mode = ModeAttribute;
-                    break;
-                case ModeSupport:
-                    isSupport_ = [[token lowercaseString] isEqualToString:@"yes"];
                     mode = ModeAttribute;
                     break;
                 case ModeTitle:
