@@ -230,6 +230,8 @@ static UIButton *logButton() {
         [alert show];
         [alert release];
     }
+
+    [tableView deselectRowAtIndexPath:[tableView indexPathForSelectedRow] animated:YES];
 }
 
 #pragma mark - UIAlertViewDelegate
