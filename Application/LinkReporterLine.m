@@ -1,5 +1,6 @@
 #import "LinkReporterLine.h"
 
+#import "NSString+CrashReporter.h"
 #import "Package.h"
 
 @interface ReporterLine (Private)
@@ -98,7 +99,7 @@
                     mode = ModeAttribute;
                     break;
                 case ModeTitle:
-                    unlocalizedTitle_ = [token retain];
+                    unlocalizedTitle_ = [[token stripQuotes] retain];
                     mode = ModeAttribute;
                     break;
                 case ModeURL:

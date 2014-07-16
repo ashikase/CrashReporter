@@ -1,5 +1,6 @@
 #import "IncludeReporterLine.h"
 
+#import "NSString+CrashReporter.h"
 #import "Package.h"
 
 @interface ReporterLine (Private)
@@ -67,7 +68,7 @@
                     }
                     break;
                 case ModeTitle:
-                    title = token;
+                    title = [token stripQuotes];
                     mode = ModeAttribute;
                     break;
                 case ModeFilepath:
@@ -78,7 +79,7 @@
         }
 
 loop_exit:
-        filepath_ = [[[tokens subarrayWithRange:NSMakeRange(index, (count - index))] componentsJoinedByString:@" "] retain];
+        filepath_ = [[[[tokens subarrayWithRange:NSMakeRange(index, (count - index))] componentsJoinedByString:@" "] stripQuotes] retain];
         NSLog(@"filepath = %@", filepath_);
         [self setTitle:(title ?: filepath_)];
     }
