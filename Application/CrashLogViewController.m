@@ -56,6 +56,7 @@
 
 - (void)loadView {
     UIWebView *webView = [[UIWebView alloc] initWithFrame:CGRectMake(0.0, 0.0, 0.0, 0.0)];
+    webView.scrollView.bounces = NO;
     self.view = webView;
     webView_ = webView;
 
