@@ -62,7 +62,14 @@ typedef enum {
                 case ModeAttribute:
                     if ([token isEqualToString:@"as"]) {
                         mode = ModeTitle;
-                    } else if ([token isEqualToString:@"file"] || [token isEqualToString:@"command"] || [token isEqualToString:@"plist"]) {
+                    } else if ([token isEqualToString:@"file"]) {
+                        commandType_ = IncludeReporterLineCommandTypeFile;
+                        mode = ModeFilepath;
+                    } else if ([token isEqualToString:@"command"]) {
+                        commandType_ = IncludeReporterLineCommandTypeCommand;
+                        mode = ModeFilepath;
+                    } else if ([token isEqualToString:@"plist"]) {
+                        commandType_ = IncludeReporterLineCommandTypePlist;
                         mode = ModeFilepath;
                     }
                     break;
@@ -79,6 +86,7 @@ typedef enum {
 
 loop_exit:
         filepath_ = [[[tokens subarrayWithRange:NSMakeRange(index, (count - index))] componentsJoinedByString:@" "] retain];
+        NSLog(@"filepath = %@", filepath_);
         [self setTitle:(title ?: filepath_)];
     }
     return self;
@@ -102,6 +110,7 @@ loop_exit:
         if (commandType_ == IncludeReporterLineCommandTypeFile) {
             content_ = [[NSString alloc] initWithContentsOfFile:filepath usedEncoding:NULL error:NULL];
         } else if (commandType_ == IncludeReporterLineCommandTypePlist) {
+            NSLog(@"1:FILEPATH: %@", filepath);
             NSData *data = [NSData dataWithContentsOfFile:filepath];
             id plist = nil;
             if ([NSPropertyListSerialization respondsToSelector:@selector(propertyListWithData:options:format:error:)]) {
@@ -112,6 +121,7 @@ loop_exit:
             content_ = [[plist description] retain];
         } else {
             fflush(stdout);
+            NSLog(@"2:FILEPATH: %@", filepath);
             FILE *f = popen([filepath UTF8String], "r");
             if (f == NULL) {
                 return nil;
@@ -125,6 +135,7 @@ loop_exit:
             }
             pclose(f);
             content_ = string;
+            NSLog(@"CONTENT: %@", content_);
         }
     }
     return content_;
