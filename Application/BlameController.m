@@ -206,7 +206,7 @@
         if ([linkReporter_ isEmail]) {
             if ([MFMailComposeViewController canSendMail]) {
                 // Setup mail controller.
-                MFMailComposeViewController *controller = [[MFMailComposeViewController alloc] init];
+                MFMailComposeViewController *controller = [MFMailComposeViewController new];
                 [controller setMailComposeDelegate:self];
                 [controller setMessageBody:[self defaultMessageBody] isHTML:NO];
                 [controller setSubject:[@"Crash Report: " stringByAppendingString:(package_.name ?: @"(unknown product)")]];
