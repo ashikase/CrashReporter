@@ -183,6 +183,10 @@
                 [configString release];
 
                 config_ = config;
+            } else {
+                // Was not installed via either Cydia (dpkg) or AppStore; unsupported.
+                [self release];
+                return nil;
             }
         }
     }

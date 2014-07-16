@@ -205,22 +205,31 @@ static UIButton *logButton() {
 
     // Get links for package.
     NSArray *linkReporters = [LinkReporterLine linkReportersForPackage:package];
+    if ([linkReporters count] > 0) {
+        // Determine and present choices.
+        NSBundle *mainBundle = [NSBundle mainBundle];
+        NSString *cancelTitle = [mainBundle localizedStringForKey:@"Cancel" value:nil table:nil];
+        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:package.name message:nil delegate:self
+            cancelButtonTitle:cancelTitle otherButtonTitles:nil];
+        for (LinkReporterLine *linkReporter in linkReporters) {
+            [alert addButtonWithTitle:[linkReporter title]];
+        }
+        [alert setNumberOfRows:(1 + [linkReporters count])];
+        [alert show];
+        [alert release];
 
-    // Determine and present choices.
-    NSBundle *mainBundle = [NSBundle mainBundle];
-    NSString *cancelTitle = [mainBundle localizedStringForKey:@"Cancel" value:nil table:nil];
-    UIAlertView *alert = [[UIAlertView alloc] initWithTitle:package.name message:nil delegate:self
-        cancelButtonTitle:cancelTitle otherButtonTitles:nil];
-    for (LinkReporterLine *linkReporter in linkReporters) {
-        [alert addButtonWithTitle:[linkReporter title]];
+        lastSelectedLinkReporters_ = [linkReporters retain];
+        lastSelectedPackage_ = [package retain];
+        lastSelectedPath_ = [path retain];
+    } else {
+        NSBundle *mainBundle = [NSBundle mainBundle];
+        NSString *message = [mainBundle localizedStringForKey:@"PACKAGE_FAILED_1" value:@"The package that owns this file is either no longer installed, or was not installed via either Cydia or AppStore." table:nil];
+        NSString *okMessage = [mainBundle localizedStringForKey:@"OK" value:nil table:nil];
+        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:nil message:message delegate:nil
+            cancelButtonTitle:okMessage otherButtonTitles:nil];
+        [alert show];
+        [alert release];
     }
-    [alert setNumberOfRows:(1 + [linkReporters count])];
-    [alert show];
-    [alert release];
-
-    lastSelectedLinkReporters_ = [linkReporters retain];
-    lastSelectedPackage_ = [package retain];
-    lastSelectedPath_ = [path retain];
 }
 
 #pragma mark - UIAlertViewDelegate
