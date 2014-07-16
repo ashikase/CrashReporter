@@ -177,11 +177,11 @@
         if (linkReporter.isSupport) {
             // Report issue.
             NSString *crashlogLine = [NSString stringWithFormat:@"include as \"Crash log\" file \"%@\"", [crashLog_ filepath]];
-            NSString *syslogLine = [NSString stringWithFormat:@"include as syslog command grep -F \"%@\" /var/log/syslog", dateString_];
+            NSString *syslogLine = [NSString stringWithFormat:@"include as syslog command grep -E \"^%@\" /var/log/syslog", dateString_];
             NSMutableArray *includeReporters = [[NSMutableArray alloc] initWithObjects:
                 [IncludeReporterLine reporterWithLine:crashlogLine],
                 [IncludeReporterLine reporterWithLine:syslogLine],
-                [IncludeReporterLine reporterWithLine:@"include as \"Package List\" command /use/bin/dpkg --get-selections"],
+                [IncludeReporterLine reporterWithLine:@"include as \"Package List\" command dpkg -l"],
                 nil];
             [includeReporters addObjectsFromArray:[IncludeReporterLine includeReportersForPackage:lastSelectedPackage_]];
 
