@@ -12,6 +12,7 @@
 @synthesize unlocalizedTitle = unlocalizedTitle_;
 @synthesize url = url_;
 @synthesize isEmail = isEmail_;
+@synthesize isSupport = isSupport_;
 
 + (NSArray *)linkReportersForPackage:(Package *)package {
     NSMutableArray *result = [NSMutableArray array];
@@ -21,7 +22,7 @@
             // Add AppStore link.
             long long item = [package.storeIdentifier longLongValue]; // we need long long here because there are 2 billion apps on AppStore already... :)
             NSString *line = [NSString stringWithFormat:@"link url \"http://itunes.apple.com/WebObjects/MZStore.woa/wa/viewSoftware?id=%lld&mt=8\" as \"View package in AppStore\"", item];
-            LinkReporterLine *reporter = [LinkReporterLine reporterWithLine:line];
+            LinkReporterLine *reporter = [self reporterWithLine:line];
             if (reporter != nil) {
                 [result addObject:reporter];
             }
@@ -29,8 +30,8 @@
             // Add email link.
             NSString *author = package.author;
             if (author != nil) {
-                NSString *line = [NSString stringWithFormat:@"link email \"%@\" as \"Email author\"", author];
-                LinkReporterLine *reporter = [LinkReporterLine reporterWithLine:line];
+                NSString *line = [NSString stringWithFormat:@"email to \"%@\" as \"Email author\"", author];
+                LinkReporterLine *reporter = [self reporterWithLine:line];
                 if (reporter != nil) {
                     [result addObject:reporter];
                 }
@@ -38,7 +39,7 @@
 
             // Add Cydia link.
             NSString *line = [NSString stringWithFormat:@"link url \"cydia://package/%@\" as \"View package in Cydia\"", package.storeIdentifier];
-            LinkReporterLine *reporter = [LinkReporterLine reporterWithLine:line];
+            LinkReporterLine *reporter = [self reporterWithLine:line];
             if (reporter != nil) {
                 [result addObject:reporter];
             }
@@ -47,67 +48,71 @@
         // Add other (optional) link commands.
         for (NSString *line in package.config) {
             if ([line hasPrefix:@"link"]) {
-                LinkReporterLine *reporter = [LinkReporterLine reporterWithLine:line];
+                LinkReporterLine *reporter = [self reporterWithLine:line];
                 if (reporter != nil) {
                     [result addObject:reporter];
                 }
             }
         }
-
-        // Sort the lines.
-        [result sortUsingSelector:@selector(compare:)];
     }
 
     return result;
 }
 
+// NOTE: Format is:
+//
+//       link [as "<title>"] url <URL>
+//       link [as "<title>"] email <comma-separated email addresses>
+//
 - (instancetype)initWithTokens:(NSArray *)tokens {
     self = [super initWithTokens:tokens];
     if (self != nil) {
         enum {
-            PLL_Link,
-            PLL_Command,
-            PLL_Title,
-            PLL_Recipients,
-            PLL_URL
-        } mode = PLL_Link;
+            ModeAttribute,
+            ModeRecipients,
+            ModeSupport,
+            ModeTitle,
+            ModeURL
+        } mode = ModeAttribute;
 
-        for (NSString *command in tokens) {
+        for (NSString *token in tokens) {
             switch (mode) {
-                case PLL_Command:
-                    if ([command isEqualToString:@"as"]) {
-                        mode = PLL_Title;
-                    } else if ([command isEqualToString:@"url"]) {
-                        mode = PLL_URL;
-                    } else if ([command isEqualToString:@"email"]) {
-                        mode = PLL_URL;
-                        isEmail_ = YES;
+                case ModeAttribute:
+                    if ([token isEqualToString:@"as"]) {
+                        mode = ModeTitle;
+                    } else if ([token isEqualToString:@"email"]) {
+                        mode = ModeRecipients;
+                    } else if ([token isEqualToString:@"is_support"]) {
+                        mode = ModeSupport;
+                    } else if ([token isEqualToString:@"url"]) {
+                        mode = ModeURL;
                     }
                     break;
-
-                case PLL_Title:
-                    unlocalizedTitle_ = [command retain];
-                    mode = PLL_Command;
+                case ModeRecipients:
+                    isEmail_ = YES;
+                    recipients_ = [token retain];
+                    mode = ModeAttribute;
                     break;
-
-                case PLL_Recipients:
-                    recipients_ = [command retain];
-                    mode = PLL_Command;
+                case ModeSupport:
+                    isSupport_ = [[token lowercaseString] isEqualToString:@"yes"];
+                    unlocalizedTitle_ = [token retain];
+                    mode = ModeAttribute;
                     break;
-
-                case PLL_URL:
-                    url_ = [[NSURL alloc] initWithString:command];
-                    mode = PLL_Command;
+                case ModeTitle:
+                    unlocalizedTitle_ = [token retain];
+                    mode = ModeAttribute;
                     break;
-
+                case ModeURL:
+                    url_ = [[NSURL alloc] initWithString:token];
+                    mode = ModeAttribute;
+                    break;
                 default:
-                    mode = PLL_Command;
                     break;
             }
         }
 
         if (unlocalizedTitle_ == nil) {
-            unlocalizedTitle_ = [([url_ absoluteString] ?: recipients_) copy];
+            unlocalizedTitle_ = [(isEmail_ ? recipients_ : [url_ absoluteString]) copy];
         }
         [self setTitle:[[NSBundle mainBundle] localizedStringForKey:unlocalizedTitle_ value:nil table:nil]];
     }
@@ -115,27 +120,10 @@
 }
 
 - (void)dealloc {
-    [unlocalizedTitle_ release];
     [recipients_ release];
+    [unlocalizedTitle_ release];
     [url_ release];
     [super dealloc];
-}
-
-- (UITableViewCell *)format:(UITableViewCell *)cell {
-    cell = [super format:cell];
-    cell.detailTextLabel.text = [[self url] absoluteString];
-    return cell;
-}
-
-- (NSComparisonResult)compare:(ReporterLine *)reporter {
-    // Sort so that email links come first.
-    if ([self class] == [reporter class]) {
-        BOOL isEmail = [self isEmail];
-        if (isEmail != [((LinkReporterLine *)reporter) isEmail]) {
-            return isEmail ? NSOrderedAscending : NSOrderedDescending;
-        }
-    }
-    return [super compare:reporter];
 }
 
 @end

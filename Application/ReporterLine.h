@@ -18,19 +18,6 @@
 
  */
 
-/*
-   Reporter syntax:
-
-   include [as <title>] file <filename>
-   include [as <title>] command <command>
-
-   deny <link title>
-
-   link [as <title>] url <URL>
-   link [as <title>] email <comma-separated Email addresses>
-
- */
-
 #import <UIKit/UIKit.h>
 
 @class Package;

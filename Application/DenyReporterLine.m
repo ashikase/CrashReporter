@@ -15,7 +15,7 @@
         // Add (optional) deny commands.
         for (NSString *line in package.config) {
             if ([line hasPrefix:@"deny"]) {
-                DenyReporterLine *reporter = [DenyReporterLine reporterWithLine:line];
+                DenyReporterLine *reporter = [self reporterWithLine:line];
                 if (reporter != nil) {
                     [result addObject:reporter];
                 }
@@ -26,6 +26,11 @@
     return result;
 }
 
+
+// NOTE: Format is:
+//
+//       deny <link/email title>
+//
 - (instancetype)initWithTokens:(NSArray *)tokens {
     self = [super initWithTokens:tokens];
     if (self != nil) {

@@ -26,7 +26,7 @@ typedef enum {
         // Add (optional) include commands.
         for (NSString *line in package.config) {
             if ([line hasPrefix:@"include"]) {
-                IncludeReporterLine *reporter = [IncludeReporterLine reporterWithLine:line];
+                IncludeReporterLine *reporter = [self reporterWithLine:line];
                 if (reporter != nil) {
                     [result addObject:reporter];
                 }
@@ -37,38 +37,48 @@ typedef enum {
     return result;
 }
 
+// NOTE: Format is:
+//
+//       include [as <title>] file <filename>
+//       include [as <title>] command <command>
+//       include [as <title>] plist <filename>
+//
 - (instancetype)initWithTokens:(NSArray *)tokens {
     self = [super initWithTokens:tokens];
     if (self != nil) {
-        NSUInteger count = [tokens count];
-        if (count < 3) {
-            [self release];
-            return nil;
-        }
-
         NSString *title = nil;
-        NSUInteger filepathIndex = 2;
-        NSString *command = [tokens objectAtIndex:1];
-        if ([command isEqualToString:@"as"]) {
-            if (count < 5) {
-                [self release];
-                return nil;
+
+        enum {
+            ModeAttribute,
+            ModeFilepath,
+            ModeTitle
+        } mode = ModeAttribute;
+
+        NSUInteger count = [tokens count];
+        NSUInteger index;
+        for (index = 0; index < count; ++index) {
+            NSString *token = [tokens objectAtIndex:index];
+            switch (mode) {
+                case ModeAttribute:
+                    if ([token isEqualToString:@"as"]) {
+                        mode = ModeTitle;
+                    } else if ([token isEqualToString:@"file"] || [token isEqualToString:@"command"] || [token isEqualToString:@"plist"]) {
+                        mode = ModeFilepath;
+                    }
+                    break;
+                case ModeTitle:
+                    title = token;
+                    mode = ModeAttribute;
+                    break;
+                case ModeFilepath:
+                    goto loop_exit;
+                default:
+                    break;
             }
-            title = [tokens objectAtIndex:2];
-            command = [tokens objectAtIndex:3];
-            filepathIndex = 4;
         }
 
-        if ([command isEqualToString:@"command"]) {
-            commandType_ = IncludeReporterLineCommandTypeCommand;
-        } else if ([command isEqualToString:@"plist"]) {
-            commandType_ = IncludeReporterLineCommandTypePlist;
-        } else {
-            commandType_ = IncludeReporterLineCommandTypeFile;
-        }
-
-        filepath_ = [[[tokens subarrayWithRange:NSMakeRange(filepathIndex, (count - filepathIndex))] componentsJoinedByString:@" "] retain];
-
+loop_exit:
+        filepath_ = [[[tokens subarrayWithRange:NSMakeRange(index, (count - index))] componentsJoinedByString:@" "] retain];
         [self setTitle:(title ?: filepath_)];
     }
     return self;

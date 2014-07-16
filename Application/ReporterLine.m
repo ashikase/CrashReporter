@@ -81,16 +81,17 @@ static NSMutableDictionary *reporters$ = nil;
         NSArray *tokens = tokenize(line);
         NSUInteger count = [tokens count];
         if (count > 0) {
-            NSString *firstToken = [tokens objectAtIndex:0];
-
             Class klass = Nil;
-            if ([firstToken isEqualToString:@"include" ]) {
-                klass = [IncludeReporterLine class];
-            } else if ([firstToken isEqualToString:@"deny"]) {
+
+            NSString *firstToken = [tokens objectAtIndex:0];
+            if ([firstToken isEqualToString:@"deny"]) {
                 klass = [DenyReporterLine class];
+            } else if ([firstToken isEqualToString:@"include" ]) {
+                klass = [IncludeReporterLine class];
             } else if ([firstToken isEqualToString:@"link"]) {
                 klass = [LinkReporterLine class];
             }
+
             if (klass != Nil) {
                 reporter = [[klass alloc] initWithTokens:tokens];
                 if (reporter != nil) {

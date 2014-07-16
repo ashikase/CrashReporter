@@ -229,7 +229,7 @@
 
         LinkReporterLine *reporter = [linkReporters_ objectAtIndex:row];
         textLabel.text = [reporter title];
-        detailTextLabel.text = [reporter urlString];
+        detailTextLabel.text = [[reporter url] absoluteString];
     } else {
         cell.editingAccessoryType = UITableViewCellAccessoryDetailDisclosureButton;
         textLabel.textColor = [UIColor blackColor];
@@ -274,7 +274,7 @@
                     [controller setMailComposeDelegate:self];
                     [controller setMessageBody:[self defaultMessageBody] isHTML:NO];
                     [controller setSubject:[@"Crash Report: " stringByAppendingString:(packageName_ ?: @"(unknown product)")]];
-                    [controller setToRecipients:[[reporter urlString] componentsSeparatedByRegex:@",\\s*"]];
+                    [controller setToRecipients:[[reporter recipients] componentsSeparatedByRegex:@",\\s*"]];
 
                     // Add attachments.
                     for (IncludeReporterLine *reporter in [self selectedAttachments]) {
@@ -306,7 +306,7 @@
                     [string appendString:@"\n"];
                     [string appendString:urlsString];
                     [UIPasteboard generalPasteboard].string = string;
-                    [[UIApplication sharedApplication] openURL:[NSURL URLWithString:[reporter urlString]]];
+                    [[UIApplication sharedApplication] openURL:[reporter url]];
                     [string release];
                 }
                 [tableView deselectRowAtIndexPath:indexPath animated:YES];
