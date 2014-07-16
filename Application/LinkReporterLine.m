@@ -72,8 +72,8 @@
 
 // NOTE: Format is:
 //
-//       link [as "<title>"] url <URL>
-//       link [as "<title>"] email <comma-separated email addresses>
+//       link [as "<title>"] [is_support <yes/no>] url <URL>
+//       link [as "<title>"] [is_support <yes/no>] email <comma-separated email addresses>
 //
 - (instancetype)initWithTokens:(NSArray *)tokens {
     self = [super initWithTokens:tokens];
@@ -113,7 +113,7 @@
                     mode = ModeAttribute;
                     break;
                 case ModeURL:
-                    url_ = [[NSURL alloc] initWithString:token];
+                    url_ = [[NSURL alloc] initWithString:[token stripQuotes]];
                     mode = ModeAttribute;
                     break;
                 default:
