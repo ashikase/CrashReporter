@@ -24,7 +24,7 @@
 #import <MessageUI/MessageUI.h>
 #import <RegexKitLite/RegexKitLite.h>
 #import <libsymbolicate/CRCrashReport.h>
-#import "BlameController.h"
+#import "ContactViewController.h"
 #import "CrashLog.h"
 #import "CrashLogViewController.h"
 #import "IncludeInstruction.h"
@@ -250,7 +250,7 @@ static UIButton *logButton() {
                 nil];
             [includeInstructions addObjectsFromArray:[IncludeInstruction includeInstructionsForPackage:lastSelectedPackage_]];
 
-            BlameController *viewController = [[BlameController alloc] initWithPackage:lastSelectedPackage_ suspect:lastSelectedPath_
+            ContactViewController *viewController = [[ContactViewController alloc] initWithPackage:lastSelectedPackage_ suspect:lastSelectedPath_
                 linkInstruction:linkInstruction includeInstructions:includeInstructions];
             viewController.title = [lastSelectedPath_ lastPathComponent];
             [self.navigationController pushViewController:viewController animated:YES];

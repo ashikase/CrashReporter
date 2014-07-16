@@ -1,6 +1,6 @@
 /*
 
-BlameController.h ... View structured blame script.
+ContactViewController.h ... View structured blame script.
 Copyright (C) 2009  KennyTM~ <kennytm@gmail.com>
 
 This program is free software: you can redistribute it and/or modify
@@ -23,7 +23,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 @class LinkInstruction;
 @class Package;
 
-@interface BlameController : UIViewController
+@interface ContactViewController : UIViewController
 - (id)initWithPackage:(Package *)package suspect:(NSString *)suspect linkInstruction:(LinkInstruction *)linkInstruction includeInstructions:(NSArray *)includeInstructions;
 @end
 

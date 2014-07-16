@@ -1,6 +1,6 @@
 /*
 
-   BlameController.m ... View structured blame script.
+   ContactViewController.m ... View structured blame script.
    Copyright (C) 2009  KennyTM~ <kennytm@gmail.com>
 
    This program is free software: you can redistribute it and/or modify
@@ -18,7 +18,7 @@
 
 */
 
-#import "BlameController.h"
+#import "ContactViewController.h"
 
 #import <MessageUI/MessageUI.h>
 #import <RegexKitLite/RegexKitLite.h>
@@ -35,10 +35,10 @@
 + (id)tableCellBlueTextColor;
 @end
 
-@interface BlameController () <MFMailComposeViewControllerDelegate, UITableViewDataSource, UITableViewDelegate>
+@interface ContactViewController () <MFMailComposeViewControllerDelegate, UITableViewDataSource, UITableViewDelegate>
 @end
 
-@implementation BlameController {
+@implementation ContactViewController {
     UITextView *textView_;
     UITableView *tableView_;
 

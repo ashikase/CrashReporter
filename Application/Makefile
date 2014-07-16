@@ -2,7 +2,7 @@ APPLICATION_NAME = CrashReporter
 CrashReporter_FILES = \
     ../Libraries/RegexKitLite/RegexKitLite.m \
     ApplicationDelegate.m \
-    BlameController.m \
+    ContactViewController.m \
     CrashLog.m \
     CrashLogDirectoryReader.m \
     CrashLogGroup.m \

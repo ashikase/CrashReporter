@@ -20,7 +20,7 @@
 
 #import "CustomBlameController.h"
 
-#import "BlameController.h"
+#import "ContactViewController.h"
 #import "IncludeInstruction.h"
 #import "LinkInstruction.h"
 
@@ -101,7 +101,7 @@
         }
     }
 
-    BlameController *controller = [[BlameController alloc] initWithPackage:nil suspect:nil linkInstruction:linkInstruction includeInstructions:includeInstructions];
+    ContactViewController *controller = [[ContactViewController alloc] initWithPackage:nil suspect:nil linkInstruction:linkInstruction includeInstructions:includeInstructions];
     [self.navigationController pushViewController:controller animated:YES];
     [controller release];
 
