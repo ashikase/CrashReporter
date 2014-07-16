@@ -221,9 +221,11 @@
                 NSData *data = [[reporter content] dataUsingEncoding:NSUTF8StringEncoding];
                 if (data != nil) {
                     NSString *filepath = [reporter filepath];
+                    NSString *filename = ([reporter type] == IncludeReporterLineCommandTypeCommand) ?
+                        [[reporter title] stringByAppendingPathExtension:@"txt"] : [filepath lastPathComponent];
                     NSString *mimeType = ([reporter type] == IncludeReporterLineCommandTypePlist) ?
                         @"application/x-plist" : @"text/plain";
-                    [controller addAttachmentData:data mimeType:mimeType fileName:[filepath lastPathComponent]];
+                    [controller addAttachmentData:data mimeType:mimeType fileName:filename];
                 }
             }
 
