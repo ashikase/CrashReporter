@@ -35,7 +35,7 @@
 - (void)setNumberOfRows:(int)rows;
 @end
 
-@interface SuspectsViewController () <MFMailComposeViewControllerDelegate, UIAlertViewDelegate>
+@interface SuspectsViewController () <MFMailComposeViewControllerDelegate, UIAlertViewDelegate, UITableViewDataSource, UITableViewDelegate>
 @end
 
 @implementation SuspectsViewController {
@@ -47,10 +47,6 @@
     NSString *lastSelectedPath_;
 }
 
-- (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation {
-    return interfaceOrientation != UIInterfaceOrientationPortraitUpsideDown;
-}
-
 - (void)dealloc {
     [crashLog_ release];
     [dateString_ release];
@@ -60,6 +56,72 @@
     [lastSelectedPath_ release];
     [super dealloc];
 }
+
+static UIButton *logButton() {
+    UIButton *button = [UIButton buttonWithType:UIButtonTypeCustom];
+    button.backgroundColor = [UIColor colorWithRed:(36.0 / 255.0) green:(132.0 / 255.0) blue:(232.0 / 255.0) alpha:1.0];
+    button.autoresizingMask = UIViewAutoresizingFlexibleWidth;
+    [button setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+
+    CALayer *layer = button.layer;
+    layer.borderColor = [[UIColor blackColor] CGColor];
+    layer.borderWidth = 1.0;
+
+    return button;
+}
+
+- (void)loadView {
+    UIScreen *mainScreen = [UIScreen mainScreen];
+    CGRect screenBounds = [mainScreen bounds];
+    CGFloat scale = [mainScreen scale];
+    CGFloat buttonViewHeight = 1.0 + 44.0 * 2.0 + 30.0;
+    CGFloat tableViewHeight = (screenBounds.size.height - buttonViewHeight);
+
+    UITableView *tableView = [[UITableView alloc] initWithFrame:CGRectMake(0.0, 0.0, screenBounds.size.width, tableViewHeight)];
+    tableView.allowsSelectionDuringEditing = YES;
+    tableView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+    tableView.dataSource = self;
+    tableView.delegate = self;
+
+    UIView *buttonView = [[UIView alloc] initWithFrame:CGRectMake(0.0, tableViewHeight, screenBounds.size.width, buttonViewHeight)];
+    buttonView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleTopMargin;
+    buttonView.backgroundColor = [UIColor colorWithRed:(247.0 / 255.0) green:(247.0 / 255.0) blue:(247.0 / 255.0) alpha:1.0];
+
+    UIView *borderView = [[UIView alloc] initWithFrame:CGRectMake(0.0, 0.0, screenBounds.size.width, (1.0 / scale))];
+    borderView.backgroundColor = [UIColor colorWithRed:(178.0 / 255.0) green:(178.0 / 255.0) blue:(178.0 / 255.0) alpha:1.0];
+    [buttonView addSubview:borderView];
+    [borderView release];
+
+    UIButton *button;
+    button = logButton();
+    [button setFrame:CGRectMake(10.0, 10.0, screenBounds.size.width - 20.0, 44.0)];
+    [button setTitle:@"View crash log" forState:UIControlStateNormal];
+    [button addTarget:self action:@selector(crashlogTapped) forControlEvents:UIControlEventTouchUpInside];
+    [buttonView addSubview:button];
+
+    button = logButton();
+    [button setFrame:CGRectMake(10.0, 10.0 + 44.0 + 10.0, screenBounds.size.width - 20.0, 44.0)];
+    [button setTitle:@"View syslog" forState:UIControlStateNormal];
+    [button addTarget:self action:@selector(syslogTapped) forControlEvents:UIControlEventTouchUpInside];
+    [buttonView addSubview:button];
+
+    UIView *view = [[UIView alloc] initWithFrame:CGRectMake(0.0, 0.0, screenBounds.size.width, screenBounds.size.height)];
+    view.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+    view.backgroundColor = [UIColor whiteColor];
+    [view addSubview:tableView];
+    [view addSubview:buttonView];
+    self.view = view;
+
+    [view release];
+    [tableView release];
+    [buttonView release];
+}
+
+- (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation {
+    return interfaceOrientation != UIInterfaceOrientationPortraitUpsideDown;
+}
+
+#pragma mark - Other
 
 - (void)readSuspectsForCrashLog:(CrashLog *)crashLog {
     crashLog_ = [crashLog retain];
@@ -81,28 +143,42 @@
     [formatter release];
 }
 
+#pragma mark - Button Actions
+
+- (void)presentViewerWithLine:(NSString *)line {
+    CrashLogViewController *viewController = [CrashLogViewController new];
+    viewController.reporter = (IncludeReporterLine *)[ReporterLine reporterWithLine:line];
+    [self.navigationController pushViewController:viewController animated:YES];
+    [viewController release];
+}
+
+- (void)crashlogTapped {
+    NSString *line = [NSString stringWithFormat:@"include as \"Crash log\" file \"%@\"", [crashLog_ filepath]];
+    [self presentViewerWithLine:line];
+}
+
+- (void)syslogTapped {
+    NSString *line = [NSString stringWithFormat:@"include as syslog command grep -F \"%@\" /var/log/syslog", dateString_];
+    [self presentViewerWithLine:line];
+}
+
 #pragma mark - UITableViewDataSource
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
-    return 4;
+    return 2;
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-    switch (section) {
-        case 0: return 2;
-        case 1: return (([suspects_ count] > 0) ? 1 : 0);
-        case 2: return ([suspects_ count] - 1);
-        default: return 0;
+    NSUInteger count = [suspects_ count];
+    if (count > 0) {
+        return (section == 0) ? 1 : (count - 1);
+    } else {
+        return 0;
     }
 }
 
 - (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section {
-    NSString *key = nil;
-    switch (section) {
-        case 1: key = @"Primary suspect"; break;
-        case 2: key = @"Other suspects"; break;
-        default: return nil;
-    }
+    NSString *key = (section == 0) ?  @"Primary suspect" : @"Other suspects";
     return [[NSBundle mainBundle] localizedStringForKey:key value:nil table:nil];
 }
 
@@ -113,14 +189,8 @@
         cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
     }
 
-    NSUInteger row = indexPath.row;
-    NSString *text = nil;
-    switch (indexPath.section) {
-        case 1: text = [suspects_ objectAtIndex:0]; break;
-        case 2: text = [suspects_ objectAtIndex:(row + 1)]; break;
-        default: text = [[NSBundle mainBundle] localizedStringForKey:((row == 0) ? @"View crash log" : @"View syslog") value:nil table:nil]; break;
-    }
-    cell.textLabel.text = [text lastPathComponent];
+    NSUInteger index = (indexPath.section == 0) ? 0 : (indexPath.row + 1);
+    cell.textLabel.text = [[suspects_ objectAtIndex:index] lastPathComponent];
 
     return cell;
 }
@@ -128,45 +198,29 @@
 #pragma mark - UITableViewDelegate
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
-    NSUInteger section = indexPath.section;
-    NSUInteger row = indexPath.row;
+    // Get package for selected row.
+    NSUInteger index = (indexPath.section == 0) ? 0 : (indexPath.row + 1);
+    NSString *path = [suspects_ objectAtIndex:index];
+    Package *package = [Package packageForFile:path];
 
-    if (section == 0) {
-        NSString *crashlogLine = [NSString stringWithFormat:@"include as \"Crash log\" file \"%@\"", [crashLog_ filepath]];
-        NSString *syslogLine = [NSString stringWithFormat:@"include as syslog command grep -F \"%@\" /var/log/syslog", dateString_];
-        CrashLogViewController *viewController = [CrashLogViewController new];
-        viewController.reporter = (IncludeReporterLine *)[ReporterLine reporterWithLine:((row == 0) ? crashlogLine : syslogLine)];
-        [self.navigationController pushViewController:viewController animated:YES];
-        [viewController release];
-    } else {
-        // Get package for selected row.
-        NSString *path = nil;
-        switch (indexPath.section) {
-            case 1: path = [suspects_ objectAtIndex:0]; break;
-            case 2: path = [suspects_ objectAtIndex:(row + 1)]; break;
-            default: break;
-        }
-        Package *package = [Package packageForFile:path];
+    // Get links for package.
+    NSArray *linkReporters = [LinkReporterLine linkReportersForPackage:package];
 
-        // Get links for package.
-        NSArray *linkReporters = [LinkReporterLine linkReportersForPackage:package];
-
-        // Determine and present choices.
-        NSBundle *mainBundle = [NSBundle mainBundle];
-        NSString *cancelTitle = [mainBundle localizedStringForKey:@"Cancel" value:nil table:nil];
-        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:package.name message:nil delegate:self
-            cancelButtonTitle:cancelTitle otherButtonTitles:nil];
-        for (LinkReporterLine *linkReporter in linkReporters) {
-            [alert addButtonWithTitle:[linkReporter title]];
-        }
-        [alert setNumberOfRows:(1 + [linkReporters count])];
-        [alert show];
-        [alert release];
-
-        lastSelectedLinkReporters_ = [linkReporters retain];
-        lastSelectedPackage_ = [package retain];
-        lastSelectedPath_ = [path retain];
+    // Determine and present choices.
+    NSBundle *mainBundle = [NSBundle mainBundle];
+    NSString *cancelTitle = [mainBundle localizedStringForKey:@"Cancel" value:nil table:nil];
+    UIAlertView *alert = [[UIAlertView alloc] initWithTitle:package.name message:nil delegate:self
+        cancelButtonTitle:cancelTitle otherButtonTitles:nil];
+    for (LinkReporterLine *linkReporter in linkReporters) {
+        [alert addButtonWithTitle:[linkReporter title]];
     }
+    [alert setNumberOfRows:(1 + [linkReporters count])];
+    [alert show];
+    [alert release];
+
+    lastSelectedLinkReporters_ = [linkReporters retain];
+    lastSelectedPackage_ = [package retain];
+    lastSelectedPath_ = [path retain];
 }
 
 #pragma mark - UIAlertViewDelegate

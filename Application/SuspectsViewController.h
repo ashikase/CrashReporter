@@ -23,6 +23,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 @class CrashLog;
 
-@interface SuspectsViewController : UITableViewController
+@interface SuspectsViewController : UIViewController
 - (void)readSuspectsForCrashLog:(CrashLog *)crashLog;
 @end
