@@ -9,7 +9,6 @@ CrashReporter_FILES = \
     CrashLogViewController.m \
     CustomBlameController.m \
     ModalActionSheet.m \
-    DenyReporterLine.m \
     IncludeReporterLine.m \
     LinkReporterLine.m \
     Package.m \

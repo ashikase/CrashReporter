@@ -20,7 +20,6 @@
 
 #import "ReporterLine.h"
 
-#import "DenyReporterLine.h"
 #import "IncludeReporterLine.h"
 #import "LinkReporterLine.h"
 #import "Package.h"
@@ -84,9 +83,7 @@ static NSMutableDictionary *reporters$ = nil;
             Class klass = Nil;
 
             NSString *firstToken = [tokens objectAtIndex:0];
-            if ([firstToken isEqualToString:@"deny"]) {
-                klass = [DenyReporterLine class];
-            } else if ([firstToken isEqualToString:@"include" ]) {
+            if ([firstToken isEqualToString:@"include" ]) {
                 klass = [IncludeReporterLine class];
             } else if ([firstToken isEqualToString:@"link"]) {
                 klass = [LinkReporterLine class];
@@ -147,12 +144,7 @@ static NSCalendar *calendar$ = nil;
     if (thisClass == thatClass) {
         return [[self title] compare:[reporter title]];
     } else {
-        if ((thisClass == [LinkReporterLine class]) ||
-                ((thisClass == [DenyReporterLine class]) && (thatClass == [IncludeReporterLine class]))) {
-            return NSOrderedAscending;
-        } else {
-            return NSOrderedDescending;
-        }
+        return (thisClass == [LinkReporterLine class]) ? NSOrderedAscending : NSOrderedDescending;
     }
 }
 

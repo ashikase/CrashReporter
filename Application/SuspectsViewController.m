@@ -26,7 +26,6 @@
 #import "BlameController.h"
 #import "CrashLog.h"
 #import "CrashLogViewController.h"
-#import "DenyReporterLine.h"
 #import "IncludeReporterLine.h"
 #import "LinkReporterLine.h"
 #import "Package.h"
@@ -150,27 +149,20 @@
 
         // Get links for package.
         NSArray *linkReporters = [LinkReporterLine linkReportersForPackage:package];
-        NSArray *denyReporters = [DenyReporterLine denyReportersForPackage:package];
-        NSArray *denyTitles = [denyReporters valueForKey:@"title"];
 
         // Determine and present choices.
         NSBundle *mainBundle = [NSBundle mainBundle];
         NSString *cancelTitle = [mainBundle localizedStringForKey:@"Cancel" value:nil table:nil];
         UIAlertView *alert = [[UIAlertView alloc] initWithTitle:package.name message:nil delegate:self
             cancelButtonTitle:cancelTitle otherButtonTitles:nil];
-        NSMutableArray *allowedLinkReporters = [NSMutableArray new];
         for (LinkReporterLine *linkReporter in linkReporters) {
-            NSString *title = [linkReporter title];
-            if (![denyTitles containsObject:title]) {
-                [alert addButtonWithTitle:title];
-                [allowedLinkReporters addObject:linkReporter];
-            }
+            [alert addButtonWithTitle:[linkReporter title]];
         }
-        [alert setNumberOfRows:(1 + [allowedLinkReporters count])];
+        [alert setNumberOfRows:(1 + [linkReporters count])];
         [alert show];
         [alert release];
 
-        lastSelectedLinkReporters_ = allowedLinkReporters;
+        lastSelectedLinkReporters_ = [linkReporters retain];
         lastSelectedPackage_ = [package retain];
         lastSelectedPath_ = [path retain];
     }

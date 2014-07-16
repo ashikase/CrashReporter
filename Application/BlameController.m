@@ -27,7 +27,6 @@
 #import "ModalActionSheet.h"
 #import "pastie.h"
 
-#import "DenyReporterLine.h"
 #import "IncludeReporterLine.h"
 #import "LinkReporterLine.h"
 #import "ReporterLine.h"
@@ -42,7 +41,6 @@
 @implementation BlameController {
     NSArray *linkReporters_;
     NSArray *includeReporters_;
-    NSIndexSet *deniedLinks_;
 
     BOOL isAppStore_;
     NSString *suspect_;
@@ -63,29 +61,16 @@
         // Assume reporters are sorted in a way that there is a Link -> Deny -> Include order.
         NSMutableArray *links = [NSMutableArray new];
         NSMutableArray *includes = [NSMutableArray new];
-        NSMutableIndexSet *denies = [NSMutableIndexSet new];
-        Class $DenyReporterLine = [DenyReporterLine class];
         Class $IncludeReporterLine = [IncludeReporterLine class];
         for (ReporterLine *reporter in reporters) {
-            Class klass = [reporter class];
-            if (klass == $DenyReporterLine) {
-                NSUInteger i = 0;
-                NSString *title = [reporter title];
-                for (LinkReporterLine *link in links) {
-                    if ([[link unlocalizedTitle] isEqualToString:title]) {
-                        [denies addIndex:i];
-                        break;
-                    }
-                    ++i;
-                }
+            if ([reporter class] == $IncludeReporterLine) {
+                [includes addObject:reporter];
             } else {
-                NSMutableArray *array = (klass == $IncludeReporterLine) ? includes : links;
-                [array addObject:reporter];
+                [links addObject:reporter];
             }
         }
         linkReporters_ = links;
         includeReporters_ = includes;
-        deniedLinks_ = denies;
     }
     return self;
 }
@@ -93,7 +78,6 @@
 - (void)dealloc {
     [linkReporters_ release];
     [includeReporters_ release];
-    [deniedLinks_ release];
     [suspect_ release];
     [packageName_ release];
     [authorName_ release];
@@ -237,59 +221,49 @@
         NSBundle *mainBundle = [NSBundle mainBundle];
         NSString *okMessage = [mainBundle localizedStringForKey:@"OK" value:nil table:nil];
 
-        if ([deniedLinks_ containsIndex:row]) {
-            NSString *denyMessage = [mainBundle localizedStringForKey:([reporter isEmail] ? @"EMAIL_DENIED" : @"URL_DENIED")
-                value:@"The developer has chosen not to receive crash reports by this means."
-                table:nil];
-            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:nil message:denyMessage delegate:nil cancelButtonTitle:okMessage otherButtonTitles:nil];
-            [alert show];
-            [alert release];
-            [tableView deselectRowAtIndexPath:indexPath animated:YES];
-        } else {
-            if ([reporter isEmail]) {
-                if ([MFMailComposeViewController canSendMail]) {
-                    // Setup mail controller.
-                    MFMailComposeViewController *controller = [[MFMailComposeViewController alloc] init];
-                    [controller setMailComposeDelegate:self];
-                    [controller setMessageBody:[self defaultMessageBody] isHTML:NO];
-                    [controller setSubject:[@"Crash Report: " stringByAppendingString:(packageName_ ?: @"(unknown product)")]];
-                    [controller setToRecipients:[[reporter recipients] componentsSeparatedByRegex:@",\\s*"]];
+        if ([reporter isEmail]) {
+            if ([MFMailComposeViewController canSendMail]) {
+                // Setup mail controller.
+                MFMailComposeViewController *controller = [[MFMailComposeViewController alloc] init];
+                [controller setMailComposeDelegate:self];
+                [controller setMessageBody:[self defaultMessageBody] isHTML:NO];
+                [controller setSubject:[@"Crash Report: " stringByAppendingString:(packageName_ ?: @"(unknown product)")]];
+                [controller setToRecipients:[[reporter recipients] componentsSeparatedByRegex:@",\\s*"]];
 
-                    // Add attachments.
-                    for (IncludeReporterLine *reporter in [self selectedAttachments]) {
-                        // Attach to the email.
-                        NSData *data = [[reporter content] dataUsingEncoding:NSUTF8StringEncoding];
-                        if (data != nil) {
-                            NSString *filepath = [reporter filepath];
-                            NSString *mimeType = [[filepath pathExtension] isEqualToString:@"plist"] ?
-                                @"application/x-plist" : @"text/plain";
-                            [controller addAttachmentData:data mimeType:mimeType fileName:[filepath lastPathComponent]];
-                        }
+                // Add attachments.
+                for (IncludeReporterLine *reporter in [self selectedAttachments]) {
+                    // Attach to the email.
+                    NSData *data = [[reporter content] dataUsingEncoding:NSUTF8StringEncoding];
+                    if (data != nil) {
+                        NSString *filepath = [reporter filepath];
+                        NSString *mimeType = [[filepath pathExtension] isEqualToString:@"plist"] ?
+                            @"application/x-plist" : @"text/plain";
+                        [controller addAttachmentData:data mimeType:mimeType fileName:[filepath lastPathComponent]];
                     }
+                }
 
-                    // Present the mail controller for confirmation.
-                    [self presentModalViewController:controller animated:YES];
-                    [controller release];
-                } else {
-                    NSString *cannotMailMessage = [mainBundle localizedStringForKey:@"CANNOT_EMAIL" value:@"Cannot send email from this device." table:nil];
-                    UIAlertView *alert = [[UIAlertView alloc] initWithTitle:cannotMailMessage message:nil delegate:nil cancelButtonTitle:okMessage otherButtonTitles:nil];
-                    [alert show];
-                    [alert release];
-                    [tableView deselectRowAtIndexPath:indexPath animated:YES];
-                }
+                // Present the mail controller for confirmation.
+                [self presentModalViewController:controller animated:YES];
+                [controller release];
             } else {
-                // Upload attachments to paste site and open support link.
-                NSString *urlsString = [self uploadAttachments];
-                if (urlsString != nil) {
-                    NSMutableString *string = [[self defaultMessageBody] mutableCopy];
-                    [string appendString:@"\n"];
-                    [string appendString:urlsString];
-                    [UIPasteboard generalPasteboard].string = string;
-                    [[UIApplication sharedApplication] openURL:[reporter url]];
-                    [string release];
-                }
+                NSString *cannotMailMessage = [mainBundle localizedStringForKey:@"CANNOT_EMAIL" value:@"Cannot send email from this device." table:nil];
+                UIAlertView *alert = [[UIAlertView alloc] initWithTitle:cannotMailMessage message:nil delegate:nil cancelButtonTitle:okMessage otherButtonTitles:nil];
+                [alert show];
+                [alert release];
                 [tableView deselectRowAtIndexPath:indexPath animated:YES];
             }
+        } else {
+            // Upload attachments to paste site and open support link.
+            NSString *urlsString = [self uploadAttachments];
+            if (urlsString != nil) {
+                NSMutableString *string = [[self defaultMessageBody] mutableCopy];
+                [string appendString:@"\n"];
+                [string appendString:urlsString];
+                [UIPasteboard generalPasteboard].string = string;
+                [[UIApplication sharedApplication] openURL:[reporter url]];
+                [string release];
+            }
+            [tableView deselectRowAtIndexPath:indexPath animated:YES];
         }
     }
 }
