@@ -23,6 +23,10 @@
 #import "RootViewController.h"
 #import "ReporterLine.h"
 
+#ifndef kCFCoreFoundationVersionNumber_iOS_4_0
+#define kCFCoreFoundationVersionNumber_iOS_4_0 550.32
+#endif
+
 @interface UIAlertView ()
 - (void)setNumberOfRows:(int)rows;
 @end
@@ -44,7 +48,11 @@
 
     // Create window.
     window_ = [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
-    [window_ addSubview:[navigationController_ view]];
+    if (kCFCoreFoundationVersionNumber < kCFCoreFoundationVersionNumber_iOS_4_0) {
+        [window_ addSubview:[navigationController_ view]];
+    } else {
+        [window_ setRootViewController:navigationController_];
+    }
     [window_ makeKeyAndVisible];
 
     // Check if syslog is present. Alert the user if not.
