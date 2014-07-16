@@ -7,10 +7,10 @@ CrashReporter_FILES = \
     CrashLogDirectoryReader.m \
     CrashLogGroup.m \
     CrashLogViewController.m \
-    CustomBlameController.m \
     IncludeInstruction.m \
     Instruction.m \
     LinkInstruction.m \
+    ManualScriptViewController.m \
     ModalActionSheet.m \
     NSString+CrashReporter.m \
     Package.m \

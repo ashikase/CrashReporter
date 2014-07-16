@@ -23,7 +23,7 @@
 #import "CrashLogDirectoryReader.h"
 #import "CrashLogGroup.h"
 #import "VictimViewController.h"
-#import "CustomBlameController.h"
+#import "ManualScriptViewController.h"
 
 @implementation RootViewController {
     NSMutableArray *mobileCrashLogs_;
@@ -56,7 +56,7 @@
 #pragma mark - Actions
 
 - (void)editBlame {
-    CustomBlameController *controller = [CustomBlameController new];
+    ManualScriptViewController *controller = [ManualScriptViewController new];
     [self.navigationController pushViewController:controller animated:YES];
     [controller release];
 }

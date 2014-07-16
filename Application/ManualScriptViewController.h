@@ -1,6 +1,6 @@
 /*
 
-   CustomBlameConstroller.h ... Text editor for creating custom blame scripts.
+   ManualScriptViewConstroller.h ... Text editor for creating custom blame scripts.
    Copyright (C) 2009  KennyTM~ <kennytm@gmail.com>
 
    This program is free software: you can redistribute it and/or modify
@@ -21,6 +21,6 @@
 
 #import <UIKit/UIKit.h>
 
-@interface CustomBlameController : UIViewController
+@interface ManualScriptViewController : UIViewController
 @end
 
