@@ -1,12 +1,12 @@
 Package: crash-reporter
-Pre-Depends: firmware (>=3.0)
-Depends: dpkg, grep, coreutils
-Recommends: cydia, sbsettingssyslogd
-Name: Crash Reporter
-Description: Send useful crash info to developers.
 Version: 0.2g
-Homepage: http://code.google.com/p/networkpx/wiki/Using_CrashReporter
-Author: KennyTM~ <kennytm+CrashReporter@gmail.com>
+Architecture: iphoneos-arm
+Pre-Depends: firmware (>=3.0)
+Depends: dpkg, grep, coreutils, jp.ashikase.libsymbolicate
+Recommends: cydia, sbsettingssyslogd
 Section: System
-Installed-Size: 212
-dev: kennytm
+Name: CrashReporter
+Description: Send useful crash info to developers.
+Homepage: http://github/ashikase/CrashReporter/
+dev: ashikase
+Author: Lance Fetters (ashikase) <support@ashikase.com>
