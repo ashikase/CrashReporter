@@ -30,6 +30,24 @@
     NSMutableArray *result = [NSMutableArray array];
 
     if (package != nil) {
+        BOOL hasSupportLink = NO;
+
+        // Load optional link commands.
+        // NOTE: This is done first in order to determine if package provides
+        //       own support link(s).
+        NSMutableArray *instructions = [NSMutableArray new];
+        for (NSString *line in package.config) {
+            if ([line hasPrefix:@"link"]) {
+                LinkInstruction *instruction = [self instructionWithLine:line];
+                if (instruction != nil) {
+                    if (instruction.isSupport) {
+                        hasSupportLink = YES;
+                    }
+                    [instructions addObject:instruction];
+                }
+            }
+        }
+
         if (package.isAppStore) {
             // Add AppStore link.
             long long item = [package.storeIdentifier longLongValue]; // we need long long here because there are 2 billion apps on AppStore already... :)
@@ -39,20 +57,22 @@
                 [result addObject:instruction];
             }
         } else {
-            // Add email link.
-            NSString *author = package.author;
-            if (author != nil) {
-                NSRange leftAngleRange = [author rangeOfString:@"<" options:NSBackwardsSearch];
-                if (leftAngleRange.location != NSNotFound) {
-                    NSRange rightAngleRange = [author rangeOfString:@">" options:NSBackwardsSearch];
-                    if (rightAngleRange.location != NSNotFound) {
-                        if (leftAngleRange.location < rightAngleRange.location) {
-                            NSRange range = NSMakeRange(leftAngleRange.location + 1, rightAngleRange.location - leftAngleRange.location - 1);
-                            NSString *emailAddress = [author substringWithRange:range];
-                            NSString *line = [NSString stringWithFormat:@"link email %@ as \"Contact author\" is_support yes", emailAddress];
-                            LinkInstruction *instruction = [self instructionWithLine:line];
-                            if (instruction != nil) {
-                                [result addObject:instruction];
+            if (!hasSupportLink) {
+                // Add email link.
+                NSString *author = package.author;
+                if (author != nil) {
+                    NSRange leftAngleRange = [author rangeOfString:@"<" options:NSBackwardsSearch];
+                    if (leftAngleRange.location != NSNotFound) {
+                        NSRange rightAngleRange = [author rangeOfString:@">" options:NSBackwardsSearch];
+                        if (rightAngleRange.location != NSNotFound) {
+                            if (leftAngleRange.location < rightAngleRange.location) {
+                                NSRange range = NSMakeRange(leftAngleRange.location + 1, rightAngleRange.location - leftAngleRange.location - 1);
+                                NSString *emailAddress = [author substringWithRange:range];
+                                NSString *line = [NSString stringWithFormat:@"link email %@ as \"Contact author\" is_support yes", emailAddress];
+                                LinkInstruction *instruction = [self instructionWithLine:line];
+                                if (instruction != nil) {
+                                    [result addObject:instruction];
+                                }
                             }
                         }
                     }
@@ -67,15 +87,9 @@
             }
         }
 
-        // Add other (optional) link commands.
-        for (NSString *line in package.config) {
-            if ([line hasPrefix:@"link"]) {
-                LinkInstruction *instruction = [self instructionWithLine:line];
-                if (instruction != nil) {
-                    [result addObject:instruction];
-                }
-            }
-        }
+        // Add optional link commands.
+        [result addObjectsFromArray:instructions];
+        [instructions release];
     }
 
     return result;
