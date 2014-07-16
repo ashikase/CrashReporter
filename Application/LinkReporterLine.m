@@ -31,10 +31,20 @@
             // Add email link.
             NSString *author = package.author;
             if (author != nil) {
-                NSString *line = [NSString stringWithFormat:@"link email \"%@\" as \"Email author\" is_support yes", author];
-                LinkReporterLine *reporter = [self reporterWithLine:line];
-                if (reporter != nil) {
-                    [result addObject:reporter];
+                NSRange leftAngleRange = [author rangeOfString:@"<" options:NSBackwardsSearch];
+                if (leftAngleRange.location != NSNotFound) {
+                    NSRange rightAngleRange = [author rangeOfString:@">" options:NSBackwardsSearch];
+                    if (rightAngleRange.location != NSNotFound) {
+                        if (leftAngleRange.location < rightAngleRange.location) {
+                            NSRange range = NSMakeRange(leftAngleRange.location + 1, rightAngleRange.location - leftAngleRange.location - 1);
+                            NSString *emailAddress = [author substringWithRange:range];
+                            NSString *line = [NSString stringWithFormat:@"link email %@ as \"Email author\" is_support yes", emailAddress];
+                            LinkReporterLine *reporter = [self reporterWithLine:line];
+                            if (reporter != nil) {
+                                [result addObject:reporter];
+                            }
+                        }
+                    }
                 }
             }
 
