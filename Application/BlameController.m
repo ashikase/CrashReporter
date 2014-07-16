@@ -103,9 +103,7 @@
     // Determine selected attachments.
     NSMutableIndexSet *indexSet = [NSMutableIndexSet indexSet];
     for (NSIndexPath *indexPath in [self.tableView indexPathsForSelectedRows]) {
-        if (indexPath.section == 1) {
-            [indexSet addIndex:indexPath.row];
-        }
+        [indexSet addIndex:indexPath.row];
     }
     return [includeReporters_ objectsAtIndexes:indexSet];
 }
