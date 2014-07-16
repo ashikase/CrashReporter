@@ -175,20 +175,15 @@
 #pragma mark - UITableViewDataSource
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
-    return 2;
+    return 1;
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-    NSArray *array = (section == 0) ? linkReporters_ : includeReporters_;
-    return [array count];
+    return [includeReporters_ count];
 }
 
 - (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section {
-    if (section == 1) {
-        return [[NSBundle mainBundle] localizedStringForKey:@"Attachments" value:nil table:nil];
-    } else {
-        return nil;
-    }
+    return [[NSBundle mainBundle] localizedStringForKey:@"Attachments" value:nil table:nil];
 }
 
 - (UITableViewCellEditingStyle)tableView:(UITableView *)tableView editingStyleForRowAtIndexPath:(NSIndexPath *)indexPath {
@@ -196,16 +191,14 @@
     // NOTE: Versions of iOS prior to 5.0 supported multiple cell
     //       selection, but only via the private API.
     // FIXME: As this is private, this might change in a future release.
-    return (indexPath.section == 1) ?  3 : UITableViewCellEditingStyleNone;
+    return 3;
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
-    UITableViewCell *cell = nil;
-
     UILabel *textLabel = nil;
     UILabel *detailTextLabel = nil;
 
-    cell = [tableView dequeueReusableCellWithIdentifier:@"."];
+    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"."];
     if (cell == nil) {
         cell = [[[UITableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:@"."] autorelease];
         cell.indentationWidth = 0.0;
@@ -218,27 +211,13 @@
         detailTextLabel.numberOfLines = 2;
     }
 
-    NSUInteger row = indexPath.row;
-    if (indexPath.section == 0) {
-        cell.editingAccessoryType = UITableViewCellAccessoryDisclosureIndicator;
-        if ([deniedLinks_ containsIndex:row]) {
-            textLabel.textColor = [UIColor grayColor];
-        } else {
-            textLabel.textColor = [UIColor blackColor];
-        }
+    cell.editingAccessoryType = UITableViewCellAccessoryDetailDisclosureButton;
+    textLabel.textColor = [UIColor blackColor];
 
-        LinkReporterLine *reporter = [linkReporters_ objectAtIndex:row];
-        textLabel.text = [reporter title];
-        detailTextLabel.text = [[reporter url] absoluteString];
-    } else {
-        cell.editingAccessoryType = UITableViewCellAccessoryDetailDisclosureButton;
-        textLabel.textColor = [UIColor blackColor];
-
-        IncludeReporterLine *reporter = [includeReporters_ objectAtIndex:row];
-        textLabel.text = [reporter title];
-        detailTextLabel.text = [reporter filepath];
-        [tableView selectRowAtIndexPath:indexPath animated:NO scrollPosition:UITableViewScrollPositionNone];
-    }
+    IncludeReporterLine *reporter = [includeReporters_ objectAtIndex:indexPath.row];
+    textLabel.text = [reporter title];
+    detailTextLabel.text = [reporter filepath];
+    [tableView selectRowAtIndexPath:indexPath animated:NO scrollPosition:UITableViewScrollPositionNone];
     return cell;
 }
 
