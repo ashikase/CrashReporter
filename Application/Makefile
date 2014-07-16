@@ -9,6 +9,7 @@ CrashReporter_FILES = \
     CrashLogViewController.m \
     CustomBlameController.m \
     ModalActionSheet.m \
+    NSString+CrashReporter.m \
     IncludeReporterLine.m \
     LinkReporterLine.m \
     Package.m \
