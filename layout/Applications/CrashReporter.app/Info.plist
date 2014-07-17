@@ -1,19 +1,87 @@
-{
-    CFBundleDisplayName = "CrashReporter";
-    CFBundleExecutable = "CrashReporter";
-    CFBundleIconFile = icon.png;
-    CFBundleIdentifier = "crash-reporter";
-    CFBundleInfoDictionaryVersion = 6.0;
-    CFBundlePackageType = APPL;
-    CFBundleSignature = "????";
-    CFBundleSupportedPlatforms = (
-        iPhoneOS
-    );
-    CFBundleVersion = 1.0;
-    DTPlatformName = iphoneos;
-    DTSDKName = iphoneos3.0;
-    LSRequiresIPhoneOS = 1;
-    MinimumOSVersion = 2.0;
-    UIPrerenderedIcon = 1;
-    PastieAuth = "burger";
-}
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+	<dict>
+		<key>CFBundleDisplayName</key>
+		<string>CrashReporter</string>
+		<key>CFBundleExecutable</key>
+		<string>CrashReporter</string>
+		<key>CFBundleIconFile</key>
+		<string>iconClassic.png</string>
+		<key>CFBundleIconFiles</key>
+		<array>
+			<!-- iOS 6 iPhone (home) [57x57] -->
+			<string>icon.png</string>
+			<string>icon@2x.png</string>
+
+			<!-- iOS 6 iPad (home) [72x72] -->
+			<string>icon-72.png</string>
+			<string>icon-72@2x.png</string>
+
+			<!-- iOS 6 iPhone (spotlight) [29x29] -->
+			<!-- iOS 7 All Devices (settings) [29x29] -->
+			<string>Icon-Small.png</string>
+			<string>Icon-Small@2x.png</string>
+
+			<!-- iOS 6 iPad (spotlight) [50x50] -->
+			<string>Icon-Small-50.png</string>
+			<string>Icon-Small-50@2x.png</string>
+
+			<!-- iOS 7 iPhone (home) [60x60] -->
+			<string>Icon-60</string>
+
+			<!-- iOS 7 iPad (home) [76x76] -->
+			<string>Icon-76</string>
+
+			<!-- iOS 7 (spotlight) [40x40] -->
+			<string>Icon-Small-40</string>
+		</array>
+		<key>CFBundleIdentifier</key>
+		<string>crash-reporter</string>
+		<key>CFBundleInfoDictionaryVersion</key>
+		<string>6.0</string>
+		<key>CFBundlePackageType</key>
+		<string>APPL</string>
+		<key>CFBundleSignature</key>
+		<string>????</string>
+		<key>CFBundleSupportedPlatforms</key>
+		<array>
+			<string>iPhoneOS</string>
+		</array>
+		<key>CFBundleVersion</key>
+		<string>1.0</string>
+		<key>DTPlatformName</key>
+		<string>iphoneos</string>
+		<key>DTSDKName</key>
+		<string>iphoneos3.0</string>
+		<key>LSRequiresIPhoneOS</key>
+		<string>1</string>
+		<key>MinimumOSVersion</key>
+		<string>2.0</string>
+		<key>PastieAuth</key>
+		<string>burger</string>
+		<key>UILaunchImages</key>
+		<array>
+			<dict>
+				<key>UILaunchImageName</key>
+				<string>iOS7-Default</string>
+				<key>UILaunchImageMinimumOSVersion</key>
+				<string>7.0</string>
+				<key>UILaunchImageOrientation</key>
+				<string>Portrait</string>
+				<key>UILaunchImageSize</key>
+				<string>{320, 480}</string>
+			</dict>
+			<dict>
+				<key>UILaunchImageName</key>
+				<string>iOS7-Default</string>
+				<key>UILaunchImageMinimumOSVersion</key>
+				<string>7.0</string>
+				<key>UILaunchImageOrientation</key>
+				<string>Portrait</string>
+				<key>UILaunchImageSize</key>
+				<string>{320, 568}</string>
+			</dict>
+		</array>
+	</dict>
+</plist>
