@@ -22,10 +22,17 @@ static inline NSUInteger indexOf(NSUInteger section, NSUInteger row, BOOL delete
 }
 
 @implementation VictimViewController {
+    ModalActionSheet *statusPopup_;
     BOOL deletedRowZero_;
 }
 
 @synthesize group = group_;
+
+- (void)dealloc {
+    [statusPopup_ release];
+    [group_ release];
+    [super dealloc];
+}
 
 - (void)viewDidLoad {
     self.navigationItem.rightBarButtonItem = [self editButtonItem];
@@ -37,6 +44,27 @@ static inline NSUInteger indexOf(NSUInteger section, NSUInteger row, BOOL delete
 
 - (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation {
     return interfaceOrientation != UIInterfaceOrientationPortraitUpsideDown;
+}
+
+#pragma mark - Other
+
+- (void)showSuspectsForCrashLog:(CrashLog *)crashLog {
+    SuspectsViewController *controller = [SuspectsViewController new];
+    [controller readSuspectsForCrashLog:crashLog];
+    [self.navigationController pushViewController:controller animated:YES];
+    [controller release];
+}
+
+- (void)symbolicate:(CrashLog *)crashLog {
+#if !TARGET_IPHONE_SIMULATOR
+    [crashLog symbolicate];
+#endif
+
+    [statusPopup_ hide];
+    [statusPopup_ release];
+    statusPopup_ = nil;
+
+    [self showSuspectsForCrashLog:crashLog];
 }
 
 #pragma mark - UITableViewDataSource
@@ -87,25 +115,19 @@ static inline NSUInteger indexOf(NSUInteger section, NSUInteger row, BOOL delete
 #pragma mark - UITableViewDelegate
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
-    SuspectsViewController *controller = [SuspectsViewController new];
-
     NSUInteger index = indexOf(indexPath.section, indexPath.row, deletedRowZero_);
     CrashLogGroup *group = [self group];
     CrashLog *crashLog = [[group crashLogs] objectAtIndex:index];
-    if (![crashLog isSymbolicated]) {
+    if ([crashLog isSymbolicated]) {
+        [self showSuspectsForCrashLog:crashLog];
+    } else {
         // Symbolicate.
-        ModalActionSheet *sheet = [ModalActionSheet new];
-        [sheet show];
-#if !TARGET_IPHONE_SIMULATOR
-        [crashLog symbolicate];
-#endif
-        [sheet hide];
-        [sheet release];
+        // NOTE: Done via performSelector:... so that popup is shown.
+        statusPopup_ = [ModalActionSheet new];
+        [statusPopup_ updateText:@"Symbolicating..."];
+        [statusPopup_ show];
+        [self performSelector:@selector(symbolicate:) withObject:crashLog afterDelay:0];
     }
-
-    [controller readSuspectsForCrashLog:crashLog];
-    [self.navigationController pushViewController:controller animated:YES];
-    [controller release];
 }
 
 - (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath {
