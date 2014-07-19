@@ -22,8 +22,16 @@
 #import "LinkInstruction.h"
 #import "Package.h"
 
+#ifndef kCFCoreFoundationVersionNumber_iOS_7_0
+#define kCFCoreFoundationVersionNumber_iOS_7_0 847.20
+#endif
+
 @interface UIAlertView ()
 - (void)setNumberOfRows:(int)rows;
+@end
+
+@interface UIImage (UIImagePrivate)
++ (id)kitImageNamed:(NSString *)name;
 @end
 
 @interface SuspectsViewController () <MFMailComposeViewControllerDelegate, UIAlertViewDelegate, UITableViewDataSource, UITableViewDelegate>
@@ -50,13 +58,40 @@
 
 static UIButton *logButton() {
     UIButton *button = [UIButton buttonWithType:UIButtonTypeCustom];
-    button.backgroundColor = [UIColor colorWithRed:(36.0 / 255.0) green:(132.0 / 255.0) blue:(232.0 / 255.0) alpha:1.0];
-    button.autoresizingMask = UIViewAutoresizingFlexibleWidth;
-    [button setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+    [button setAutoresizingMask:UIViewAutoresizingFlexibleWidth];
 
     CALayer *layer = button.layer;
-    layer.borderColor = [[UIColor blackColor] CGColor];
-    layer.borderWidth = 1.0;
+    [layer setBorderWidth:1.0];
+
+    if (kCFCoreFoundationVersionNumber < kCFCoreFoundationVersionNumber_iOS_7_0) {
+        [button setAdjustsImageWhenHighlighted:YES];
+
+        [layer setBorderColor:[[UIColor colorWithRed:(171.0 / 255.0) green:(171.0 / 255.0) blue:(171.0 / 255.0) alpha:1.0] CGColor]];
+        [layer setCornerRadius:8.0];
+        [layer setMasksToBounds:YES];
+
+        UILabel *label = [button titleLabel];
+        [label setFont:[UIFont boldSystemFontOfSize:18.0]];
+
+        if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad) {
+            UIImage *image = [UIImage kitImageNamed:@"UINavigationBarSilverTallBackground.png"];
+            [button setBackgroundImage:[image stretchableImageWithLeftCapWidth:0.0 topCapHeight:0.0] forState:UIControlStateNormal];
+            [button setTitleColor:[UIColor colorWithRed:(114.0 / 255.0) green:(121.0 / 255.0) blue:(130.0 / 255.0) alpha:1.0] forState:UIControlStateNormal];
+            [button setTitleColor:[UIColor whiteColor] forState:UIControlStateHighlighted];
+            [button setTitleShadowColor:[UIColor colorWithRed:(230.0 / 255.0) green:(230.0 / 255.0) blue:(230.0 / 255.0) alpha:1.0] forState:UIControlStateNormal];
+            [button setTitleShadowColor:[UIColor blackColor] forState:UIControlStateHighlighted];
+            [label setShadowOffset:CGSizeMake(0.0, 1.0)];
+        } else {
+            UIImage *image = [UIImage kitImageNamed:@"UINavigationBarDefaultBackground.png"];
+            [button setBackgroundImage:[image stretchableImageWithLeftCapWidth:0.0 topCapHeight:0.0] forState:UIControlStateNormal];
+            [label setShadowOffset:CGSizeMake(0.0, -1.0)];
+        }
+    } else {
+        button.backgroundColor = [UIColor colorWithRed:(36.0 / 255.0) green:(132.0 / 255.0) blue:(232.0 / 255.0) alpha:1.0];
+        [button setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+
+        layer.borderColor = [[UIColor blackColor] CGColor];
+    }
 
     return button;
 }
