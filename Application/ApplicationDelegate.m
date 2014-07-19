@@ -32,8 +32,7 @@
 
 - (void)applicationDidFinishLaunching:(UIApplication *)application {
     // Create root view controller.
-    RootViewController *rootController = [[RootViewController alloc] initWithStyle:UITableViewStylePlain];
-    rootController.title = [[NSBundle mainBundle] localizedStringForKey:@"Crash Reporter" value:nil table:nil];
+    RootViewController *rootController = [RootViewController new];
     navigationController_ = [[UINavigationController alloc] initWithRootViewController:rootController];
     [rootController release];
 

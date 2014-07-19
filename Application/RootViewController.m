@@ -21,6 +21,14 @@
     NSMutableArray *rootCrashLogs_;
 }
 
+- (id)init {
+    self = [super initWithStyle:UITableViewStylePlain];
+    if (self != nil) {
+        self.title = [[NSBundle mainBundle] localizedStringForKey:@"CrashReporter" value:nil table:nil];
+    }
+    return self;
+}
+
 - (void)dealloc {
     [mobileCrashLogs_ release];
     [rootCrashLogs_ release];
