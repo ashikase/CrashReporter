@@ -73,13 +73,14 @@
     // If launched via notification, handle the notification.
     UILocalNotification *notification = [launchOptions objectForKey:UIApplicationLaunchOptionsLocalNotificationKey];
     if (notification != nil) {
-        // Reset icon badge number to zero.
-        [application setApplicationIconBadgeNumber:0];
         NSString *filepath = [[notification userInfo] objectForKey:@"filepath"];
         if (filepath != nil) {
             [self showDetailsForLogAtPath:filepath animated:NO];
         }
     }
+
+    // Reset icon badge number to zero.
+    [application setApplicationIconBadgeNumber:0];
 
     return YES;
 }
