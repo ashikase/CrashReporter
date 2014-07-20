@@ -18,6 +18,7 @@ int main(int argc, char **argv, char **envp) {
     // Load and parse the crash log.
     CRCrashReport *report = [[CRCrashReport alloc] initWithFile:filepath];
     if (report == nil) {
+        fprintf(stderr, "ERROR: Could not load or parse crash log.\n");
         return 1;
     }
 
