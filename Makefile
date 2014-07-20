@@ -1,4 +1,4 @@
-SUBPROJECTS = Application move_as_root
+SUBPROJECTS = Application move_as_root monitor notifier
 
 export ARCHS = armv6
 export TARGET = iphone:clang:7.1:3.0
