@@ -20,6 +20,7 @@
 #import "CrashLogViewController.h"
 #import "IncludeInstruction.h"
 #import "LinkInstruction.h"
+#import "ModalActionSheet.h"
 #import "Package.h"
 
 #ifndef kCFCoreFoundationVersionNumber_iOS_7_0
@@ -38,6 +39,9 @@
 @end
 
 @implementation SuspectsViewController {
+    UITableView *tableView_;
+    ModalActionSheet *statusPopup_;
+
     CrashLog *crashLog_;
     NSString *dateString_;
     NSArray *suspects_;
@@ -46,7 +50,33 @@
     NSString *lastSelectedPath_;
 }
 
+- (id)initWithCrashLog:(CrashLog *)crashLog {
+    self = [super init];
+    if (self != nil) {
+        crashLog_ = [crashLog retain];
+
+        // Retrieve suspects.
+        if ([crashLog_ isSymbolicated]) {
+            [self updateSuspects];
+        }
+
+        // Create date string for syslog output.
+        // FIXME: Is it necessary to cache this?
+        NSDate *date = [crashLog date];
+        dateString_ = [[Instruction formatSyslogTime:date] retain];
+
+        // Set title using date.
+        NSDateFormatter *formatter = [NSDateFormatter new];
+        [formatter setDateFormat:@"HH:mm:ss"];
+        self.title = [formatter stringFromDate:date];
+        [formatter release];
+    }
+    return self;
+}
+
 - (void)dealloc {
+    [tableView_ release];
+    [statusPopup_ release];
     [crashLog_ release];
     [dateString_ release];
     [suspects_ release];
@@ -108,6 +138,7 @@ static UIButton *logButton() {
     tableView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
     tableView.dataSource = self;
     tableView.delegate = self;
+    tableView_ = tableView;
 
     UIView *buttonView = [[UIView alloc] initWithFrame:CGRectMake(0.0, tableViewHeight, screenBounds.size.width, buttonViewHeight)];
     buttonView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleTopMargin;
@@ -139,8 +170,18 @@ static UIButton *logButton() {
     self.view = view;
 
     [view release];
-    [tableView release];
     [buttonView release];
+}
+
+- (void)viewDidAppear:(BOOL)animated {
+    if (![crashLog_ isSymbolicated]) {
+        // Symbolicate.
+        // NOTE: Done via performSelector:... so that popup is shown.
+        statusPopup_ = [ModalActionSheet new];
+        [statusPopup_ updateText:@"Symbolicating..."];
+        [statusPopup_ show];
+        [self performSelector:@selector(symbolicate) withObject:nil afterDelay:0];
+    }
 }
 
 - (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation {
@@ -149,24 +190,23 @@ static UIButton *logButton() {
 
 #pragma mark - Other
 
-- (void)readSuspectsForCrashLog:(CrashLog *)crashLog {
-    crashLog_ = [crashLog retain];
+- (void)symbolicate {
+#if !TARGET_IPHONE_SIMULATOR
+    [crashLog_ symbolicate];
+#endif
 
-    // Retrieve suspects.
+    [statusPopup_ hide];
+    [statusPopup_ release];
+    statusPopup_ = nil;
+
+    [self updateSuspects];
+    [tableView_ reloadData];
+}
+
+- (void)updateSuspects {
     CRCrashReport *report = [[CRCrashReport alloc] initWithFile:[crashLog_ filepath]];
     suspects_ = [[[report properties] objectForKey:@"blame"] retain];
     [report release];
-
-    // Create date string for syslog output.
-    // FIXME: Is it necessary to cache this?
-    NSDate *date = [crashLog date];
-    dateString_ = [[Instruction formatSyslogTime:date] retain];
-
-    // Set title using date.
-    NSDateFormatter *formatter = [NSDateFormatter new];
-    [formatter setDateFormat:@"HH:mm:ss"];
-    self.title = [formatter stringFromDate:date];
-    [formatter release];
 }
 
 #pragma mark - Button Actions

@@ -14,7 +14,6 @@
 #import <libsymbolicate/CRCrashReport.h>
 #import "CrashLog.h"
 #import "CrashLogGroup.h"
-#import "ModalActionSheet.h"
 #import "SuspectsViewController.h"
 
 static inline NSUInteger indexOf(NSUInteger section, NSUInteger row, BOOL deletedRowZero) {
@@ -22,14 +21,12 @@ static inline NSUInteger indexOf(NSUInteger section, NSUInteger row, BOOL delete
 }
 
 @implementation VictimViewController {
-    ModalActionSheet *statusPopup_;
     BOOL deletedRowZero_;
 }
 
 @synthesize group = group_;
 
 - (void)dealloc {
-    [statusPopup_ release];
     [group_ release];
     [super dealloc];
 }
@@ -49,22 +46,9 @@ static inline NSUInteger indexOf(NSUInteger section, NSUInteger row, BOOL delete
 #pragma mark - Other
 
 - (void)showSuspectsForCrashLog:(CrashLog *)crashLog {
-    SuspectsViewController *controller = [SuspectsViewController new];
-    [controller readSuspectsForCrashLog:crashLog];
+    SuspectsViewController *controller = [[SuspectsViewController alloc] initWithCrashLog:crashLog];
     [self.navigationController pushViewController:controller animated:YES];
     [controller release];
-}
-
-- (void)symbolicate:(CrashLog *)crashLog {
-#if !TARGET_IPHONE_SIMULATOR
-    [crashLog symbolicate];
-#endif
-
-    [statusPopup_ hide];
-    [statusPopup_ release];
-    statusPopup_ = nil;
-
-    [self showSuspectsForCrashLog:crashLog];
 }
 
 #pragma mark - UITableViewDataSource
@@ -118,16 +102,7 @@ static inline NSUInteger indexOf(NSUInteger section, NSUInteger row, BOOL delete
     NSUInteger index = indexOf(indexPath.section, indexPath.row, deletedRowZero_);
     CrashLogGroup *group = [self group];
     CrashLog *crashLog = [[group crashLogs] objectAtIndex:index];
-    if ([crashLog isSymbolicated]) {
-        [self showSuspectsForCrashLog:crashLog];
-    } else {
-        // Symbolicate.
-        // NOTE: Done via performSelector:... so that popup is shown.
-        statusPopup_ = [ModalActionSheet new];
-        [statusPopup_ updateText:@"Symbolicating..."];
-        [statusPopup_ show];
-        [self performSelector:@selector(symbolicate:) withObject:crashLog afterDelay:0];
-    }
+    [self showSuspectsForCrashLog:crashLog];
 }
 
 - (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath {

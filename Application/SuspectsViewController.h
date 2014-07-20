@@ -14,7 +14,7 @@
 @class CrashLog;
 
 @interface SuspectsViewController : UIViewController
-- (void)readSuspectsForCrashLog:(CrashLog *)crashLog;
+- (id)initWithCrashLog:(CrashLog *)crashLog;
 @end
 
 /* vim: set ft=objc ff=unix sw=4 ts=4 tw=80 expandtab: */
