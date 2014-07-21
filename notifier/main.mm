@@ -1,5 +1,7 @@
 #import <libsymbolicate/CRCrashReport.h>
 
+extern "C" mach_port_t SBSSpringBoardServerPort();
+
 @interface SBSLocalNotificationClient : NSObject
 + (void)scheduleLocalNotification:(id)notification bundleIdentifier:(id)bundleIdentifier;
 @end
@@ -49,7 +51,27 @@ int main(int argc, char **argv, char **envp) {
     }
     [report release];
 
-    // Create and send a local notification to CrashReporter.
+    // Make sure that SpringBoard's local notification server is up.
+    // NOTE: If SpringBoard is not running (i.e. it is what crashed), will
+    //       not be able to register a local notification.
+    // FIXME: Even if port is non-zero, it does not mean that SpringBoard is
+    //        ready to handle notifications.
+    BOOL shouldDelay = NO;
+    mach_port_t port;
+    while ((port = SBSSpringBoardServerPort()) == 0) {
+        [NSThread sleepForTimeInterval:1.0];
+        shouldDelay = YES;
+    }
+
+    if (shouldDelay) {
+        // Wait serveral seconds to give time for SpringBoard to finish launching.
+        // FIXME: This is needed due to issue mentioned above. The time
+        //        interval was chosen arbitrarily and may not be long enough
+        //        in some cases.
+        [NSThread sleepForTimeInterval:20.0];
+    }
+
+    // Send the notification.
     UILocalNotification *notification = [UILocalNotification new];
     [notification setAlertBody:body];
     [notification setUserInfo:[NSDictionary dictionaryWithObjectsAndKeys:filepath, @"filepath", nil]];
