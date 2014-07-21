@@ -1,8 +1,7 @@
 #import <libsymbolicate/CRCrashReport.h>
 
 @interface SBSLocalNotificationClient : NSObject
-+ (void)scheduleLocalNotification:(id)arg1 bundleIdentifier:(id)arg2;
-+ (id)scheduledLocalNotifications;
++ (void)scheduleLocalNotification:(id)notification bundleIdentifier:(id)bundleIdentifier;
 @end
 
 int main(int argc, char **argv, char **envp) {
@@ -55,6 +54,7 @@ int main(int argc, char **argv, char **envp) {
     [notification setAlertBody:body];
     [notification setUserInfo:[NSDictionary dictionaryWithObjectsAndKeys:filepath, @"filepath", nil]];
 
+    // FIXME: Determine how to increase the current badge number.
     [notification setApplicationIconBadgeNumber:1];
 
     // NOTE: Passing nil as the action will cause iOS to display "View" (localized).
