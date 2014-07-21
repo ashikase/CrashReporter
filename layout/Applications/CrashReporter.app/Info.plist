@@ -63,8 +63,11 @@
         <key>DTPlatformName</key>
         <string>iphoneos</string>
 
+        <key>DTPlatformVersion</key>
+        <string>7.0</string>
+
         <key>DTSDKName</key>
-        <string>iphoneos3.0</string>
+        <string>iphoneos7.1</string>
 
         <key>LSRequiresIPhoneOS</key>
         <string>1</string>
