@@ -20,7 +20,7 @@
 
 "Report to AppStore" = "回报到 AppStore";
 "Email developer" = "电邮给开发者";
-//"Remove package" = "移除程式";
+// "Remove package" = "移除程式";
 "Find package in Cydia" = "到 Cydia 管理程式";
 
 COPIED_MESSAGE = "当进入以上的连结后，适当的错误报告便会拷贝至剪贴簿。";

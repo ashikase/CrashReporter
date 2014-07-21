@@ -1,4 +1,4 @@
-��"Uploading %@" = "Uploading %@";
+"Uploading %@" = "Uploading %@";
 "Upload failed" = "Upload failed";
 UPLOAD_FAILED_2 = "Failed to upload %@.\nError: %@";
 "OK" = "OK";
@@ -10,7 +10,7 @@ UPLOAD_FAILED_2 = "Failed to upload %@.\nError: %@";
 "Symbolicating (%d%%)" = "Symbolicating (%d%%)";
 "Latest" = "Latest";
 "Earlier" = "Earlier";
-// "Cannot delete" = "Cannot delete";a
+// "Cannot delete" = "Cannot delete";
 // CANNOT_DELETE_2 = "Failed to delete %@.\nError: %@";
 "Crash Reporter" = "Crash Reporter";
 "Attachments" = "Attachments";
@@ -20,7 +20,7 @@ UPLOAD_FAILED_2 = "Failed to upload %@.\nError: %@";
 
 "Report to AppStore" = "Report to AppStore";
 "Email developer" = "Email developer";
-//"Remove package" = "Remove package";
+// "Remove package" = "Remove package";
 "Find package in Cydia" = "Find package in Cydia";
 
 COPIED_MESSAGE = "An appropriate bug report will be copied as you tap on these links.";
@@ -35,7 +35,7 @@ CUSTOM_BLAME_WARNING = "Warning: Entering invalid data may corrupt your system. 
 "Continue" = "Continue";
 
 "syslog not found!" = "syslog not found!";
-SYSLOG_NOT_FOUND_DETAIL = "Crash reports without syslog are often useless. Please install  Syslog Toggle  or  syslogd , and reproduce a new crash report.";
+SYSLOG_NOT_FOUND_DETAIL = "Crash reports without syslog are often useless. Please install \"Syslog Toggle\" or \"syslogd\", and reproduce a new crash report.";
 "Install Syslog Toggle" = "Install Syslog Toggle";
 "Install syslogd" = "Install syslogd";
 "Ignore once" = "Ignore once";
