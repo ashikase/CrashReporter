@@ -35,7 +35,7 @@ CUSTOM_BLAME_WARNING = "Warning: Entering invalid data may corrupt your system. 
 "Continue" = "Continue";
 
 "syslog not found!" = "syslog not found!";
-SYSLOG_NOT_FOUND_DETAIL = "Crash reports without syslog are often useless. Please install \"Syslog Toggle\" or \"syslogd\", and reproduce a new crash report.";
-"Install Syslog Toggle" = "Install Syslog Toggle";
+SYSLOG_NOT_FOUND_DETAIL = "Crash reports without syslog are often useless. Please install \"Syslog Flipswitch\" or \"syslogd\", and reproduce a new crash report.";
+"Install Syslog Flipswitch" = "Install Syslog Flipswitch";
 "Install syslogd" = "Install syslogd";
 "Ignore once" = "Ignore once";
