@@ -22,6 +22,11 @@ int main(int argc, char **argv, char **envp) {
         return 1;
     }
 
+    // Symbolicate the report.
+    // FIXME: Save the result with the "synced" suffix so that CrashReporter
+    //        will detect it and not symbolicate it again.
+    [report symbolicate];
+
     // Determine possible cause of the crash.
     NSDictionary *filters = [[NSDictionary alloc] initWithContentsOfFile:@"/etc/symbolicate/blame_filters.plist"];
     if (![report blameUsingFilters:filters]) {
