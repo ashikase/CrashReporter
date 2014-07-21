@@ -56,10 +56,7 @@ int main(int argc, char **argv, char **envp) {
     [notification setHasAction:YES];
     [notification setAlertAction:nil];
 
-    // Set notification to show one second from now.
-    [notification setFireDate:[NSDate dateWithTimeIntervalSinceNow:1.0]];
-    [notification setTimeZone:[NSTimeZone defaultTimeZone]];
-
+    // NOTE: Notification will be shown immediately as no fire date was set.
     [SBSLocalNotificationClient scheduleLocalNotification:notification bundleIdentifier:@"crash-reporter"];
     [notification release];
 
