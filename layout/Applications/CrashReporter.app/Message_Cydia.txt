@@ -2,6 +2,8 @@
 
 Dear %@,
 
-The file "%@" of your product "%@" has possibly caused a crash. Please find the relevant information (e.g. crash log and syslog) linked below.
+The file "%@" of your product "%@" has possibly caused a crash.
+
+Relevant files (e.g. crash log and syslog) are attached.
 
 Thank you for your attention.

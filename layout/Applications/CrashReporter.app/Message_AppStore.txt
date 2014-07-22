@@ -2,6 +2,8 @@
 
 Dear %@,
 
-Your app "%@" has recently crashed. Please find the relevant info (e.g. crash log) linked below.
+Your app "%@" has recently crashed.
 
-Thanks for your attention.
+Relevant files (e.g. crash log and syslog) are attached.
+
+Thank you for your attention.
