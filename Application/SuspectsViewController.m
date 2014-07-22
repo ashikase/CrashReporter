@@ -231,20 +231,31 @@ static UIButton *logButton() {
 #pragma mark - UITableViewDataSource
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
-    return 2;
+    return 3;
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-    NSUInteger count = [suspects_ count];
-    if (count > 0) {
-        return (section == 0) ? 1 : (count - 1);
+    if (section == 0) {
+        return 1;
     } else {
-        return 0;
+        NSUInteger count = [suspects_ count];
+        if (count > 0) {
+            return (section == 1) ? 1 : (count - 1);
+        } else {
+            return 0;
+        }
     }
 }
 
 - (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section {
-    NSString *key = (section == 0) ?  @"Primary suspect" : @"Other suspects";
+    NSString *key = nil;
+    switch (section) {
+        case 0: key = @"Crashed process"; break;
+        case 1: key = @"Primary suspect"; break;
+        case 2: key = @"Other suspects"; break;
+        default: break;
+
+    }
     return [[NSBundle mainBundle] localizedStringForKey:key value:nil table:nil];
 }
 
@@ -255,8 +266,13 @@ static UIButton *logButton() {
         cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
     }
 
-    NSUInteger index = (indexPath.section == 0) ? 0 : (indexPath.row + 1);
-    cell.textLabel.text = [[suspects_ objectAtIndex:index] lastPathComponent];
+    NSUInteger section = indexPath.section;
+    if (section == 0) {
+        cell.textLabel.text = [crashLog_ processName];
+    } else {
+        NSUInteger index = (section == 1) ? 0 : (indexPath.row + 1);
+        cell.textLabel.text = [[suspects_ objectAtIndex:index] lastPathComponent];
+    }
 
     return cell;
 }
@@ -265,8 +281,14 @@ static UIButton *logButton() {
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     // Get package for selected row.
-    NSUInteger index = (indexPath.section == 0) ? 0 : (indexPath.row + 1);
-    NSString *path = [suspects_ objectAtIndex:index];
+    NSString *path = nil;
+    NSUInteger section = indexPath.section;
+    if (section == 0) {
+        path = [crashLog_ processPath];
+    } else {
+        NSUInteger index = (section == 1) ? 0 : (indexPath.row + 1);
+        path = [suspects_ objectAtIndex:index];
+    }
     Package *package = [Package packageForFile:path];
 
     // Get links for package.

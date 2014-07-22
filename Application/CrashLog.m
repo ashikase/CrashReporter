@@ -28,6 +28,7 @@ static NSCalendar *calendar() {
 
 @synthesize filepath = filepath_;
 @synthesize processName = processName_;
+@synthesize processPath = processPath_;
 @synthesize date = date_;
 @dynamic symbolicated;
 
@@ -64,8 +65,21 @@ static NSCalendar *calendar() {
 - (void)dealloc {
     [filepath_ release];
     [processName_ release];
+    [processPath_ release];
     [date_ release];
     [super dealloc];
+}
+
+#pragma mark - Properties
+
+- (NSString *)processPath {
+    if (processPath_ == nil) {
+        NSString *filepath = [self filepath];
+        CRCrashReport *report = [[CRCrashReport alloc] initWithFile:filepath];
+        processPath_ = [[[report processInfo] objectForKey:@"Path"] retain];
+        [report release];
+    }
+    return processPath_;
 }
 
 - (BOOL)isSymbolicated {
