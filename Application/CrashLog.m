@@ -29,6 +29,7 @@ static NSCalendar *calendar() {
 @synthesize filepath = filepath_;
 @synthesize processName = processName_;
 @synthesize processPath = processPath_;
+@synthesize suspects = suspects_;
 @synthesize date = date_;
 @dynamic symbolicated;
 
@@ -66,6 +67,7 @@ static NSCalendar *calendar() {
     [filepath_ release];
     [processName_ release];
     [processPath_ release];
+    [suspects_ release];
     [date_ release];
     [super dealloc];
 }
@@ -98,6 +100,7 @@ static void deleteFileAtPath(NSString *filepath) {
         exec_move_as_root("!", "!", [filepath UTF8String]);
     }
 }
+
 - (void)delete {
     NSString *filepath = [self filepath];
     deleteFileAtPath(filepath);
@@ -124,6 +127,9 @@ static void deleteFileAtPath(NSString *filepath) {
 
                     // Update path for this crash log instance.
                     filepath_ = [outputFilepath retain];
+
+                    // Record list of suspects.
+                    suspects_ = [[[report properties] objectForKey:@"blame"] retain];
                 } else {
                     NSLog(@"ERROR: Unable to write to file \"%@\": %@.", outputFilepath, [error localizedDescription]);
                 }

@@ -15,6 +15,7 @@
 @property(nonatomic, readonly) NSString *filepath;
 @property(nonatomic, readonly) NSString *processName;
 @property(nonatomic, readonly) NSString *processPath;
+@property(nonatomic, readonly) NSArray *suspects;
 @property(nonatomic, readonly) NSDate *date;
 @property(nonatomic, readonly, getter = isSymbolicated) BOOL symbolicated;
 - (instancetype)initWithFilepath:(NSString *)filepath;

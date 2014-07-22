@@ -44,7 +44,6 @@
 
     CrashLog *crashLog_;
     NSString *dateString_;
-    NSArray *suspects_;
     NSArray *lastSelectedLinkInstructions_;
     Package *lastSelectedPackage_;
     NSString *lastSelectedPath_;
@@ -54,11 +53,6 @@
     self = [super init];
     if (self != nil) {
         crashLog_ = [crashLog retain];
-
-        // Retrieve suspects.
-        if ([crashLog_ isSymbolicated]) {
-            [self updateSuspects];
-        }
 
         // Create date string for syslog output.
         // FIXME: Is it necessary to cache this?
@@ -79,7 +73,6 @@
     [statusPopup_ release];
     [crashLog_ release];
     [dateString_ release];
-    [suspects_ release];
     [lastSelectedLinkInstructions_ release];
     [lastSelectedPackage_ release];
     [lastSelectedPath_ release];
@@ -199,14 +192,7 @@ static UIButton *logButton() {
     [statusPopup_ release];
     statusPopup_ = nil;
 
-    [self updateSuspects];
     [tableView_ reloadData];
-}
-
-- (void)updateSuspects {
-    CRCrashReport *report = [[CRCrashReport alloc] initWithFile:[crashLog_ filepath]];
-    suspects_ = [[[report properties] objectForKey:@"blame"] retain];
-    [report release];
 }
 
 #pragma mark - Button Actions
@@ -238,7 +224,7 @@ static UIButton *logButton() {
     if (section == 0) {
         return 1;
     } else {
-        NSUInteger count = [suspects_ count];
+        NSUInteger count = [[crashLog_ suspects] count];
         if (count > 0) {
             return (section == 1) ? 1 : (count - 1);
         } else {
@@ -271,7 +257,7 @@ static UIButton *logButton() {
         cell.textLabel.text = [crashLog_ processName];
     } else {
         NSUInteger index = (section == 1) ? 0 : (indexPath.row + 1);
-        cell.textLabel.text = [[suspects_ objectAtIndex:index] lastPathComponent];
+        cell.textLabel.text = [[[crashLog_ suspects] objectAtIndex:index] lastPathComponent];
     }
 
     return cell;
@@ -287,7 +273,7 @@ static UIButton *logButton() {
         path = [crashLog_ processPath];
     } else {
         NSUInteger index = (section == 1) ? 0 : (indexPath.row + 1);
-        path = [suspects_ objectAtIndex:index];
+        path = [[crashLog_ suspects] objectAtIndex:index];
     }
     Package *package = [Package packageForFile:path];
 
