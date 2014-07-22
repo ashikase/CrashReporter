@@ -22,6 +22,10 @@
 #import "LinkInstruction.h"
 #import "Package.h"
 
+#ifndef kCFCoreFoundationVersionNumber_iPhoneOS_3_2
+#define kCFCoreFoundationVersionNumber_iPhoneOS_3_2 478.61
+#endif
+
 static NSString * const placeholderText$ =
     @"Please enter details here, such as:\n\n"
     "* When did the issue begin?\n\n"
@@ -78,6 +82,7 @@ static NSString * const placeholderText$ =
     CGFloat tableViewHeight = 23.0 + 44.0 * MIN(4.0, [includeInstructions_ count]);
     CGFloat textViewHeight = (screenBounds.size.height - tableViewHeight);
 
+    // Create a text view to enter crash details.
     UITextView *textView = [[UITextView alloc] initWithFrame:CGRectMake(0.0, 0.0, screenBounds.size.width, textViewHeight)];
     textView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
     textView.delegate = self;
@@ -86,6 +91,22 @@ static NSString * const placeholderText$ =
     textView.textColor = [UIColor lightGrayColor];
     textView_ = textView;
 
+    // Add a toolbar to dismiss the keyboard.
+    if (kCFCoreFoundationVersionNumber >= kCFCoreFoundationVersionNumber_iPhoneOS_3_2) {
+        UIBarButtonItem *spaceItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace target:nil action:nil];
+        UIBarButtonItem *doneItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemDone target:self action:@selector(doneButtonTapped)];
+        NSArray *items = [[NSArray alloc] initWithObjects:spaceItem, doneItem, nil];
+        UIToolbar *toolbar = [[UIToolbar alloc] initWithFrame:CGRectMake(0.0, 0.0, screenBounds.size.width, 44.0)];
+        toolbar.items = items;
+        [toolbar sizeToFit];
+        [items release];
+        [doneItem release];
+        [spaceItem release];
+        textView_.inputAccessoryView = toolbar;
+        [toolbar release];
+    }
+
+    // Create a table view to show attachments.
     UITableView *tableView = [[UITableView alloc] initWithFrame:CGRectMake(0.0, textViewHeight, screenBounds.size.width, tableViewHeight)];
     tableView.allowsSelectionDuringEditing = YES;
     tableView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleTopMargin;
@@ -94,6 +115,7 @@ static NSString * const placeholderText$ =
     tableView.editing = YES;
     tableView_ = tableView;
 
+    // Create a container view to hold all other views.
     UIView *view = [[UIView alloc] initWithFrame:CGRectMake(0.0, 0.0, screenBounds.size.width, screenBounds.size.height)];
     view.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
     view.backgroundColor = [UIColor whiteColor];
@@ -290,6 +312,10 @@ static NSString * const placeholderText$ =
             [string release];
         }
     }
+}
+
+- (void)doneButtonTapped {
+     [textView_ resignFirstResponder];
 }
 
 #pragma mark - UITextViewDelegate
