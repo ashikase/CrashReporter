@@ -20,6 +20,10 @@
 #define kCFCoreFoundationVersionNumber_iOS_4_0 550.32
 #endif
 
+#ifndef kCFCoreFoundationVersionNumber_iOS_7_0
+#define kCFCoreFoundationVersionNumber_iOS_7_0 847.20
+#endif
+
 @interface UIAlertView ()
 - (void)setNumberOfRows:(int)rows;
 @end
@@ -54,12 +58,16 @@
 
     // Check if syslog is present. Alert the user if not.
     if (![[NSFileManager defaultManager] fileExistsAtPath:@"/etc/syslog.conf"]) {
+        NSString *toggleName = (kCFCoreFoundationVersionNumber < kCFCoreFoundationVersionNumber_iOS_7_0) ?
+            @"Syslog Toggle" : @"Syslog Flipswitch";
+
         NSBundle *mainBundle = [NSBundle mainBundle];
         NSString *title = [mainBundle localizedStringForKey:@"syslog not found!" value:nil table:nil];
-        NSString *message = [mainBundle localizedStringForKey:@"SYSLOG_NOT_FOUND_DETAIL"
-            value:@"Crash reports without syslog is often useless. Please install \"Syslog Toggle\" or \"syslogd\" and reproduce a new crash report."
-            table:nil];
-        NSString *installSyslogToggleTitle = [mainBundle localizedStringForKey:@"Install Syslog Toggle" value:nil table:nil];
+        NSString *message = [NSString stringWithFormat:
+            [mainBundle localizedStringForKey:@"SYSLOG_NOT_FOUND_DETAIL"
+            value:@"Crash reports without syslog are often useless. Please install \"%@\" or \"syslogd\" and reproduce a new crash report."
+            table:nil], toggleName];
+        NSString *installSyslogToggleTitle = [mainBundle localizedStringForKey:[NSString stringWithFormat:@"Install %@", toggleName] value:nil table:nil];
         NSString *installSyslogdTitle = [mainBundle localizedStringForKey:@"Install syslogd" value:nil table:nil];
         NSString *ignoreOnceTitle = [mainBundle localizedStringForKey:@"Ignore once" value:nil table:nil];
 
@@ -173,8 +181,15 @@
     } else {
         // Is missing syslog alert.
         if (buttonIndex != 0) {
-            NSString *url = buttonIndex == 1 ? @"cydia://package/sbsettingssyslogd" : @"cydia://package/syslogd";
-            [[UIApplication sharedApplication] openURL:[NSURL URLWithString:url]];
+            NSString *urlString = nil;
+            if (buttonIndex == 1) {
+                urlString = (kCFCoreFoundationVersionNumber < kCFCoreFoundationVersionNumber_iOS_7_0) ?
+                    @"cydia://package/sbsettingssyslogd" :
+                    @"cydia://package/de.j-gessner.syslogflipswitch";
+            } else {
+                urlString = @"cydia://package/syslogd";
+            }
+            [[UIApplication sharedApplication] openURL:[NSURL URLWithString:urlString]];
         }
     }
 }
