@@ -22,11 +22,17 @@
 #import "LinkInstruction.h"
 #import "Package.h"
 
+static NSString * const placeholderText$ =
+    @"Please enter details here, such as:\n\n"
+    "* When did the issue begin?\n\n"
+    "* What steps led to the crash?\n\n"
+    "* Does the crash happen every time?";
+
 @interface UIColor ()
 + (id)tableCellBlueTextColor;
 @end
 
-@interface ContactViewController () <MFMailComposeViewControllerDelegate, UITableViewDataSource, UITableViewDelegate>
+@interface ContactViewController () <MFMailComposeViewControllerDelegate, UITableViewDataSource, UITableViewDelegate, UITextViewDelegate>
 @end
 
 @implementation ContactViewController {
@@ -74,7 +80,10 @@
 
     UITextView *textView = [[UITextView alloc] initWithFrame:CGRectMake(0.0, 0.0, screenBounds.size.width, textViewHeight)];
     textView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
-    textView.text = [self defaultMessageBody];
+    textView.delegate = self;
+    textView.font = [UIFont systemFontOfSize:18.0];
+    textView.text = placeholderText$;
+    textView.textColor = [UIColor lightGrayColor];
     textView_ = textView;
 
     UITableView *tableView = [[UITableView alloc] initWithFrame:CGRectMake(0.0, textViewHeight, screenBounds.size.width, tableViewHeight)];
@@ -100,19 +109,31 @@
 
 #pragma mark - Other
 
-- (NSString *)defaultMessageBody {
-    NSString *string = nil;
+- (NSString *)messageBody {
+    NSMutableString *string = [NSMutableString string];
 
+    // Add default message.
     NSBundle *mainBundle = [NSBundle mainBundle];
     NSString *author = [package_.author stringByReplacingOccurrencesOfRegex:@"\\s*<[^>]+>" withString:@""] ?: @"developer";
     if (package_.isAppStore) {
         NSString *msgPath = [mainBundle pathForResource:@"Message_AppStore" ofType:@"txt"];
         NSString *msg = [NSString stringWithContentsOfFile:msgPath usedEncoding:NULL error:NULL];
-        string = [NSString stringWithFormat:msg, author, package_.name];
+        [string appendFormat:msg, author, package_.name];
     } else {
         NSString *msgPath = [mainBundle pathForResource:@"Message_Cydia" ofType:@"txt"];
         NSString *msg = [NSString stringWithContentsOfFile:msgPath usedEncoding:NULL error:NULL];
-        string = [NSString stringWithFormat:msg, author, suspect_, package_.name];
+        [string appendFormat:msg, author, suspect_, package_.name];
+    }
+
+    // Add details from user.
+    NSString *text = textView_.text;
+    if (![text isEqualToString:placeholderText$]) {
+        [string appendFormat:
+            @"\n\nDetails from the user:\n"
+            "-------------------------------------------\n"
+            "%@\n"
+            "-------------------------------------------\n",
+            [text stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]]];
     }
 
     return string;
@@ -230,7 +251,7 @@
             // Setup mail controller.
             MFMailComposeViewController *controller = [MFMailComposeViewController new];
             [controller setMailComposeDelegate:self];
-            [controller setMessageBody:textView_.text isHTML:NO];
+            [controller setMessageBody:[self messageBody] isHTML:NO];
             [controller setSubject:[@"Crash Report: " stringByAppendingString:(package_.name ?: @"(unknown product)")]];
             [controller setToRecipients:[[linkInstruction_ recipients] componentsSeparatedByRegex:@",\\s*"]];
 
@@ -269,6 +290,24 @@
             [string release];
         }
     }
+}
+
+#pragma mark - UITextViewDelegate
+
+- (void)textViewDidBeginEditing:(UITextView *)textView {
+    if ([textView.text isEqualToString:placeholderText$]) {
+         textView.text = @"";
+         textView.textColor = [UIColor blackColor];
+    }
+    [textView becomeFirstResponder];
+}
+
+- (void)textViewDidEndEditing:(UITextView *)textView {
+    if ([textView.text isEqualToString:@""]) {
+        textView.text = placeholderText$;
+        textView.textColor = [UIColor lightGrayColor];
+    }
+    [textView resignFirstResponder];
 }
 
 #pragma mark - MFMailComposeViewControllerDelegate
