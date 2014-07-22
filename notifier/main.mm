@@ -45,7 +45,7 @@ int main(int argc, char **argv, char **envp) {
 
     NSMutableString *body = [NSMutableString stringWithFormat:@"\"%@\" has crashed.\n", name];
     if ([suspects count] > 0) {
-        [body appendFormat:@"\"%@\" is the most likely suspect.", [[suspects objectAtIndex:0] lastPathComponent]];
+        [body appendFormat:@"\"%@\" is main suspect.", [[suspects objectAtIndex:0] lastPathComponent]];
     } else {
         [body appendString:@"There are no suspects."];
     }
