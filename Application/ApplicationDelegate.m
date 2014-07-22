@@ -57,9 +57,9 @@
         NSBundle *mainBundle = [NSBundle mainBundle];
         NSString *title = [mainBundle localizedStringForKey:@"syslog not found!" value:nil table:nil];
         NSString *message = [mainBundle localizedStringForKey:@"SYSLOG_NOT_FOUND_DETAIL"
-            value:@"Crash reports without syslog is often useless. Please install \"Syslog Toggle\" or \"syslogd\" and reproduce a new crash report."
-            table:nil];
-        NSString *installSyslogToggleTitle = [mainBundle localizedStringForKey:@"Install Syslog Toggle" value:nil table:nil];
+            value:@"Crash reports without syslog are often useless. Please install \"Syslog Flipswitch\" or \"syslogd\" and reproduce a new crash report."
+            table:nil]; //Use Syslog Flipswitch instead of Syslog Toggle because SBSettings is currently incompatible with iOS 7
+        NSString *installSyslogToggleTitle = [mainBundle localizedStringForKey:@"Install Syslog Flipswitch" value:nil table:nil];
         NSString *installSyslogdTitle = [mainBundle localizedStringForKey:@"Install syslogd" value:nil table:nil];
         NSString *ignoreOnceTitle = [mainBundle localizedStringForKey:@"Ignore once" value:nil table:nil];
 
@@ -173,7 +173,7 @@
     } else {
         // Is missing syslog alert.
         if (buttonIndex != 0) {
-            NSString *url = buttonIndex == 1 ? @"cydia://package/sbsettingssyslogd" : @"cydia://package/syslogd";
+            NSString *url = buttonIndex == 1 ? @"cydia://package/de.j-gessner.syslogflipswitch" : @"cydia://package/syslogd";
             [[UIApplication sharedApplication] openURL:[NSURL URLWithString:url]];
         }
     }
