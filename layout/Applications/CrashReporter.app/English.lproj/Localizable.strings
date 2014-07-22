@@ -1,31 +1,21 @@
-"Uploading %@" = "Uploading %@";
-"Upload failed" = "Upload failed";
-UPLOAD_FAILED_2 = "Failed to upload %@.\nError: %@";
 "OK" = "OK";
-"Primary suspect" = "Primary suspect";
-"Secondary suspects" = "Secondary suspects";
-"Tertiary suspects" = "Tertiary suspects";
+"Crashed process" = "Crashed process";
+"Main suspect" = "Main suspect";
+"Other suspects" = "Other suspects";
 "View crash log" = "View crash log";
 "View syslog" = "View syslog";
-"Symbolicating (%d%%)" = "Symbolicating (%d%%)";
+"Symbolicating..." = "Symbolicating...";
 "Latest" = "Latest";
 "Earlier" = "Earlier";
-// "Cannot delete" = "Cannot delete";
-// CANNOT_DELETE_2 = "Failed to delete %@.\nError: %@";
 "CrashReporter" = "CrashReporter";
 "Attachments" = "Attachments";
-"Untitled" = "Untitled";
-"pastie.org is unreachable." = "pastie.org is unreachable.";
 "Copy" = "Copy";
+"Edit" = "Edit"; // currently unimplemented in code
 
-"Report to AppStore" = "Report to AppStore";
-"Email developer" = "Email developer";
-// "Remove package" = "Remove package";
-"Find package in Cydia" = "Find package in Cydia";
+"View package in App Store" = "View package in App Store"; // currently unimplemented in code
+"Contact author" = "Contact author"; // currently unimplemented in code
+"View package in Cydia" = "View package in Cydia"; // currently unimplemented in code
 
-COPIED_MESSAGE = "An appropriate bug report will be copied as you tap on these links.";
-EMAIL_DENIED = "The developer has chosen not to receive crash reports by email.";
-URL_DENIED = "The developer has chosen not to resolve crashes via this link.";
 CANNOT_EMAIL = "Cannot send email from this device.";
 EMAIL_FAILED_1 = "Failed to send email.\nError: ";
 

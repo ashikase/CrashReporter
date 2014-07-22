@@ -1,40 +1,30 @@
-"Uploading %@" = "正在上载 %@";
-"Upload failed" = "上载失败";
-"UPLOAD_FAILED_2" = "无法上载 %@.\n错误：%@";
 "OK" = "好";
-"Primary suspect" = "主因";
-"Secondary suspects" = "次因";
-"Tertiary suspects" = "其他可能导致崩溃的函数库";
+"Crashed process" = "崩溃的过程";
+"Main suspect" = "主因";
+"Other suspects" = "别的因";
 "View crash log" = "检视崩溃记录 (crash log)";
 "View syslog" = "检视系统记录 (syslog)";
-"Symbolicating (%d%%)" = "正在符号化 (%d%%)";
+"Symbolicating..." = "正在符号化…";
 "Latest" = "最新";
 "Earlier" = "较早前";
-// "Cannot delete" = "删除失败";
-// "CANNOT_DELETE_2" = "无法删除 %@.\n错误：%@";
 "CrashReporter" = "回报错误";
 "Attachments" = "附件";
-"Untitled" = "未命名";
-"pastie.org is unreachable." = "找不到 pastie.org。";
-"Copy" = "拷贝";
+"Copy" = "複製";
+"Edit" = "编辑"; // currently unimplemented in code
 
-"Report to AppStore" = "回报到 AppStore";
-"Email developer" = "电邮给开发者";
-// "Remove package" = "移除程式";
-"Find package in Cydia" = "到 Cydia 管理程式";
+"View package in App Store" = "到 App Store 管理程式"; // currently unimplemented in code
+"Contact author" = "电邮给开发者"; // currently unimplemented in code
+"View package in Cydia" = "到 Cydia 管理程式"; // currently unimplemented in code
 
-COPIED_MESSAGE = "当进入以上的连结后，适当的错误报告便会拷贝至剪贴簿。";
-EMAIL_DENIED = "此程式的开发者拒绝透过电邮接收错误报告。";
-URL_DENIED = "此程式的开发者拒绝经此连结解决错误。";
 CANNOT_EMAIL = "无法发送电邮。";
 EMAIL_FAILED_1 = "发送电邮失败.\n错误：";
 
-"Script" = "脚本";
-CUSTOM_BLAME_WARNING = "警告：在此输入无效的资料可能导致系统损毁。仅于开发者指导下使用。";
+"Script" = "指令码";
+CUSTOM_BLAME_WARNING = "警告：在此输入无效的资料可能导致系统损毁。仅於开发者指导下使用。";
 "Back" = "返回";
 "Continue" = "继续";
 
-"syslog not found!" = "找不到系统记录!";
+"syslog not found!" = "找不到系统记录 (syslog)!";
 SYSLOG_NOT_FOUND_DETAIL = "没有系统记录 (syslog) 的错误报告通常都是无用的。请安装 Syslog Toggle 或 syslogd，并复制一次程式崩溃。";
 "Install Syslog Toggle" = "安装 Syslog Toggle";
 "Install syslogd" = "安装 syslogd";

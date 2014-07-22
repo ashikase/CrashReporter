@@ -1,31 +1,21 @@
-"Uploading %@" = "正在上載 %@";
-"Upload failed" = "上載失敗";
-"UPLOAD_FAILED_2" = "無法上載 %@.\n錯誤：%@";
 "OK" = "好";
-"Primary suspect" = "主因";
-"Secondary suspects" = "次因";
-"Tertiary suspects" = "其他可能導致崩潰的函式庫";
+"Crashed process" = "崩潰的過程";
+"Main suspect" = "主因";
+"Other suspects" = "別的因";
 "View crash log" = "檢視崩潰記錄 (crash log)";
 "View syslog" = "檢視系統記錄 (syslog)";
-"Symbolicating (%d%%)" = "正在符號化 (%d%%)";
+"Symbolicating..." = "正在符號化…";
 "Latest" = "最新";
 "Earlier" = "較早前";
-// "Cannot delete" = "刪除失敗";
-// "CANNOT_DELETE_2" = "無法刪除 %@.\n錯誤：%@";
 "CrashReporter" = "回報錯誤";
 "Attachments" = "附件";
-"Untitled" = "未命名";
-"pastie.org is unreachable." = "找不到 pastie.org。";
 "Copy" = "複製";
+"Edit" = "編輯"; // currently unimplemented in code
 
-"Report to AppStore" = "回報到 AppStore";
-"Email developer" = "電郵給開發者";
-// "Remove package" = "移除程式";
-"Find package in Cydia" = "到 Cydia 管理程式";
+"View package in App Store" = "到 App Store 管理程式"; // currently unimplemented in code
+"Contact author" = "電郵給開發者"; // currently unimplemented in code
+"View package in Cydia" = "到 Cydia 管理程式"; // currently unimplemented in code
 
-COPIED_MESSAGE = "當進入以上的連結後，適當的錯誤報告便會複製至剪貼簿。";
-EMAIL_DENIED = "此程式的開發者拒絕透過電郵接收錯誤報告。";
-URL_DENIED = "此程式的開發者拒絕經此連結解決錯誤。";
 CANNOT_EMAIL = "無法發送電郵。";
 EMAIL_FAILED_1 = "發送電郵失敗.\n錯誤：";
 
@@ -34,7 +24,7 @@ CUSTOM_BLAME_WARNING = "警告：在此輸入無效的資料可能導致系統�
 "Back" = "返回";
 "Continue" = "繼續";
 
-"syslog not found!" = "找不到系統記錄!";
+"syslog not found!" = "找不到系統記錄 (syslog)!";
 SYSLOG_NOT_FOUND_DETAIL = "沒有系統記錄 (syslog) 的錯誤報告通常都是無用的。請安裝 Syslog Toggle 或 syslogd，並復制一次程式崩潰。";
 "Install Syslog Toggle" = "安裝 Syslog Toggle";
 "Install syslogd" = "安裝 syslogd";
