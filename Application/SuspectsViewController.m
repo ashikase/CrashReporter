@@ -237,7 +237,7 @@ static UIButton *logButton() {
     NSString *key = nil;
     switch (section) {
         case 0: key = @"Crashed process"; break;
-        case 1: key = @"Primary suspect"; break;
+        case 1: key = @"Main suspect"; break;
         case 2: key = @"Other suspects"; break;
         default: break;
 
