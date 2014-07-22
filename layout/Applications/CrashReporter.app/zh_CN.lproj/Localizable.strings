@@ -12,7 +12,7 @@
 "Earlier" = "较早前";
 // "Cannot delete" = "删除失败";
 // "CANNOT_DELETE_2" = "无法删除 %@.\n错误：%@";
-"Crash Reporter" = "回报错误";
+"CrashReporter" = "回报错误";
 "Attachments" = "附件";
 "Untitled" = "未命名";
 "pastie.org is unreachable." = "找不到 pastie.org。";
