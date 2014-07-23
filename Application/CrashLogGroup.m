@@ -36,6 +36,10 @@ static NSArray *crashLogGroupsForDirectory(NSString *directory) {
     return [groups allValues];
 }
 
+static NSInteger compareCrashLogGroups(CrashLogGroup *a, CrashLogGroup *b, void *context) {
+    return [[a name] compare:[b name] options:NSCaseInsensitiveSearch];
+}
+
 static NSInteger reverseCompareCrashLogs(CrashLog *a, CrashLog *b, void *context) {
     return [[b filepath] compare:[a filepath]];
 }
@@ -48,11 +52,13 @@ static NSInteger reverseCompareCrashLogs(CrashLog *a, CrashLog *b, void *context
 @synthesize logDirectory = logDirectory_;
 
 + (NSArray *)groupsForMobile {
-    return crashLogGroupsForDirectory(@"/var/mobile/Library/Logs/CrashReporter");
+    NSArray *groups = crashLogGroupsForDirectory(@"/var/mobile/Library/Logs/CrashReporter");
+    return [groups sortedArrayUsingFunction:compareCrashLogGroups context:NULL];
 }
 
 + (NSArray *)groupsForRoot {
-    return crashLogGroupsForDirectory(@"/Library/Logs/CrashReporter");
+    NSArray *groups = crashLogGroupsForDirectory(@"/Library/Logs/CrashReporter");
+    return [groups sortedArrayUsingFunction:compareCrashLogGroups context:NULL];
 }
 
 + (instancetype)groupWithName:(NSString *)name logDirectory:(NSString *)logDirectory {
