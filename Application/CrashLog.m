@@ -16,6 +16,8 @@
 
 #include "as_root.h"
 
+static const char * const kTempFilepath = "/tmp/CrashReporter.XXXXXX";
+
 static NSCalendar *calendar() {
     static NSCalendar *calendar = nil;
     if (calendar == nil) {
@@ -110,8 +112,29 @@ static BOOL deleteFileAtPath(NSString *filepath) {
 
 - (void)symbolicate {
     if (![self isSymbolicated]) {
-        // Load crash report.
         NSString *filepath = [self filepath];
+
+        // Check if file is readable.
+        NSString *actualFilepath = nil;
+        NSFileManager *fileMan = [NSFileManager defaultManager];
+        if (![fileMan isReadableFileAtPath:filepath]) {
+            // Copy file to temporary directory.
+            char tempFilepath[strlen(kTempFilepath) + 1 ];
+            memcpy(tempFilepath, kTempFilepath, sizeof(tempFilepath));
+            if (mktemp(tempFilepath) == NULL) {
+                NSLog(@"ERROR: Unable to create temporary filepath.");
+                return;
+            }
+            if (!copy_as_root([filepath UTF8String], tempFilepath)) {
+                NSLog(@"ERROR: Failed to move file to temorary filepath.");
+                return;
+            }
+
+            actualFilepath = filepath;
+            filepath = [NSString stringWithCString:tempFilepath encoding:NSUTF8StringEncoding];
+        }
+
+        // Load crash report.
         CRCrashReport *report = [[CRCrashReport alloc] initWithFile:filepath];
 
         // Symbolicate.
@@ -124,14 +147,33 @@ static BOOL deleteFileAtPath(NSString *filepath) {
                         [filepath stringByDeletingPathExtension], [filepath pathExtension]];
                 NSError *error = nil;
                 if ([[report stringRepresentation] writeToFile:outputFilepath atomically:YES encoding:NSUTF8StringEncoding error:&error]) {
-                    // Delete input file.
-                    deleteFileAtPath(filepath);
-
-                    // Update path for this crash log instance.
-                    filepath_ = [outputFilepath retain];
-
                     // Record list of suspects.
                     suspects_ = [[[report properties] objectForKey:@"blame"] retain];
+
+                    // Delete input file.
+                    if (!deleteFileAtPath(filepath)) {
+                        NSLog(@"ERROR: Failed to delete original log file.\n");
+                    }
+
+                    if (actualFilepath != nil) {
+                        // Move symbolicated file to actual directory.
+                        NSString *actualOutputFilepath = [NSString stringWithFormat:@"%@.symbolicated.%@",
+                                 [actualFilepath stringByDeletingPathExtension], [actualFilepath pathExtension]];
+                        if (move_as_root([outputFilepath UTF8String], [actualOutputFilepath UTF8String])) {
+                            // Delete actual file.
+                            if (!delete_as_root([actualFilepath UTF8String])) {
+                                NSLog(@"ERROR: Failed to delete original root-owned log file.\n");
+                            }
+                        } else {
+                            NSLog(@"ERROR: Failed to move symbolicated log file back to original directory.\n");
+                        }
+
+                        // Update path for this crash log instance.
+                        filepath_ = [actualOutputFilepath retain];
+                    } else {
+                        // Update path for this crash log instance.
+                        filepath_ = [outputFilepath retain];
+                    }
                 } else {
                     NSLog(@"ERROR: Unable to write to file \"%@\": %@.", outputFilepath, [error localizedDescription]);
                 }
