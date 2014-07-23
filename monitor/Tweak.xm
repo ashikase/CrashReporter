@@ -1,3 +1,13 @@
+/**
+ * Name: monitor
+ * Type: iOS extension
+ * Desc: Detects when ReportCrash writes a crash log file and launches
+ *       notifier in order to send a local notification to the user.
+ *
+ * Author: Lance Fetters (aka. ashikase)
+ * License: GPL v3 (See LICENSE file for details)
+ */
+
 @interface NSTask : NSObject
 + (NSTask *)launchedTaskWithLaunchPath:(NSString *)path arguments:(NSArray *)arguments;
 @end

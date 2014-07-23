@@ -1,3 +1,13 @@
+/**
+ * Name: notifier
+ * Type: iOS command line tool
+ * Desc: Given a crash log filepath, will send a local notification stating
+ *       what has crashed and what might be to blame.
+ *
+ * Author: Lance Fetters (aka. ashikase)
+ * License: GPL v3 (See LICENSE file for details)
+ */
+
 #import <libsymbolicate/CRCrashReport.h>
 
 #include <dlfcn.h>
@@ -27,7 +37,7 @@ int main(int argc, char **argv, char **envp) {
     }
 
     // Symbolicate the report.
-    // FIXME: Save the result with the "synced" suffix so that CrashReporter
+    // FIXME: Save the result with the "symbolicated" suffix so that CrashReporter
     //        will detect it and not symbolicate it again.
     [report symbolicate];
 
