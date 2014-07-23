@@ -94,16 +94,18 @@ static NSCalendar *calendar() {
 
 #pragma mark - Other
 
-static void deleteFileAtPath(NSString *filepath) {
-    if (![[NSFileManager defaultManager] removeItemAtPath:filepath error:NULL]) {
+static BOOL deleteFileAtPath(NSString *filepath) {
+    if ([[NSFileManager defaultManager] removeItemAtPath:filepath error:NULL]) {
+        // Successfullly deleted.
+        return YES;
+    } else {
         // Try to delete as root.
-        delete_as_root([filepath UTF8String]);
+        return delete_as_root([filepath UTF8String]);
     }
 }
 
-- (void)delete {
-    NSString *filepath = [self filepath];
-    deleteFileAtPath(filepath);
+- (BOOL)delete {
+    return deleteFileAtPath([self filepath]);
 }
 
 - (void)symbolicate {
