@@ -3,7 +3,6 @@ CrashReporter_FILES = \
     ApplicationDelegate.m \
     ContactViewController.m \
     CrashLog.m \
-    CrashLogDirectoryReader.m \
     CrashLogGroup.m \
     CrashLogViewController.m \
     IncludeInstruction.m \

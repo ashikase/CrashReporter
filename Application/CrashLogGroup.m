@@ -13,6 +13,29 @@
 
 #import "CrashLog.h"
 
+static NSArray *crashLogGroupsForDirectory(NSString *directory) {
+    NSMutableDictionary *groups = [NSMutableDictionary dictionary];
+
+    // Look in path for crash log files; group logs by app name.
+    NSFileManager *fileMan = [NSFileManager defaultManager];
+    for (NSString *filename in [fileMan contentsOfDirectoryAtPath:directory error:NULL]) {
+        NSString *filepath = [directory stringByAppendingPathComponent:filename];
+        CrashLog *crashLog = [[CrashLog alloc] initWithFilepath:filepath];
+        if (crashLog != nil) {
+            NSString *name = [crashLog processName];
+            CrashLogGroup *group = [groups objectForKey:name];
+            if (group == nil) {
+                group = [[CrashLogGroup alloc] initWithName:name logDirectory:directory];
+                [groups setObject:group forKey:name];
+            }
+            [group addCrashLog:crashLog];
+            [crashLog release];
+        }
+    }
+
+    return [groups allValues];
+}
+
 static NSInteger reverseCompareCrashLogs(CrashLog *a, CrashLog *b, void *context) {
     return [[b filepath] compare:[a filepath]];
 }
@@ -23,6 +46,14 @@ static NSInteger reverseCompareCrashLogs(CrashLog *a, CrashLog *b, void *context
 
 @synthesize name = name_;
 @synthesize logDirectory = logDirectory_;
+
++ (NSArray *)groupsForMobile {
+    return crashLogGroupsForDirectory(@"/var/mobile/Library/Logs/CrashReporter");
+}
+
++ (NSArray *)groupsForRoot {
+    return crashLogGroupsForDirectory(@"/Library/Logs/CrashReporter");
+}
 
 + (instancetype)groupWithName:(NSString *)name logDirectory:(NSString *)logDirectory {
     return [[[self alloc] initWithName:name logDirectory:logDirectory] autorelease];

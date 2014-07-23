@@ -11,14 +11,13 @@
 
 #import "RootViewController.h"
 
-#import "CrashLogDirectoryReader.h"
 #import "CrashLogGroup.h"
 #import "VictimViewController.h"
 #import "ManualScriptViewController.h"
 
 @implementation RootViewController {
-    NSMutableArray *mobileCrashLogs_;
-    NSMutableArray *rootCrashLogs_;
+    NSMutableArray *mobileCrashLogGroups_;
+    NSMutableArray *rootCrashLogGroups_;
 }
 
 - (id)init {
@@ -30,8 +29,8 @@
 }
 
 - (void)dealloc {
-    [mobileCrashLogs_ release];
-    [rootCrashLogs_ release];
+    [mobileCrashLogGroups_ release];
+    [rootCrashLogGroups_ release];
     [super dealloc];
 }
 
@@ -63,10 +62,10 @@
 #pragma mark - Other
 
 - (void)reloadCrashLogs {
-    [mobileCrashLogs_ release];
-    mobileCrashLogs_ = [[CrashLogDirectoryReader crashLogsForMobile] mutableCopy];
-    [rootCrashLogs_ release];
-    rootCrashLogs_ = [[CrashLogDirectoryReader crashLogsForRoot] mutableCopy];
+    [mobileCrashLogGroups_ release];
+    mobileCrashLogGroups_ = [[CrashLogGroup groupsForMobile] mutableCopy];
+    [rootCrashLogGroups_ release];
+    rootCrashLogGroups_ = [[CrashLogGroup groupsForRoot] mutableCopy];
 }
 
 #pragma mark - UITableViewDataSource
@@ -80,7 +79,7 @@
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-    return (section == 0) ? [mobileCrashLogs_ count] : [rootCrashLogs_ count];
+    return (section == 0) ? [mobileCrashLogGroups_ count] : [rootCrashLogGroups_ count];
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
@@ -89,7 +88,7 @@
         cell = [[[UITableViewCell alloc] initWithStyle:UITableViewCellStyleValue1 reuseIdentifier:@"."] autorelease];
         cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
     }
-    NSArray *crashLogs = (indexPath.section == 0) ?  mobileCrashLogs_ : rootCrashLogs_;
+    NSArray *crashLogs = (indexPath.section == 0) ?  mobileCrashLogGroups_ : rootCrashLogGroups_;
     CrashLogGroup *group = [crashLogs objectAtIndex:indexPath.row];
     cell.textLabel.text = group.name;
     cell.detailTextLabel.text = [NSString stringWithFormat:@"%lu", (unsigned long)[group.crashLogs count]];
@@ -99,7 +98,7 @@
 #pragma mark - UITableViewDelegate
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
-    NSArray *crashLogs = (indexPath.section == 0) ?  mobileCrashLogs_ : rootCrashLogs_;
+    NSArray *crashLogs = (indexPath.section == 0) ?  mobileCrashLogGroups_ : rootCrashLogGroups_;
     CrashLogGroup *group = [crashLogs objectAtIndex:indexPath.row];
 
     VictimViewController *controller = [[VictimViewController alloc] initWithStyle:UITableViewStylePlain];
@@ -112,7 +111,7 @@
 - (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath*)indexPath {
     NSUInteger section = indexPath.section;
     NSUInteger row = indexPath.row;
-    NSMutableArray *crashLogs = (section == 0) ?  mobileCrashLogs_ : rootCrashLogs_;
+    NSMutableArray *crashLogs = (section == 0) ?  mobileCrashLogGroups_ : rootCrashLogGroups_;
 
     CrashLogGroup *group = [crashLogs objectAtIndex:row];
     if ([group delete]) {

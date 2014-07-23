@@ -17,6 +17,8 @@
 @property (nonatomic, readonly) NSString *name;
 @property (nonatomic, readonly) NSString *logDirectory;
 @property (nonatomic, readonly) NSArray *crashLogs;
++ (NSArray *)groupsForMobile;
++ (NSArray *)groupsForRoot;
 + (instancetype)groupWithName:(NSString *)name logDirectory:(NSString *)logDirectory;
 - (instancetype)initWithName:(NSString *)name logDirectory:(NSString *)logDirectory;
 - (void)addCrashLog:(CrashLog *)crashLog;
