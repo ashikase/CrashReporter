@@ -21,6 +21,7 @@
 @synthesize storeIdentifier = storeIdentifier_;
 @synthesize name = name_;
 @synthesize author = author_;
+@synthesize version = version_;
 @synthesize config = config_;
 @synthesize isAppStore = isAppStore_;
 
@@ -61,9 +62,9 @@
         // Determine package type, name and author, and load optional config.
         if (identifier_ != nil) {
             // Is a dpkg.
-            f = popen([[NSString stringWithFormat:@"dpkg-query -p %@ | grep -E \"^(Name|Author):\"", identifier_] UTF8String], "r");
+            f = popen([[NSString stringWithFormat:@"dpkg-query -p %@ | grep -E \"^(Name|Author|Version):\"", identifier_] UTF8String], "r");
             if (f != NULL) {
-                // Determine name and author.
+                // Determine name, author and version.
                 NSMutableData *data = [NSMutableData new];
                 char buf[1025];
                 size_t maxSize = (sizeof(buf) - 1);
@@ -83,10 +84,13 @@
                                     NSCharacterSet *set = [[NSCharacterSet whitespaceCharacterSet] invertedSet];
                                     NSRange range = NSMakeRange((firstColon + 1), (length - firstColon - 1));
                                     NSUInteger firstNonSpace = [string rangeOfCharacterFromSet:set options:0 range:range].location;
+                                    NSString *value = [string substringFromIndex:firstNonSpace];
                                     if ([string hasPrefix:@"Name:"]) {
-                                        name_ = [[string substringFromIndex:firstNonSpace] retain];
+                                        name_ = [value retain];
+                                    } else if ([string hasPrefix:@"Author:"]) {
+                                        author_ = [value retain];
                                     } else {
-                                        author_ = [[string substringFromIndex:firstNonSpace] retain];
+                                        version_ = [value retain];
                                     }
                                 }
                             }

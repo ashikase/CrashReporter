@@ -274,7 +274,10 @@ static NSString * const placeholderText$ =
             MFMailComposeViewController *controller = [MFMailComposeViewController new];
             [controller setMailComposeDelegate:self];
             [controller setMessageBody:[self messageBody] isHTML:NO];
-            [controller setSubject:[@"Crash Report: " stringByAppendingString:(package_.name ?: @"(unknown product)")]];
+            [controller setSubject:[NSString stringWithFormat:@"Crash Report: %@ (%@)",
+                (package_.name ?: @"(unknown product)"),
+                (package_.version ?: @"unknown version")
+                ]];
             [controller setToRecipients:[[linkInstruction_ recipients] componentsSeparatedByRegex:@",\\s*"]];
 
             // Add attachments.
