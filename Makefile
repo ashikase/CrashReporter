@@ -1,4 +1,4 @@
-SUBPROJECTS = Application move_as_root monitor notifier
+SUBPROJECTS = Application as_root monitor notifier
 
 export ARCHS = armv6 armv7 armv7s arm64
 export TARGET = iphone:clang
@@ -8,8 +8,8 @@ include theos/makefiles/common.mk
 include theos/makefiles/aggregate.mk
 
 after-stage::
-	# Give move_as_root the power of root in order to move/delete root-owned files.
-	- chmod u+s $(THEOS_STAGING_DIR)/Applications/CrashReporter.app/move_as_root
+	# Give as_root the power of root in order to move/delete root-owned files.
+	- chmod u+s $(THEOS_STAGING_DIR)/Applications/CrashReporter.app/as_root
 	# Optimize png files
 	- find $(THEOS_STAGING_DIR) -iname '*.png' -exec pincrush -i {} \;
 	# Convert plist files to binary

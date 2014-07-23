@@ -14,7 +14,7 @@
 #import <RegexKitLite/RegexKitLite.h>
 #import <libsymbolicate/CRCrashReport.h>
 
-#include "move_as_root.h"
+#include "as_root.h"
 
 static NSCalendar *calendar() {
     static NSCalendar *calendar = nil;
@@ -97,7 +97,7 @@ static NSCalendar *calendar() {
 static void deleteFileAtPath(NSString *filepath) {
     if (![[NSFileManager defaultManager] removeItemAtPath:filepath error:NULL]) {
         // Try to delete as root.
-        exec_move_as_root("!", "!", [filepath UTF8String]);
+        delete_as_root([filepath UTF8String]);
     }
 }
 

@@ -18,7 +18,7 @@ CrashReporter_FILES = \
     VictimViewController.m \
     common.c \
     main.m \
-    move_as_root.m \
+    as_root.m \
     pastie.m
 CrashReporter_CFLAGS = -I../Libraries
 CrashReporter_LDFLAGS = -licucore -lsymbolicate

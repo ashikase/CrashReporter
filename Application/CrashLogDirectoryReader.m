@@ -13,7 +13,7 @@
 
 #import "CrashLog.h"
 #import "CrashLogGroup.h"
-#import "move_as_root.h"
+#import "as_root.h"
 
 #include "common.h"
 
