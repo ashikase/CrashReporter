@@ -5,3 +5,6 @@ debs/*
 *.dylib
 **/.theos/*
 */.theos/*
+
+#custom script i (karen) use to push .theos/obj/CrashReporter.app + layout/CrashReporter.app to my own device
+Application/push_to_device.sh
