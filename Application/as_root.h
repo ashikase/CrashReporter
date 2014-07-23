@@ -12,6 +12,7 @@
 #ifndef CR_MOVE_AS_ROOT_H
 #define CR_MOVE_AS_ROOT_H
 
+BOOL copy_as_root(const char *from_filepath, const char *to_filepath);
 BOOL move_as_root(const char *from_filepath, const char *to_filepath);
 BOOL delete_as_root(const char *filepath);
 

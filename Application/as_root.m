@@ -27,7 +27,7 @@ static BOOL as_root(const char *action, const char *filepath1, const char *filep
     const char *path = as_root_path();
     if (pid == 0) {
         // Execute the process.
-        if (strcmp(action, "move") == 0) {
+        if ((strcmp(action, "copy") == 0) || (strcmp(action, "move") == 0)) {
             execl(path, path, action, filepath1, filepath2, NULL);
         } else if (strcmp(action, "delete") == 0) {
             execl(path, path, action, filepath1, NULL);
@@ -48,6 +48,10 @@ static BOOL as_root(const char *action, const char *filepath1, const char *filep
     }
 
     return succeeded;
+}
+
+BOOL copy_as_root(const char *from_filepath, const char *to_filepath) {
+    return as_root("copy", from_filepath, to_filepath);
 }
 
 BOOL move_as_root(const char *from_filepath, const char *to_filepath) {
