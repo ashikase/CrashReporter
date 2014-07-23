@@ -1,5 +1,8 @@
 #import <libsymbolicate/CRCrashReport.h>
 
+#include <dlfcn.h>
+#include <objc/runtime.h>
+
 extern "C" mach_port_t SBSSpringBoardServerPort();
 
 @interface SBSLocalNotificationClient : NSObject
@@ -71,8 +74,11 @@ int main(int argc, char **argv, char **envp) {
         [NSThread sleepForTimeInterval:20.0];
     }
 
+    // Load UIKit framework.
+    void *handle = dlopen("/System/Library/Frameworks/UIKit.framework/UIKit", RTLD_LAZY);
+
     // Send the notification.
-    UILocalNotification *notification = [UILocalNotification new];
+    UILocalNotification *notification = [objc_getClass("UILocalNotification") new];
     [notification setAlertBody:body];
     [notification setUserInfo:[NSDictionary dictionaryWithObjectsAndKeys:filepath, @"filepath", nil]];
 
@@ -90,6 +96,7 @@ int main(int argc, char **argv, char **envp) {
     // Must execute the run loop once so the above is processed.
     CFRunLoopRunInMode(kCFRunLoopDefaultMode, 0, true);
 
+    dlclose(handle);
     [pool release];
     return 0;
 }
