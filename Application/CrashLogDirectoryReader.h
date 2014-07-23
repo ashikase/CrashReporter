@@ -14,7 +14,6 @@
 @interface CrashLogDirectoryReader : NSObject
 + (NSArray *)crashLogsForMobile;
 + (NSArray *)crashLogsForRoot;
-+ (void)deleteCrashLogsForUser:(int)userIndex group:(int)groupIndex;
 @end
 
 /* vim: set ft=objc ff=unix sw=4 ts=4 tw=80 expandtab: */

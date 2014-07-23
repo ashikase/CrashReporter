@@ -113,9 +113,14 @@
     NSUInteger section = indexPath.section;
     NSUInteger row = indexPath.row;
     NSMutableArray *crashLogs = (section == 0) ?  mobileCrashLogs_ : rootCrashLogs_;
-    [crashLogs removeObjectAtIndex:row];
-    [CrashLogDirectoryReader deleteCrashLogsForUser:section group:row];
-    [tableView deleteRowsAtIndexPaths:[NSArray arrayWithObject:indexPath] withRowAnimation:UITableViewRowAnimationLeft];
+
+    CrashLogGroup *group = [crashLogs objectAtIndex:row];
+    if ([group delete]) {
+        [crashLogs removeObjectAtIndex:row];
+        [tableView deleteRowsAtIndexPaths:[NSArray arrayWithObject:indexPath] withRowAnimation:UITableViewRowAnimationLeft];
+    } else {
+        NSLog(@"ERROR: Failed to delete logs for group \"%@\".", [group name]);
+    }
 }
 
 @end

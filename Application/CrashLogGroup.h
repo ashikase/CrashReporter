@@ -20,6 +20,7 @@
 + (instancetype)groupWithName:(NSString *)name logDirectory:(NSString *)logDirectory;
 - (instancetype)initWithName:(NSString *)name logDirectory:(NSString *)logDirectory;
 - (void)addCrashLog:(CrashLog *)crashLog;
+- (BOOL)delete;
 - (BOOL)deleteCrashLog:(CrashLog *)crashLog;
 @end
 

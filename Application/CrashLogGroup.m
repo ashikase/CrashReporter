@@ -53,6 +53,20 @@ static NSInteger reverseCompareCrashLogs(CrashLog *a, CrashLog *b, void *context
     [crashLogs_ addObject:crashLog];
 }
 
+- (BOOL)delete {
+    NSUInteger count = [crashLogs_ count];
+    for (NSInteger i = (count - 1); i >= 0; --i) {
+        CrashLog *crashLog = [crashLogs_ objectAtIndex:i];
+        if ([crashLog delete]) {
+            [crashLogs_ removeObjectAtIndex:i];
+        } else {
+            // Failed to delete a log file; stop and return.
+            return NO;
+        }
+    }
+    return YES;
+}
+
 // FIXME: Update "LatestCrash-*" link, if necessary.
 - (BOOL)deleteCrashLog:(CrashLog *)crashLog {
     if ([crashLogs_ containsObject:crashLog]) {

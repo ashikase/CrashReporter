@@ -13,7 +13,6 @@
 
 #import "CrashLog.h"
 #import "CrashLogGroup.h"
-#import "as_root.h"
 
 #include "common.h"
 
@@ -48,25 +47,6 @@ static NSArray *crashLogGroupsForDirectory(NSString *directory) {
 
 + (NSArray *)crashLogsForRoot {
     return crashLogGroupsForDirectory(@"/Library/Logs/CrashReporter");
-}
-
-+ (void)deleteCrashLogsForUser:(int)userIndex group:(int)groupIndex {
-    // NOTE: userIndex should be 0 (mobile) or 1 (root).
-    assert(userIndex < 2);
-    NSArray *groups = (userIndex == 0) ? [self crashLogsForMobile] : [self crashLogsForRoot];
-
-    assert(groupIndex < [groups count]);
-    CrashLogGroup *group = [groups objectAtIndex:groupIndex];
-    if (group != nil) {
-        NSFileManager *fileMan = [NSFileManager defaultManager];
-        for (CrashLog *crashLog in [group crashLogs]) {
-            NSString *filepath = [crashLog filepath];
-            if (![fileMan removeItemAtPath:filepath error:NULL]) {
-                // FIXME: Extremely inefficient!
-                exec_move_as_root("!", "!", [filepath UTF8String]);
-            }
-        }
-    }
 }
 
 @end
