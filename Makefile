@@ -1,6 +1,6 @@
 SUBPROJECTS = Application as_root monitor notifier
 
-export ARCHS = armv6 armv7 armv7s arm64
+export ARCHS = armv6 armv7 armv7s
 export TARGET = iphone:clang
 export TARGET_IPHONEOS_DEPLOYMENT_VERSION = 3.0
 
