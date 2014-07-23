@@ -1,7 +1,8 @@
 SUBPROJECTS = Application move_as_root monitor notifier
 
-export ARCHS = armv6
-export TARGET = iphone:clang:7.1:3.0
+export ARCHS = armv6 armv7 armv7s arm64
+export TARGET = iphone:clang
+export TARGET_IPHONEOS_DEPLOYMENT_VERSION = 3.0
 
 include theos/makefiles/common.mk
 include theos/makefiles/aggregate.mk
