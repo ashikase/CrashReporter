@@ -11,8 +11,8 @@
 
 #import <UIKit/UIKit.h>
 
-int main (int argc, char* argv[]) {
-    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+int main (int argc, char *argv[]) {
+    NSAutoreleasePool *pool = [NSAutoreleasePool new];
     int ret = UIApplicationMain(argc, argv, nil, @"ApplicationDelegate");
     [pool drain];
     return ret;
