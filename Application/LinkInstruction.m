@@ -51,7 +51,7 @@
         if (package.isAppStore) {
             // Add App Store link.
             long long item = [package.storeIdentifier longLongValue]; // we need long long here because there are 2 billion apps on the App Store already... :)
-            NSString *line = [NSString stringWithFormat:@"link url \"http://itunes.apple.com/WebObjects/MZStore.woa/wa/viewSoftware?id=%lld&mt=8\" as \"View package in App Store\"", item];
+            NSString *line = [NSString stringWithFormat:NSLocalizedString(@"VIEW_IN_APP_STORE", nil), item];
             LinkInstruction *instruction = [self instructionWithLine:line];
             if (instruction != nil) {
                 [result addObject:instruction];
@@ -68,7 +68,7 @@
                             if (leftAngleRange.location < rightAngleRange.location) {
                                 NSRange range = NSMakeRange(leftAngleRange.location + 1, rightAngleRange.location - leftAngleRange.location - 1);
                                 NSString *emailAddress = [author substringWithRange:range];
-                                NSString *line = [NSString stringWithFormat:@"link email %@ as \"Contact author\" is_support yes", emailAddress];
+                                NSString *line = [NSString stringWithFormat:NSLocalizedString(@"CONTACT_AUTHOR", nil), emailAddress];
                                 LinkInstruction *instruction = [self instructionWithLine:line];
                                 if (instruction != nil) {
                                     [result addObject:instruction];
@@ -80,7 +80,7 @@
             }
 
             // Add Cydia link.
-            NSString *line = [NSString stringWithFormat:@"link url \"cydia://package/%@\" as \"View package in Cydia\"", package.storeIdentifier];
+            NSString *line = [NSString stringWithFormat:NSLocalizedString(@"VIEW_IN_CYDIA", nil), package.storeIdentifier];
             LinkInstruction *instruction = [self instructionWithLine:line];
             if (instruction != nil) {
                 [result addObject:instruction];

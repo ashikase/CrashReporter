@@ -1,31 +1,45 @@
-"OK" = "好";
-"Crashed process" = "崩溃的过程";
-"Main suspect" = "主因";
-"Other suspects" = "别的因";
-"View crash log" = "检视崩溃记录 (crash log)";
-"View syslog" = "检视系统记录 (syslog)";
-"Symbolicating..." = "正在符号化…";
-"Latest" = "最新";
-"Earlier" = "较早前";
-"CrashReporter" = "回报错误";
-"Attachments" = "附件";
-"Copy" = "複製";
-"Edit" = "编辑"; // currently unimplemented in code
+CRASHREPORTER = "回报错误";
 
-"View package in App Store" = "到 App Store 管理程式"; // currently unimplemented in code
-"Contact author" = "电邮给开发者"; // currently unimplemented in code
-"View package in Cydia" = "到 Cydia 管理程式"; // currently unimplemented in code
+OK = "好";
+CANCEL = "Cancel";
+COPY = "複製";
+EDIT = "编辑";
+
+CRASHED_PROCESS = "崩溃的过程";
+MAIN_SUSPECT = "主因";
+OTHER_SUSPECTS = "别的因";
+
+VIEW_CRASH_LOG = "检视崩溃记录 (crash log)";
+VIEW_SYSLOG = "检视系统记录 (syslog)";
+
+SYMBOLICATING_MODAL = "正在符号化…";
+
+LATEST = "最新";
+EARLIER = "较早前";
+
+ERROR = "错误";
+FILE_DELETION_FAILED = "不能删除文件。";
+PACKAGE_FAILED_1 = "这个文件关联的程序包不存在、还是可能不是从Cydia还是App Store来的。";
+
+VIEW_IN_APP_STORE = "link url \"http://itunes.apple.com/WebObjects/MZStore.woa/wa/viewSoftware?id=%lld&mt=8\" as \"到 App Store 管理程式\"";
+CONTACT_AUTHOR = "link email %@ as \"电邮给开发者\" is_support yes";
+VIEW_IN_CYDIA = "link url \"cydia://package/%@\" as \"到 Cydia 管理程式\"";
 
 CANNOT_EMAIL = "无法发送电邮。";
 EMAIL_FAILED_1 = "发送电邮失败.\n错误：";
+ATTACHMENTS = "附件";
 
-"Script" = "指令码";
+SCRIPT = "指令码";
 CUSTOM_BLAME_WARNING = "警告：在此输入无效的资料可能导致系统损毁。仅於开发者指导下使用。";
-"Back" = "返回";
-"Continue" = "继续";
+BACK = "返回";
+CONTINUE = "继续";
 
-"syslog not found!" = "找不到系统记录 (syslog)!";
+SYSLOG_NOT_FOUND = "找不到系统记录 (syslog)!";
 SYSLOG_NOT_FOUND_DETAIL = "没有系统记录 (syslog) 的错误报告通常都是无用的。请安装 %@ 或 syslogd，并复制一次程式崩溃。";
-"Install Syslog Toggle" = "安装 Syslog Toggle";
-"Install syslogd" = "安装 syslogd";
-"Ignore once" = "略过一次";
+INSTALL = "安装 %@";
+INSTALL_SYSLOGD = "安装 syslogd";
+IGNORE_ONCE = "略过一次";
+
+CRASH_DETECTED = "检测到崩溃"; // the previous Chinese translator seems to refer to "crashes" as "errors" instead - I translated it to "crash" in this case. not sure whether to stick with "error" for consistency or...
+VIEW = "查看";
+IGNORE = "略过";
