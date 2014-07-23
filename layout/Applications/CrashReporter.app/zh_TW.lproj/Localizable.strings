@@ -25,7 +25,7 @@ CUSTOM_BLAME_WARNING = "警告：在此輸入無效的資料可能導致系統�
 "Continue" = "繼續";
 
 "syslog not found!" = "找不到系統記錄 (syslog)!";
-SYSLOG_NOT_FOUND_DETAIL = "沒有系統記錄 (syslog) 的錯誤報告通常都是無用的。請安裝 Syslog Toggle 或 syslogd，並復制一次程式崩潰。";
+SYSLOG_NOT_FOUND_DETAIL = "沒有系統記錄 (syslog) 的錯誤報告通常都是無用的。請安裝 %@ 或 syslogd，並復制一次程式崩潰。";
 "Install Syslog Toggle" = "安裝 Syslog Toggle";
 "Install syslogd" = "安裝 syslogd";
 "Ignore once" = "略過一次";
