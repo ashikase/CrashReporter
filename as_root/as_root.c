@@ -18,7 +18,8 @@ const char * const kTempPath = "/tmp/";
 
 static void print_usage() {
     fprintf(stderr,
-            "Usage: as_root move <from_filepath> <to_filepath>\n"
+            "Usage: as_root copy <from_filepath> <to_filepath>\n"
+            "       as_root move <from_filepath> <to_filepath>\n"
             "       as_root delete <filepath>\n"
             "\n"
             "       Note that only filepaths with the following prefixes are permitted:\n"
@@ -41,14 +42,42 @@ int main(int argc, const char *argv[]) {
         return EXIT_FAILURE;
     }
 
-    if ((argc == 4) && (strcasecmp(argv[1], "move") == 0)) {
+    if ((argc == 4) && (strcasecmp(argv[1], "copy") == 0)) {
         // Check files at filepaths.
         if (!is_valid_filepath(argv[2]) || !is_valid_filepath(argv[3])) {
             fprintf(stderr, "ERROR: At least one of the specified filepaths is not allowed.\n");
             return EXIT_FAILURE;
         }
 
-        // Move source_filepath to destination_filepath.
+        // Copy from_filepath to to_filepath.
+        char buffer[BUFSIZ];
+        size_t nitems;
+        FILE *from_file = fopen(argv[2], "r");;
+        if (from_file != NULL) {
+            FILE *to_file = fopen(argv[3], "w");;
+            if (to_file != NULL) {
+                while ((nitems = fread(buffer, sizeof(char), sizeof(buffer), from_file)) > 0) {
+                    if (fwrite(buffer, sizeof(char), nitems, to_file) != nitems) {
+                        fprintf(stderr, "ERROR: Failure while copying file, errno = %d.\n", errno);
+                        return EXIT_FAILURE;
+                    }
+                }
+                fclose(to_file);
+            } else {
+                fprintf(stderr, "ERROR: Unable to open destination filepath for writing, errno = %d.\n", errno);
+            }
+            fclose(from_file);
+        } else {
+            fprintf(stderr, "ERROR: Unable to open source filepath for reading, errno = %d.\n", errno);
+        }
+    } else if ((argc == 4) && (strcasecmp(argv[1], "move") == 0)) {
+        // Check files at filepaths.
+        if (!is_valid_filepath(argv[2]) || !is_valid_filepath(argv[3])) {
+            fprintf(stderr, "ERROR: At least one of the specified filepaths is not allowed.\n");
+            return EXIT_FAILURE;
+        }
+
+        // Move from_filepath to to_filepath.
         if (strcmp(argv[1], argv[2]) != 0) {
             if (rename(argv[1], argv[2]) != 0) {
                 fprintf(stderr, "ERROR: Failed to rename file, errno = %d.\n", errno);
