@@ -145,13 +145,13 @@ static UIButton *logButton() {
     UIButton *button;
     button = logButton();
     [button setFrame:CGRectMake(10.0, 10.0, screenBounds.size.width - 20.0, 44.0)];
-    [button setTitle:NSLocalizedString(@"View crash log","View crash log") forState:UIControlStateNormal];
+    [button setTitle:NSLocalizedString(@"View crash log", @"View crash log") forState:UIControlStateNormal];
     [button addTarget:self action:@selector(crashlogTapped) forControlEvents:UIControlEventTouchUpInside];
     [buttonView addSubview:button];
 
     button = logButton();
     [button setFrame:CGRectMake(10.0, 10.0 + 44.0 + 10.0, screenBounds.size.width - 20.0, 44.0)];
-    [button setTitle:NSLocalizedString(@"View syslog",@"View syslog") forState:UIControlStateNormal];
+    [button setTitle:NSLocalizedString(@"View syslog", @"View syslog") forState:UIControlStateNormal];
     [button addTarget:self action:@selector(syslogTapped) forControlEvents:UIControlEventTouchUpInside];
     [buttonView addSubview:button];
 
@@ -171,7 +171,7 @@ static UIButton *logButton() {
         // Symbolicate.
         // NOTE: Done via performSelector:... so that popup is shown.
         statusPopup_ = [ModalActionSheet new];
-        [statusPopup_ updateText:NSLocalizedString(@"Symbolicating...",@"Symbolicating...")];
+        [statusPopup_ updateText:NSLocalizedString(@"Symbolicating...", @"Symbolicating...")];
         [statusPopup_ show];
         [self performSelector:@selector(symbolicate) withObject:nil afterDelay:0];
     }
@@ -236,9 +236,9 @@ static UIButton *logButton() {
 - (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section {
     NSString *key = nil;
     switch (section) {
-        case 0: key = NSLocalizedString(@"Crashed process",@"Crashed process"); break;
-        case 1: key = NSLocalizedString(@"Main suspect",@"Main suspect"); break;
-        case 2: key = NSLocalizedString(@"Other suspects",@"Other suspects"); break;
+        case 0: key = NSLocalizedString(@"Crashed process", @"Crashed process"); break;
+        case 1: key = NSLocalizedString(@"Main suspect", @"Main suspect"); break;
+        case 2: key = NSLocalizedString(@"Other suspects", @"Other suspects"); break;
         default: break;
 
     }
