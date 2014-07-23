@@ -78,8 +78,8 @@ int main(int argc, const char *argv[]) {
         }
 
         // Move from_filepath to to_filepath.
-        if (strcmp(argv[1], argv[2]) != 0) {
-            if (rename(argv[1], argv[2]) != 0) {
+        if (strcmp(argv[2], argv[3]) != 0) {
+            if (rename(argv[2], argv[3]) != 0) {
                 fprintf(stderr, "ERROR: Failed to rename file, errno = %d.\n", errno);
                 return EXIT_FAILURE;
             }
