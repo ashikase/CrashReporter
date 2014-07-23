@@ -2,7 +2,7 @@ Package: crash-reporter
 Version: 1.1.0
 Architecture: iphoneos-arm
 Pre-Depends: firmware (>=3.0)
-Depends: dpkg, grep, coreutils, jp.ashikase.symbolicate, mobilesubstrate
+Depends: dpkg, grep, coreutils, jp.ashikase.symbolicate (>= 1.5.0), mobilesubstrate
 Section: System
 Tag: purpose::uikit, role::enduser
 Name: CrashReporter
