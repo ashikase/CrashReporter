@@ -49,9 +49,9 @@
         }
 
         if (package.isAppStore) {
-            // Add AppStore link.
-            long long item = [package.storeIdentifier longLongValue]; // we need long long here because there are 2 billion apps on AppStore already... :)
-            NSString *line = [NSString stringWithFormat:@"link url \"http://itunes.apple.com/WebObjects/MZStore.woa/wa/viewSoftware?id=%lld&mt=8\" as \"View package in AppStore\"", item];
+            // Add App Store link.
+            long long item = [package.storeIdentifier longLongValue]; // we need long long here because there are 2 billion apps on the App Store already... :)
+            NSString *line = [NSString stringWithFormat:@"link url \"http://itunes.apple.com/WebObjects/MZStore.woa/wa/viewSoftware?id=%lld&mt=8\" as \"View package in App Store\"", item];
             LinkInstruction *instruction = [self instructionWithLine:line];
             if (instruction != nil) {
                 [result addObject:instruction];
