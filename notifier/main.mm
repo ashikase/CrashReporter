@@ -22,6 +22,11 @@ extern "C" mach_port_t SBSSpringBoardServerPort();
 int main(int argc, char **argv, char **envp) {
     NSAutoreleasePool *pool = [NSAutoreleasePool new];
 
+    if (IOS_LT(5_0)) {
+        fprintf(stderr, "WARNING: CrashReporter notifications require iOS 5.0 or higher.\n");
+        return 0;
+    }
+
     // Get arguments.
     if (argc != 2) {
         fprintf(stderr, "ERROR: Must specify path to crash log.\n");
