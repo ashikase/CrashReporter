@@ -11,6 +11,7 @@
 
 #import "RootViewController.h"
 
+#import "CrashLog.h"
 #import "CrashLogGroup.h"
 #import "VictimViewController.h"
 #import "ManualScriptViewController.h"
@@ -91,7 +92,18 @@
     NSArray *crashLogGroups = (indexPath.section == 0) ?  [CrashLogGroup groupsForMobile] : [CrashLogGroup groupsForRoot];
     CrashLogGroup *group = [crashLogGroups objectAtIndex:indexPath.row];
     cell.textLabel.text = group.name;
-    cell.detailTextLabel.text = [NSString stringWithFormat:@"%lu", (unsigned long)[group.crashLogs count]];
+
+    NSArray *crashLogs = [group crashLogs];
+    unsigned long totalCount = [crashLogs count];
+    unsigned long unviewedCount = 0;
+    for (CrashLog *crashLog in crashLogs) {
+        if (![crashLog isViewed]) {
+            ++unviewedCount;
+        }
+    }
+
+    cell.detailTextLabel.text = [NSString stringWithFormat:@"%lu/%lu", unviewedCount, totalCount];
+
     return cell;
 }
 
