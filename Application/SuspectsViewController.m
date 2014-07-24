@@ -102,6 +102,7 @@ static UIButton *logButton() {
     } else {
         button.backgroundColor = [UIColor colorWithRed:(36.0 / 255.0) green:(132.0 / 255.0) blue:(232.0 / 255.0) alpha:1.0];
         [button setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+        [button setTitleColor:[UIColor grayColor] forState:UIControlStateDisabled];
 
         layer.borderColor = [[UIColor blackColor] CGColor];
     }
@@ -142,7 +143,14 @@ static UIButton *logButton() {
     button = logButton();
     [button setFrame:CGRectMake(10.0, 10.0 + 44.0 + 10.0, screenBounds.size.width - 20.0, 44.0)];
     [button setTitle:NSLocalizedString(@"VIEW_SYSLOG", nil) forState:UIControlStateNormal];
-    [button addTarget:self action:@selector(syslogTapped) forControlEvents:UIControlEventTouchUpInside];
+    if ([[NSFileManager defaultManager] fileExistsAtPath:[self syslogPath]]) {
+        [button addTarget:self action:@selector(syslogTapped) forControlEvents:UIControlEventTouchUpInside];
+    } else {
+        [button setEnabled:NO];
+        if (IOS_GTE(7_0)) {
+            button.backgroundColor = [UIColor lightGrayColor];
+        }
+    }
     [buttonView addSubview:button];
 
     UIView *view = [[UIView alloc] initWithFrame:CGRectMake(0.0, 0.0, screenBounds.size.width, screenBounds.size.height)];
