@@ -292,7 +292,7 @@ static const CGFloat kTableRowHeight = 48.0;
                 (package_.name ?: @"(unknown product)"),
                 (package_.version ?: @"unknown version")
                 ]];
-            [controller setToRecipients:[[linkInstruction_ recipients] componentsSeparatedByRegex:@",\\s*"]];
+            [controller setToRecipients:[linkInstruction_ recipients]];
 
             // Add attachments.
             for (IncludeInstruction *instruction in [self selectedAttachments]) {

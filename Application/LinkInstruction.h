@@ -12,7 +12,7 @@
 #import "Instruction.h"
 
 @interface LinkInstruction : Instruction
-@property(nonatomic, readonly) NSString *recipients;
+@property(nonatomic, readonly) NSArray *recipients;
 @property(nonatomic, readonly) NSString *unlocalizedTitle;
 @property(nonatomic, readonly) NSURL *url;
 @property(nonatomic, readonly) BOOL isEmail;

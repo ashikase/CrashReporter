@@ -130,7 +130,7 @@
                     }
                     break;
                 case ModeRecipients:
-                    recipients_ = [token retain];
+                    recipients_ = [[token componentsSeparatedByRegex:@",\\s*"] retain];
                     mode = ModeAttribute;
                     break;
                 case ModeTitle:

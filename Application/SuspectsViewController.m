@@ -335,7 +335,7 @@ static UIButton *logButton() {
                 if ([MFMailComposeViewController canSendMail]) {
                     MFMailComposeViewController *controller = [MFMailComposeViewController new];
                     [controller setMailComposeDelegate:self];
-                    [controller setToRecipients:[[linkInstruction recipients] componentsSeparatedByRegex:@",\\s*"]];
+                    [controller setToRecipients:[linkInstruction recipients]];
                     [self presentModalViewController:controller animated:YES];
                     [controller release];
                 } else {
