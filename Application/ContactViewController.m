@@ -216,6 +216,79 @@ static const CGFloat kTableRowHeight = 48.0;
     return urlsString;
 }
 
+#pragma mark - MFMailComposeViewControllerDelegate
+
+- (void)mailComposeController:(MFMailComposeViewController *)controller didFinishWithResult:(MFMailComposeResult)result error:(NSError *)error {
+    [self dismissModalViewControllerAnimated:YES];
+
+    if (result == MFMailComposeResultFailed) {
+        NSString *message = [NSLocalizedString(@"EMAIL_FAILED_1", nil) stringByAppendingString:[error localizedDescription]];
+        NSString *okMessage = NSLocalizedString(@"OK", nil);
+        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:nil message:message delegate:nil
+            cancelButtonTitle:okMessage otherButtonTitles:nil];
+        [alert show];
+        [alert release];
+    }
+}
+
+#pragma mark - UIBarButtonItem Actions
+
+- (void)barButtonTapped {
+    NSString *okMessage = NSLocalizedString(@"OK", nil);
+
+    if ([linkInstruction_ isEmail]) {
+        if ([MFMailComposeViewController canSendMail]) {
+            // Setup mail controller.
+            MFMailComposeViewController *controller = [MFMailComposeViewController new];
+            [controller setMailComposeDelegate:self];
+            [controller setMessageBody:[self messageBody] isHTML:NO];
+            [controller setSubject:[NSString stringWithFormat:@"Crash Report: %@ (%@)",
+                (package_.name ?: @"(unknown product)"),
+                (package_.version ?: @"unknown version")
+                ]];
+            [controller setToRecipients:[linkInstruction_ recipients]];
+
+            // Add attachments.
+            for (IncludeInstruction *instruction in [self selectedAttachments]) {
+                // Attach to the email.
+                NSData *data = [[instruction content] dataUsingEncoding:NSUTF8StringEncoding];
+                if (data != nil) {
+                    NSString *filepath = [instruction filepath];
+                    NSString *filename = ([instruction type] == IncludeInstructionTypeCommand) ?
+                        [[instruction title] stringByAppendingPathExtension:@"txt"] : [filepath lastPathComponent];
+                    NSString *mimeType = ([instruction type] == IncludeInstructionTypePlist) ?
+                        @"application/x-plist" : @"text/plain";
+                    [controller addAttachmentData:data mimeType:mimeType fileName:filename];
+                }
+            }
+
+            // Present the mail controller for confirmation.
+            [self presentModalViewController:controller animated:YES];
+            [controller release];
+        } else {
+            NSString *cannotMailMessage = NSLocalizedString(@"CANNOT_EMAIL", nil);
+            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:cannotMailMessage message:nil delegate:nil cancelButtonTitle:okMessage otherButtonTitles:nil];
+            [alert show];
+            [alert release];
+        }
+    } else {
+        // Upload attachments to paste site and open support link.
+        NSString *urlsString = [self uploadAttachments];
+        if (urlsString != nil) {
+            NSMutableString *string = [textView_.text mutableCopy];
+            [string appendString:@"\n"];
+            [string appendString:urlsString];
+            [UIPasteboard generalPasteboard].string = string;
+            [[UIApplication sharedApplication] openURL:[linkInstruction_ url]];
+            [string release];
+        }
+    }
+}
+
+- (void)doneButtonTapped {
+     [textView_ resignFirstResponder];
+}
+
 #pragma mark - UITableViewDataSource
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
@@ -280,64 +353,6 @@ static const CGFloat kTableRowHeight = 48.0;
     return kTableRowHeight;
 }
 
-#pragma mark - UIBarButtonItem Actions
-
-- (void)barButtonTapped {
-    NSString *okMessage = NSLocalizedString(@"OK", nil);
-
-    if ([linkInstruction_ isEmail]) {
-        if ([MFMailComposeViewController canSendMail]) {
-            // Setup mail controller.
-            MFMailComposeViewController *controller = [MFMailComposeViewController new];
-            [controller setMailComposeDelegate:self];
-            [controller setMessageBody:[self messageBody] isHTML:NO];
-            [controller setSubject:[NSString stringWithFormat:@"Crash Report: %@ (%@)",
-                (package_.name ?: @"(unknown product)"),
-                (package_.version ?: @"unknown version")
-                ]];
-            [controller setToRecipients:[linkInstruction_ recipients]];
-
-            // Add attachments.
-            for (IncludeInstruction *instruction in [self selectedAttachments]) {
-                // Attach to the email.
-                NSData *data = [[instruction content] dataUsingEncoding:NSUTF8StringEncoding];
-                if (data != nil) {
-                    NSString *filepath = [instruction filepath];
-                    NSString *filename = ([instruction type] == IncludeInstructionTypeCommand) ?
-                        [[instruction title] stringByAppendingPathExtension:@"txt"] : [filepath lastPathComponent];
-                    NSString *mimeType = ([instruction type] == IncludeInstructionTypePlist) ?
-                        @"application/x-plist" : @"text/plain";
-                    [controller addAttachmentData:data mimeType:mimeType fileName:filename];
-                }
-            }
-
-            // Present the mail controller for confirmation.
-            [self presentModalViewController:controller animated:YES];
-            [controller release];
-        } else {
-            NSString *cannotMailMessage = NSLocalizedString(@"CANNOT_EMAIL", nil);
-            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:cannotMailMessage message:nil delegate:nil cancelButtonTitle:okMessage otherButtonTitles:nil];
-            [alert show];
-            [alert release];
-        }
-    } else {
-        // Upload attachments to paste site and open support link.
-        NSString *urlsString = [self uploadAttachments];
-        if (urlsString != nil) {
-            NSMutableString *string = [textView_.text mutableCopy];
-            [string appendString:@"\n"];
-            [string appendString:urlsString];
-            [UIPasteboard generalPasteboard].string = string;
-            [[UIApplication sharedApplication] openURL:[linkInstruction_ url]];
-            [string release];
-        }
-    }
-}
-
-- (void)doneButtonTapped {
-     [textView_ resignFirstResponder];
-}
-
 #pragma mark - UITextViewDelegate
 
 - (void)textViewDidBeginEditing:(UITextView *)textView {
@@ -354,21 +369,6 @@ static const CGFloat kTableRowHeight = 48.0;
         textView.textColor = [UIColor lightGrayColor];
     }
     [textView resignFirstResponder];
-}
-
-#pragma mark - MFMailComposeViewControllerDelegate
-
-- (void)mailComposeController:(MFMailComposeViewController *)controller didFinishWithResult:(MFMailComposeResult)result error:(NSError *)error {
-    [self dismissModalViewControllerAnimated:YES];
-
-    if (result == MFMailComposeResultFailed) {
-        NSString *message = [NSLocalizedString(@"EMAIL_FAILED_1", nil) stringByAppendingString:[error localizedDescription]];
-        NSString *okMessage = NSLocalizedString(@"OK", nil);
-        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:nil message:message delegate:nil
-            cancelButtonTitle:okMessage otherButtonTitles:nil];
-        [alert show];
-        [alert release];
-    }
 }
 
 @end

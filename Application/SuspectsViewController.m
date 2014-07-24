@@ -215,6 +215,75 @@ static UIButton *logButton() {
     [self presentViewerWithLine:line];
 }
 
+#pragma mark - MFMailComposeViewControllerDelegate
+
+- (void)mailComposeController:(MFMailComposeViewController *)controller didFinishWithResult:(MFMailComposeResult)result error:(NSError *)error {
+    [self dismissModalViewControllerAnimated:YES];
+
+    if (result == MFMailComposeResultFailed) {
+        NSString *message = [NSLocalizedString(@"EMAIL_FAILED_1", nil)
+            stringByAppendingString:[error localizedDescription]];
+        NSString *okMessage = NSLocalizedString(@"OK", nil);
+        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:nil message:message delegate:nil
+            cancelButtonTitle:okMessage otherButtonTitles:nil];
+        [alert show];
+        [alert release];
+    }
+}
+
+#pragma mark - UIAlertViewDelegate
+
+- (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
+    if (buttonIndex > 0) {
+        LinkInstruction *linkInstruction = [lastSelectedLinkInstructions_ objectAtIndex:(buttonIndex - 1)];
+        if (linkInstruction.isSupport) {
+            // Report issue.
+            NSString *crashlogLine = [NSString stringWithFormat:@"include as \"Crash log\" file \"%@\"", [crashLog_ filepath]];
+            NSString *syslogLine = [NSString stringWithFormat:@"include as syslog file \"%@\"", [self syslogPath]];
+            NSMutableArray *includeInstructions = [[NSMutableArray alloc] initWithObjects:
+                [IncludeInstruction instructionWithLine:crashlogLine],
+                [IncludeInstruction instructionWithLine:syslogLine],
+                [IncludeInstruction instructionWithLine:@"include as \"Package List\" command dpkg -l"],
+                nil];
+            [includeInstructions addObjectsFromArray:[IncludeInstruction includeInstructionsForPackage:lastSelectedPackage_]];
+
+            ContactViewController *viewController = [[ContactViewController alloc] initWithPackage:lastSelectedPackage_ suspect:lastSelectedPath_
+                linkInstruction:linkInstruction includeInstructions:includeInstructions];
+            viewController.title = [lastSelectedPath_ lastPathComponent];
+            [self.navigationController pushViewController:viewController animated:YES];
+            [viewController release];
+            [includeInstructions release];
+        } else {
+            if (linkInstruction.isEmail) {
+                // Present mail controller.
+                if ([MFMailComposeViewController canSendMail]) {
+                    MFMailComposeViewController *controller = [MFMailComposeViewController new];
+                    [controller setMailComposeDelegate:self];
+                    [controller setToRecipients:[linkInstruction recipients]];
+                    [self presentModalViewController:controller animated:YES];
+                    [controller release];
+                } else {
+                    NSString *okMessage = NSLocalizedString(@"OK", nil);
+                    NSString *cannotMailMessage = NSLocalizedString(@"CANNOT_EMAIL", nil);
+                    UIAlertView *alert = [[UIAlertView alloc] initWithTitle:cannotMailMessage message:nil delegate:nil cancelButtonTitle:okMessage otherButtonTitles:nil];
+                    [alert show];
+                    [alert release];
+                }
+            } else {
+                // Open associated link.
+                [[UIApplication sharedApplication] openURL:[linkInstruction url]];
+            }
+        }
+    }
+
+    [lastSelectedLinkInstructions_ release];
+    lastSelectedLinkInstructions_ = nil;
+    [lastSelectedPackage_ release];
+    lastSelectedPackage_ = nil;
+    [lastSelectedPath_ release];
+    lastSelectedPath_ = nil;
+}
+
 #pragma mark - UITableViewDataSource
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
@@ -305,75 +374,6 @@ static UIButton *logButton() {
     }
 
     [tableView deselectRowAtIndexPath:[tableView indexPathForSelectedRow] animated:YES];
-}
-
-#pragma mark - UIAlertViewDelegate
-
-- (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
-    if (buttonIndex > 0) {
-        LinkInstruction *linkInstruction = [lastSelectedLinkInstructions_ objectAtIndex:(buttonIndex - 1)];
-        if (linkInstruction.isSupport) {
-            // Report issue.
-            NSString *crashlogLine = [NSString stringWithFormat:@"include as \"Crash log\" file \"%@\"", [crashLog_ filepath]];
-            NSString *syslogLine = [NSString stringWithFormat:@"include as syslog file \"%@\"", [self syslogPath]];
-            NSMutableArray *includeInstructions = [[NSMutableArray alloc] initWithObjects:
-                [IncludeInstruction instructionWithLine:crashlogLine],
-                [IncludeInstruction instructionWithLine:syslogLine],
-                [IncludeInstruction instructionWithLine:@"include as \"Package List\" command dpkg -l"],
-                nil];
-            [includeInstructions addObjectsFromArray:[IncludeInstruction includeInstructionsForPackage:lastSelectedPackage_]];
-
-            ContactViewController *viewController = [[ContactViewController alloc] initWithPackage:lastSelectedPackage_ suspect:lastSelectedPath_
-                linkInstruction:linkInstruction includeInstructions:includeInstructions];
-            viewController.title = [lastSelectedPath_ lastPathComponent];
-            [self.navigationController pushViewController:viewController animated:YES];
-            [viewController release];
-            [includeInstructions release];
-        } else {
-            if (linkInstruction.isEmail) {
-                // Present mail controller.
-                if ([MFMailComposeViewController canSendMail]) {
-                    MFMailComposeViewController *controller = [MFMailComposeViewController new];
-                    [controller setMailComposeDelegate:self];
-                    [controller setToRecipients:[linkInstruction recipients]];
-                    [self presentModalViewController:controller animated:YES];
-                    [controller release];
-                } else {
-                    NSString *okMessage = NSLocalizedString(@"OK", nil);
-                    NSString *cannotMailMessage = NSLocalizedString(@"CANNOT_EMAIL", nil);
-                    UIAlertView *alert = [[UIAlertView alloc] initWithTitle:cannotMailMessage message:nil delegate:nil cancelButtonTitle:okMessage otherButtonTitles:nil];
-                    [alert show];
-                    [alert release];
-                }
-            } else {
-                // Open associated link.
-                [[UIApplication sharedApplication] openURL:[linkInstruction url]];
-            }
-        }
-    }
-
-    [lastSelectedLinkInstructions_ release];
-    lastSelectedLinkInstructions_ = nil;
-    [lastSelectedPackage_ release];
-    lastSelectedPackage_ = nil;
-    [lastSelectedPath_ release];
-    lastSelectedPath_ = nil;
-}
-
-#pragma mark - MFMailComposeViewControllerDelegate
-
-- (void)mailComposeController:(MFMailComposeViewController *)controller didFinishWithResult:(MFMailComposeResult)result error:(NSError *)error {
-    [self dismissModalViewControllerAnimated:YES];
-
-    if (result == MFMailComposeResultFailed) {
-        NSString *message = [NSLocalizedString(@"EMAIL_FAILED_1", nil)
-            stringByAppendingString:[error localizedDescription]];
-        NSString *okMessage = NSLocalizedString(@"OK", nil);
-        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:nil message:message delegate:nil
-            cancelButtonTitle:okMessage otherButtonTitles:nil];
-        [alert show];
-        [alert release];
-    }
 }
 
 @end
