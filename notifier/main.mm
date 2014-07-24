@@ -10,8 +10,12 @@
 
 #import <libsymbolicate/CRCrashReport.h>
 
+#include <asl.h>
 #include <dlfcn.h>
+#include <errno.h>
 #include <objc/runtime.h>
+#include <time.h>
+#include <unistd.h>
 
 extern "C" mach_port_t SBSSpringBoardServerPort();
 
@@ -41,6 +45,68 @@ int main(int argc, char **argv, char **envp) {
         return 1;
     }
 
+    // Determine the bundle identifier.
+    // NOTE: This information is not available for versions of iOS prior to 7.0.
+    NSDictionary *properties = [report properties];
+    NSString *bundleID = [properties objectForKey:@"bundleID"];
+
+    // Determine the name of the process.
+    NSString *processName = [properties objectForKey:@"name"];
+    if (processName == nil) {
+        processName = [properties objectForKey:@"name"];
+    }
+
+    // Capture syslog output via ASL (Apple System Log).
+    // NOTE: Make sure not to overwrite file if it already exists.
+    // NOTE: This should only be a concern if someone were to later manually
+    //       call notifier on the same crash log file.
+    NSString *syslogPath = [[filepath stringByDeletingPathExtension] stringByAppendingPathExtension:@"syslog"];
+    if (![[NSFileManager defaultManager] fileExistsAtPath:syslogPath]) {
+        // NOTE: Do this here as the following symbolication may take some time,
+        //       during which the syslog could change.
+        NSMutableString *syslog = [NSMutableString new];
+        aslmsg query = asl_new(ASL_TYPE_QUERY);
+        aslresponse response = asl_search(NULL, query);
+        aslmsg msg;
+        while ((msg = aslresponse_next(response)) != NULL) {
+            // NOTE: We could use asl_set_query() to filter the results with a
+            //       regular expression, but it seems that ASL_QUERY_OP_REGEX does
+            //       not work properly on older versions of iOS.
+            const char *facility = asl_get(msg, ASL_KEY_FACILITY);
+            const char *sender = asl_get(msg, ASL_KEY_SENDER);
+            const char *bundleIDStr = (bundleID != nil) ? [bundleID UTF8String] : "";
+            const char *processNameStr = (processName != nil) ? [processName UTF8String] : "";
+            if (
+                (strcmp(facility, "Crash Reporter") == 0) ||
+                (strcmp(facility, bundleIDStr) == 0) ||
+                (strcmp(sender, processNameStr) == 0)
+            ) {
+                char time[25];
+                time_t clock = atol(asl_get(msg, ASL_KEY_TIME));
+                struct tm *timeptr = localtime(&clock);
+                strftime(time, 25, "%c", timeptr);
+
+                const char *message = asl_get(msg, ASL_KEY_MSG);
+                [syslog appendFormat:@"%s: %s (%s): %s\n", time, sender, facility, message];
+            }
+        }
+        aslresponse_free(response);
+        asl_free(query);
+
+        // Write syslog to file.
+        // NOTE: Syslog may be empty.
+        NSError *error = nil;
+        if ([syslog writeToFile:syslogPath atomically:YES encoding:NSUTF8StringEncoding error:&error]) {
+            // Change ownership of file to "mobile" user.
+            if (chown([syslogPath UTF8String], 501, 501) != 0) {
+                fprintf(stderr, "WARNING: Failed to change ownership of syslog file: %d.\n", errno);
+            }
+        } else {
+            fprintf(stderr, "WARNING: Failed to save syslog information to file: %s.\n", [[error localizedDescription] UTF8String]);
+        }
+        [syslog release];
+    }
+
     // Symbolicate the report.
     // FIXME: Save the result with the "symbolicated" suffix so that CrashReporter
     //        will detect it and not symbolicate it again.
@@ -51,17 +117,17 @@ int main(int argc, char **argv, char **envp) {
     if (![report blameUsingFilters:filters]) {
         fprintf(stderr, "WARNING: Failed to process blame.\n");
     }
-    NSDictionary *properties = [report properties];
     NSArray *suspects = [properties objectForKey:@"blame"];
     [filters release];
 
-    // Determine the name of the process.
-    NSString *name = [properties objectForKey:@"app_name"];
-    if (name == nil) {
-        name = [properties objectForKey:@"name"];
+    // Determine the bundle name.
+    NSString *bundleName = [properties objectForKey:@"app_name"];
+    if (bundleName == nil) {
+        bundleName = [properties objectForKey:@"displayName"];
     }
 
-    NSMutableString *body = [NSMutableString stringWithFormat:@"\"%@\" has crashed.\n", name];
+    // Create notification message.
+    NSMutableString *body = [NSMutableString stringWithFormat:@"\"%@\" has crashed.\n", bundleName];
     if ([suspects count] > 0) {
         [body appendFormat:@"\"%@\" is main suspect.", [[suspects objectAtIndex:0] lastPathComponent]];
     } else {
