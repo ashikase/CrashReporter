@@ -62,7 +62,7 @@
             }
         } else {
             if (!hasSupportLink) {
-                // Add email link.
+                // Add email link to contact author.
                 NSString *author = package.author;
                 if (author != nil) {
                     NSRange leftAngleRange = [author rangeOfString:@"<" options:NSBackwardsSearch];
@@ -72,7 +72,7 @@
                             if (leftAngleRange.location < rightAngleRange.location) {
                                 NSRange range = NSMakeRange(leftAngleRange.location + 1, rightAngleRange.location - leftAngleRange.location - 1);
                                 NSString *emailAddress = [author substringWithRange:range];
-                                NSString *line = [NSString stringWithFormat:@"link email %@ as \"%@\" is_support yes",
+                                NSString *line = [NSString stringWithFormat:@"link email %@ as \"%@\" is_support",
                                     emailAddress, NSLocalizedString(@"CONTACT_AUTHOR", nil)];
                                 LinkInstruction *instruction = [self instructionWithLine:line];
                                 if (instruction != nil) {
@@ -96,6 +96,13 @@
         // Add optional link commands.
         [result addObjectsFromArray:instructions];
         [instructions release];
+
+        // Add an email link to send to an arbitrary address.
+        NSString *line = [NSString stringWithFormat:@"link email \"\" as \"%@\" is_support", NSLocalizedString(@"FORWARD_TO", nil)];
+        LinkInstruction *instruction = [self instructionWithLine:line];
+        if (instruction != nil) {
+            [result addObject:instruction];
+        }
     }
 
     return result;

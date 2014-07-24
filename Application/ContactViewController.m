@@ -140,12 +140,15 @@ static const CGFloat kTableRowHeight = 48.0;
     [string appendFormat:@"%@ (%@) %@: %@\n\n\n", platformVersion(), [device name], [device systemVersion], uniqueId()];
 
     // Add default message.
-    NSString *author = [package_.author stringByReplacingOccurrencesOfRegex:@"\\s*<[^>]+>" withString:@""] ?: @"developer";
-    [string appendFormat:@"Dear %@,\n\n", author];
+    BOOL isForward = ([linkInstruction_ recipients] == nil);
+    if (!isForward) {
+        NSString *author = [package_.author stringByReplacingOccurrencesOfRegex:@"\\s*<[^>]+>" withString:@""] ?: @"developer";
+        [string appendFormat:@"Dear %@,\n\n", author];
+    }
     if (package_.isAppStore) {
-        [string appendFormat: @"Your app \"%@\" has recently crashed.\n\n", package_.name];
+        [string appendFormat: @"The app \"%@\" has recently crashed.\n\n", package_.name];
     } else {
-        [string appendFormat:@"The file \"%@\" of your product \"%@\" has possibly caused a crash.\n\n", suspect_, package_.name];
+        [string appendFormat:@"The file \"%@\" of the product \"%@\" has possibly caused a crash.\n\n", suspect_, package_.name];
     }
     [string appendString:
         @"Relevant files (e.g. crash log and syslog) are attached.\n"

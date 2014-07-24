@@ -24,8 +24,9 @@ FILE_DELETION_FAILED = "不能删除文件。";
 PACKAGE_FAILED_1 = "这个文件关联的程序包不存在、还是可能不是从Cydia还是App Store来的。";
 
 VIEW_IN_APP_STORE = "到 App Store 管理程式";
-CONTACT_AUTHOR = "电邮给开发者";
 VIEW_IN_CYDIA = "到 Cydia 管理程式";
+CONTACT_AUTHOR = "电邮给开发者";
+FORWARD_TO = "Forward to...";
 
 EMAIL_PLACEHOLDER = "Please enter details here, such as:\n\n* When did the issue begin?\n\n* What steps led to the crash?\n\n* Does the crash happen every time?";
 CANNOT_EMAIL = "无法发送电邮。";

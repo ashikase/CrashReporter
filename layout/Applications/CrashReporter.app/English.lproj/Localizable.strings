@@ -24,8 +24,9 @@ FILE_DELETION_FAILED = "Could not delete the selected file.";
 PACKAGE_FAILED_1 = "The package that owns this file is either no longer installed, or was not installed via either Cydia or the App Store.";
 
 VIEW_IN_APP_STORE = "View package in App Store";
-CONTACT_AUTHOR = "Contact author";
 VIEW_IN_CYDIA = "View package in Cydia";
+CONTACT_AUTHOR = "Contact author";
+FORWARD_TO = "Forward to...";
 
 EMAIL_PLACEHOLDER = "Please enter details here, such as:\n\n* When did the issue begin?\n\n* What steps led to the crash?\n\n* Does the crash happen every time?";
 CANNOT_EMAIL = "Cannot send email from this device.";
