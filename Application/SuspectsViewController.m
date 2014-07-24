@@ -243,49 +243,61 @@ static UIButton *logButton() {
 
 - (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
     if (buttonIndex > 0) {
-        LinkInstruction *linkInstruction = [lastSelectedLinkInstructions_ objectAtIndex:(buttonIndex - 1)];
-        if (linkInstruction.isSupport) {
-            // Report issue.
-            NSString *crashlogLine = [NSString stringWithFormat:@"include as \"Crash log\" file \"%@\"", [crashLog_ filepath]];
-            NSString *syslogLine = nil;
-            NSString *syslogPath = [self syslogPath];
-            if ([[NSFileManager defaultManager] fileExistsAtPath:syslogPath]) {
-                syslogLine = [NSString stringWithFormat:@"include as syslog file \"%@\"", [self syslogPath]];
-            }
-
-            NSMutableArray *includeInstructions = [NSMutableArray new];
-            [includeInstructions addObject:[IncludeInstruction instructionWithLine:crashlogLine]];
-            if (syslogLine != nil) {
-                [includeInstructions addObject:[IncludeInstruction instructionWithLine:syslogLine]];
-            }
-            [includeInstructions addObject:[IncludeInstruction instructionWithLine:@"include as \"Package List\" command dpkg -l"]];
-            [includeInstructions addObjectsFromArray:[IncludeInstruction includeInstructionsForPackage:lastSelectedPackage_]];
-
-            ContactViewController *viewController = [[ContactViewController alloc] initWithPackage:lastSelectedPackage_ suspect:lastSelectedPath_
-                linkInstruction:linkInstruction includeInstructions:includeInstructions];
-            viewController.title = [lastSelectedPath_ lastPathComponent];
-            [self.navigationController pushViewController:viewController animated:YES];
-            [viewController release];
-            [includeInstructions release];
+        if (buttonIndex == (1 + [lastSelectedLinkInstructions_ count])) {
+            // Notifications...
+            NSString *okMessage = NSLocalizedString(@"OK", nil);
+            NSString *message =
+                @"\n*** COMING SOON ***\n\n"
+                "A future version of CrashReporter will include the option to temporarily disable notifications for a given app/tweak/etc.\n\n"
+                "Although the feature is not yet ready, I want users to know about it so that they do not permanently disable notifications and miss out on the benefits.";
+            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Notification Settings" message:message delegate:nil cancelButtonTitle:okMessage otherButtonTitles:nil];
+            [alert show];
+            [alert release];
         } else {
-            if (linkInstruction.isEmail) {
-                // Present mail controller.
-                if ([MFMailComposeViewController canSendMail]) {
-                    MFMailComposeViewController *controller = [MFMailComposeViewController new];
-                    [controller setMailComposeDelegate:self];
-                    [controller setToRecipients:[linkInstruction recipients]];
-                    [self presentModalViewController:controller animated:YES];
-                    [controller release];
-                } else {
-                    NSString *okMessage = NSLocalizedString(@"OK", nil);
-                    NSString *cannotMailMessage = NSLocalizedString(@"CANNOT_EMAIL", nil);
-                    UIAlertView *alert = [[UIAlertView alloc] initWithTitle:cannotMailMessage message:nil delegate:nil cancelButtonTitle:okMessage otherButtonTitles:nil];
-                    [alert show];
-                    [alert release];
+            LinkInstruction *linkInstruction = [lastSelectedLinkInstructions_ objectAtIndex:(buttonIndex - 1)];
+            if (linkInstruction.isSupport) {
+                // Report issue.
+                NSString *crashlogLine = [NSString stringWithFormat:@"include as \"Crash log\" file \"%@\"", [crashLog_ filepath]];
+                NSString *syslogLine = nil;
+                NSString *syslogPath = [self syslogPath];
+                if ([[NSFileManager defaultManager] fileExistsAtPath:syslogPath]) {
+                    syslogLine = [NSString stringWithFormat:@"include as syslog file \"%@\"", [self syslogPath]];
                 }
+
+                NSMutableArray *includeInstructions = [NSMutableArray new];
+                [includeInstructions addObject:[IncludeInstruction instructionWithLine:crashlogLine]];
+                if (syslogLine != nil) {
+                    [includeInstructions addObject:[IncludeInstruction instructionWithLine:syslogLine]];
+                }
+                [includeInstructions addObject:[IncludeInstruction instructionWithLine:@"include as \"Package List\" command dpkg -l"]];
+                [includeInstructions addObjectsFromArray:[IncludeInstruction includeInstructionsForPackage:lastSelectedPackage_]];
+
+                ContactViewController *viewController = [[ContactViewController alloc] initWithPackage:lastSelectedPackage_ suspect:lastSelectedPath_
+                    linkInstruction:linkInstruction includeInstructions:includeInstructions];
+                viewController.title = [lastSelectedPath_ lastPathComponent];
+                [self.navigationController pushViewController:viewController animated:YES];
+                [viewController release];
+                [includeInstructions release];
             } else {
-                // Open associated link.
-                [[UIApplication sharedApplication] openURL:[linkInstruction url]];
+                if (linkInstruction.isEmail) {
+                    // Present mail controller.
+                    if ([MFMailComposeViewController canSendMail]) {
+                        MFMailComposeViewController *controller = [MFMailComposeViewController new];
+                        [controller setMailComposeDelegate:self];
+                        [controller setToRecipients:[linkInstruction recipients]];
+                        [self presentModalViewController:controller animated:YES];
+                        [controller release];
+                    } else {
+                        NSString *okMessage = NSLocalizedString(@"OK", nil);
+                        NSString *cannotMailMessage = NSLocalizedString(@"CANNOT_EMAIL", nil);
+                        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:cannotMailMessage message:nil delegate:nil cancelButtonTitle:okMessage otherButtonTitles:nil];
+                        [alert show];
+                        [alert release];
+                    }
+                } else {
+                    // Open associated link.
+                    [[UIApplication sharedApplication] openURL:[linkInstruction url]];
+                }
             }
         }
     }
@@ -370,7 +382,8 @@ static UIButton *logButton() {
     for (LinkInstruction *linkInstruction in linkInstructions) {
         [alert addButtonWithTitle:[linkInstruction title]];
     }
-    [alert setNumberOfRows:(1 + [linkInstructions count])];
+    [alert addButtonWithTitle:@"Notifications..."];
+    [alert setNumberOfRows:(2 + [linkInstructions count])];
     [alert show];
     [alert release];
 
