@@ -91,7 +91,7 @@ static inline NSUInteger indexOf(NSUInteger section, NSUInteger row, BOOL delete
     [formatter setDateFormat:@"HH:mm:ss (yyyy MMM d)"];
     UILabel *label = cell.textLabel;
     label.text = [formatter stringFromDate:[crashLog date]];
-    label.textColor = [crashLog isSymbolicated] ? [UIColor grayColor] : [UIColor blackColor];
+    label.textColor = [crashLog isViewed] ? [UIColor grayColor] : [UIColor blackColor];
     [formatter release];
 
     return cell;

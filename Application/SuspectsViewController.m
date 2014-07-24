@@ -165,6 +165,9 @@ static UIButton *logButton() {
         [statusPopup_ show];
         [self performSelector:@selector(symbolicate) withObject:nil afterDelay:0];
     }
+
+    // Mark log as viewed.
+    [crashLog_ setViewed:YES];
 }
 
 - (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation {

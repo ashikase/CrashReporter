@@ -9,6 +9,8 @@
  * License: GPL v3 (See LICENSE file for details)
  */
 
+extern NSString * const kViewedCrashLogs;
+
 #import <Foundation/Foundation.h>
 
 @interface CrashLog : NSObject
@@ -18,6 +20,7 @@
 @property(nonatomic, readonly) NSArray *suspects;
 @property(nonatomic, readonly) NSDate *date;
 @property(nonatomic, readonly, getter = isSymbolicated) BOOL symbolicated;
+@property(nonatomic, assign, getter = isViewed) BOOL viewed;
 - (instancetype)initWithFilepath:(NSString *)filepath;
 - (BOOL)delete;
 - (void)symbolicate;

@@ -15,6 +15,7 @@
 
 static NSArray *crashLogGroupsForDirectory(NSString *directory) {
     NSMutableDictionary *groups = [NSMutableDictionary dictionary];
+    NSMutableArray *existentFilepaths = [NSMutableArray new];
 
     // Look in path for crash log files; group logs by app name.
     NSFileManager *fileMan = [NSFileManager defaultManager];
@@ -26,6 +27,10 @@ static NSArray *crashLogGroupsForDirectory(NSString *directory) {
                 NSString *filepath = [directory stringByAppendingPathComponent:filename];
                 CrashLog *crashLog = [[CrashLog alloc] initWithFilepath:filepath];
                 if (crashLog != nil) {
+                    // Store filepath for "known viewed" check below.
+                    [existentFilepaths addObject:filepath];
+
+                    // Store crash log object in group.
                     NSString *name = [crashLog processName];
                     CrashLogGroup *group = [groups objectForKey:name];
                     if (group == nil) {
@@ -40,6 +45,22 @@ static NSArray *crashLogGroupsForDirectory(NSString *directory) {
     } else {
         NSLog(@"ERROR: Unable to retrieve contents of directory \"%@\": %@", directory, [error localizedDescription]);
     }
+
+    // Update list of viewed crash logs, removing entries that no longer exist.
+    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+    NSArray *oldViewedCrashLogs = [defaults arrayForKey:kViewedCrashLogs];
+    NSMutableArray *newViewedCrashLogs = [[NSMutableArray alloc] initWithArray:oldViewedCrashLogs];
+    for (NSString *filepath in oldViewedCrashLogs) {
+        if ([[filepath stringByDeletingLastPathComponent] isEqualToString:directory]) {
+            if (![existentFilepaths containsObject:filepath]) {
+                [newViewedCrashLogs removeObject:filepath];
+            }
+        }
+    }
+    [defaults setObject:newViewedCrashLogs forKey:kViewedCrashLogs];
+    [defaults synchronize];
+    [newViewedCrashLogs release];
+    [existentFilepaths release];
 
     return [groups allValues];
 }

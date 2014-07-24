@@ -16,6 +16,8 @@
 
 #include "as_root.h"
 
+NSString * const kViewedCrashLogs = @"viewedCrashLogs";
+
 static const char * const kTempFilepath = "/tmp/CrashReporter.XXXXXX";
 
 static NSCalendar *calendar() {
@@ -26,6 +28,30 @@ static NSCalendar *calendar() {
     return calendar;
 }
 
+static void saveViewedState(NSString *filepath) {
+    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+    NSArray *viewedCrashLogs = [defaults arrayForKey:kViewedCrashLogs];
+    if (![viewedCrashLogs containsObject:filepath]) {
+        NSMutableArray *array = [[NSMutableArray alloc] initWithArray:viewedCrashLogs];
+        [array addObject:filepath];
+        [defaults setObject:array forKey:kViewedCrashLogs];
+        [defaults synchronize];
+        [array release];
+    }
+}
+
+static void deleteViewedState(NSString *filepath) {
+    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+    NSArray *viewedCrashLogs = [defaults arrayForKey:kViewedCrashLogs];
+    if ([viewedCrashLogs containsObject:filepath]) {
+        NSMutableArray *array = [[NSMutableArray alloc] initWithArray:viewedCrashLogs];
+        [array removeObject:filepath];
+        [defaults setObject:array forKey:kViewedCrashLogs];
+        [defaults synchronize];
+        [array release];
+    }
+}
+
 @implementation CrashLog
 
 @synthesize filepath = filepath_;
@@ -33,6 +59,8 @@ static NSCalendar *calendar() {
 @synthesize processPath = processPath_;
 @synthesize suspects = suspects_;
 @synthesize date = date_;
+@synthesize viewed = viewed_;
+
 @dynamic symbolicated;
 
 // NOTE: Filename part of path must be of the form [app_name]_date_device-name.
@@ -94,6 +122,25 @@ static NSCalendar *calendar() {
     return [basename hasSuffix:@".symbolicated"];
 }
 
+- (BOOL)isViewed {
+    // NOTE: Once a log has been viewed, it cannot be unviewed.
+    if (!viewed_) {
+        NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+        NSString *filepath = [self filepath];
+        viewed_ = [[defaults arrayForKey:kViewedCrashLogs] containsObject:filepath];
+    }
+    return viewed_;
+}
+
+- (void)setViewed:(BOOL)viewed {
+    if (viewed_ != viewed) {
+        if (!viewed_) {
+            saveViewedState([self filepath]);
+            viewed_ = YES;
+        }
+    }
+}
+
 #pragma mark - Other
 
 static BOOL deleteFileAtPath(NSString *filepath) {
@@ -107,7 +154,16 @@ static BOOL deleteFileAtPath(NSString *filepath) {
 }
 
 - (BOOL)delete {
-    return deleteFileAtPath([self filepath]);
+    NSString *filepath = [self filepath];
+
+    BOOL didDelete = deleteFileAtPath(filepath);
+    if (didDelete) {
+        if ([self isViewed]) {
+            // Must remove from list of viewed entries.
+            deleteViewedState(filepath);
+        }
+    }
+    return didDelete;
 }
 
 - (void)symbolicate {
@@ -147,9 +203,6 @@ static BOOL deleteFileAtPath(NSString *filepath) {
                         [filepath stringByDeletingPathExtension], [filepath pathExtension]];
                 NSError *error = nil;
                 if ([[report stringRepresentation] writeToFile:outputFilepath atomically:YES encoding:NSUTF8StringEncoding error:&error]) {
-                    // Record list of suspects.
-                    suspects_ = [[[report properties] objectForKey:@"blame"] retain];
-
                     // Delete input file.
                     if (!deleteFileAtPath(filepath)) {
                         NSLog(@"ERROR: Failed to delete original log file.\n");
@@ -168,12 +221,27 @@ static BOOL deleteFileAtPath(NSString *filepath) {
                             NSLog(@"ERROR: Failed to move symbolicated log file back to original directory.\n");
                         }
 
+                        // Update name used for determining viewed state.
+                        if ([self isViewed]) {
+                            deleteViewedState(actualFilepath);
+                            saveViewedState(actualOutputFilepath);
+                        }
+
                         // Update path for this crash log instance.
                         filepath_ = [actualOutputFilepath retain];
                     } else {
+                        // Update name used for determining viewed state.
+                        if ([self isViewed]) {
+                            deleteViewedState(filepath);
+                            saveViewedState(outputFilepath);
+                        }
+
                         // Update path for this crash log instance.
                         filepath_ = [outputFilepath retain];
                     }
+
+                    // Record list of suspects.
+                    suspects_ = [[[report properties] objectForKey:@"blame"] retain];
                 } else {
                     NSLog(@"ERROR: Unable to write to file \"%@\": %@.", outputFilepath, [error localizedDescription]);
                 }
