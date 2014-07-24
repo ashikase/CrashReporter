@@ -22,10 +22,6 @@
 #import "LinkInstruction.h"
 #import "Package.h"
 
-#ifndef kCFCoreFoundationVersionNumber_iPhoneOS_3_2
-#define kCFCoreFoundationVersionNumber_iPhoneOS_3_2 478.61
-#endif
-
 static const CGFloat kTableRowHeight = 48.0;
 
 @interface UIColor ()
@@ -95,7 +91,7 @@ static const CGFloat kTableRowHeight = 48.0;
     textView_ = textView;
 
     // Add a toolbar to dismiss the keyboard.
-    if (kCFCoreFoundationVersionNumber >= kCFCoreFoundationVersionNumber_iPhoneOS_3_2) {
+    if (IOS_GTE(3_2)) {
         UIBarButtonItem *spaceItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace target:nil action:nil];
         UIBarButtonItem *doneItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemDone target:self action:@selector(doneButtonTapped)];
         NSArray *items = [[NSArray alloc] initWithObjects:spaceItem, doneItem, nil];

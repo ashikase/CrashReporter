@@ -16,14 +16,6 @@
 #import "SuspectsViewController.h"
 #import "Instruction.h"
 
-#ifndef kCFCoreFoundationVersionNumber_iOS_4_0
-#define kCFCoreFoundationVersionNumber_iOS_4_0 550.32
-#endif
-
-#ifndef kCFCoreFoundationVersionNumber_iOS_7_0
-#define kCFCoreFoundationVersionNumber_iOS_7_0 847.20
-#endif
-
 @interface UIAlertView ()
 - (void)setNumberOfRows:(int)rows;
 @end
@@ -49,7 +41,7 @@
 
     // Create window.
     window_ = [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
-    if (kCFCoreFoundationVersionNumber < kCFCoreFoundationVersionNumber_iOS_4_0) {
+    if (IOS_LT(4_0)) {
         [window_ addSubview:[navigationController_ view]];
     } else {
         [window_ setRootViewController:navigationController_];
@@ -58,8 +50,7 @@
 
     // Check if syslog is present. Alert the user if not.
     if (![[NSFileManager defaultManager] fileExistsAtPath:@"/etc/syslog.conf"]) {
-        NSString *toggleName = (kCFCoreFoundationVersionNumber < kCFCoreFoundationVersionNumber_iOS_7_0) ?
-            @"Syslog Toggle" : @"Syslog Flipswitch";
+        NSString *toggleName = IOS_LT(7_0) ? @"Syslog Toggle" : @"Syslog Flipswitch";
 
         NSString *title = NSLocalizedString(@"SYSLOG_NOT_FOUND", nil);
         NSString *message = [NSString stringWithFormat:
@@ -179,7 +170,7 @@
         if (buttonIndex != 0) {
             NSString *urlString = nil;
             if (buttonIndex == 1) {
-                urlString = (kCFCoreFoundationVersionNumber < kCFCoreFoundationVersionNumber_iOS_7_0) ?
+                urlString = IOS_LT(7_0) ?
                     @"cydia://package/sbsettingssyslogd" :
                     @"cydia://package/de.j-gessner.syslogflipswitch";
             } else {

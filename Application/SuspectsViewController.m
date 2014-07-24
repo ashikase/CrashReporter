@@ -23,10 +23,6 @@
 #import "ModalActionSheet.h"
 #import "Package.h"
 
-#ifndef kCFCoreFoundationVersionNumber_iOS_7_0
-#define kCFCoreFoundationVersionNumber_iOS_7_0 847.20
-#endif
-
 @interface UIAlertView ()
 - (void)setNumberOfRows:(int)rows;
 @end
@@ -86,7 +82,7 @@ static UIButton *logButton() {
     CALayer *layer = button.layer;
     [layer setBorderWidth:1.0];
 
-    if (kCFCoreFoundationVersionNumber < kCFCoreFoundationVersionNumber_iOS_7_0) {
+    if (IOS_LT(7_0)) {
         [button setAdjustsImageWhenHighlighted:YES];
 
         [layer setBorderColor:[[UIColor colorWithRed:(171.0 / 255.0) green:(171.0 / 255.0) blue:(171.0 / 255.0) alpha:1.0] CGColor]];
