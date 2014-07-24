@@ -191,6 +191,14 @@ static UIButton *logButton() {
     [tableView_ reloadData];
 }
 
+- (NSString *)syslogPath {
+    NSString *syslogPath = [[crashLog_ filepath] stringByDeletingPathExtension];
+    if ([syslogPath hasSuffix:@"symbolicated"]) {
+        syslogPath = [syslogPath stringByDeletingPathExtension];
+    }
+    return [syslogPath stringByAppendingPathExtension:@"syslog"];
+}
+
 #pragma mark - Button Actions
 
 - (void)presentViewerWithLine:(NSString *)line {
@@ -206,7 +214,7 @@ static UIButton *logButton() {
 }
 
 - (void)syslogTapped {
-    NSString *line = [NSString stringWithFormat:@"include as syslog command grep -F \"%@\" /var/log/syslog", dateString_];
+    NSString *line = [NSString stringWithFormat:@"include as syslog file \"%@\"", [self syslogPath]];
     [self presentViewerWithLine:line];
 }
 
@@ -310,7 +318,7 @@ static UIButton *logButton() {
         if (linkInstruction.isSupport) {
             // Report issue.
             NSString *crashlogLine = [NSString stringWithFormat:@"include as \"Crash log\" file \"%@\"", [crashLog_ filepath]];
-            NSString *syslogLine = [NSString stringWithFormat:@"include as syslog command grep -E \"^%@\" /var/log/syslog", dateString_];
+            NSString *syslogLine = [NSString stringWithFormat:@"include as syslog file \"%@\"", [self syslogPath]];
             NSMutableArray *includeInstructions = [[NSMutableArray alloc] initWithObjects:
                 [IncludeInstruction instructionWithLine:crashlogLine],
                 [IncludeInstruction instructionWithLine:syslogLine],
