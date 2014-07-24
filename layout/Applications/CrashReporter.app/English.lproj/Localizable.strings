@@ -21,7 +21,7 @@ EARLIER = "Earlier";
 
 ERROR = "Error";
 FILE_DELETION_FAILED = "Could not delete the selected file.";
-PACKAGE_FAILED_1 = "The package that owns this file is either no longer installed, or was not installed via either Cydia or the App Store.";
+PACKAGE_FAILED_1 = "The package that owns this file is either no longer installed, or was not installed via Cydia or the App Store.";
 
 VIEW_IN_APP_STORE = "View package in App Store";
 VIEW_IN_CYDIA = "View package in Cydia";
