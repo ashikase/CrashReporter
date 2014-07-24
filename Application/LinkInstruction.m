@@ -11,6 +11,7 @@
 
 #import "LinkInstruction.h"
 
+#import <RegexKitLite/RegexKitLite.h>
 #import "NSString+CrashReporter.h"
 #import "Package.h"
 
@@ -130,7 +131,10 @@
                     }
                     break;
                 case ModeRecipients:
-                    recipients_ = [[token componentsSeparatedByRegex:@",\\s*"] retain];
+                    // TODO: Consider adding a proper check for email addresses.
+                    if ([token rangeOfString:@"@"].location != NSNotFound) {
+                        recipients_ = [[token componentsSeparatedByRegex:@",\\s*"] retain];
+                    }
                     mode = ModeAttribute;
                     break;
                 case ModeTitle:
