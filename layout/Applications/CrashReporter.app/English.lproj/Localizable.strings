@@ -12,6 +12,8 @@ OTHER_SUSPECTS = "Other suspects";
 VIEW_CRASH_LOG = "View crash log";
 VIEW_SYSLOG = "View syslog";
 
+INCLUDE_UNTITLED = "Untitled";
+
 SYMBOLICATING_MODAL = "Symbolicating...";
 
 LATEST = "Latest";

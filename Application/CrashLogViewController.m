@@ -52,9 +52,9 @@
     webView_ = webView;
 
     IncludeInstruction *instruction = [self instruction];
-    self.title = instruction ? [instruction title] : NSLocalizedString(@"Untitled", nil);
+    self.title = instruction ? [instruction title] : NSLocalizedString(@"INCLUDE_UNTITLED", nil);
 
-    NSString *title = NSLocalizedString(@"Copy", nil);
+    NSString *title = NSLocalizedString(@"COPY", nil);
     UIBarButtonItem *copyButton = [[UIBarButtonItem alloc] initWithTitle:title
         style:UIBarButtonItemStyleBordered target:self action:@selector(copyEverything)];
     self.navigationItem.rightBarButtonItem = copyButton;

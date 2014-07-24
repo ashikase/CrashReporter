@@ -12,6 +12,8 @@ OTHER_SUSPECTS = "別的因";
 VIEW_CRASH_LOG = "檢視崩潰記錄 (crash log)";
 VIEW_SYSLOG = "檢視系統記錄 (syslog)";
 
+INCLUDE_UNTITLED = "Untitled";
+
 SYMBOLICATING_MODAL = "正在符號化…";
 
 LATEST = "最新";

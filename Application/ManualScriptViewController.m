@@ -44,7 +44,7 @@
     self.navigationItem.rightBarButtonItem = done;
     [done release];
 
-    self.title = NSLocalizedString(@"Script", nil);
+    self.title = NSLocalizedString(@"SCRIPT", nil);
 
     NSString *message = NSLocalizedString(@"CUSTOM_BLAME_WARNING", nil);
     UIAlertView *confirmDialog = [[UIAlertView alloc] initWithTitle:nil message:message delegate:self
