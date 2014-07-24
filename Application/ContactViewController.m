@@ -26,12 +26,6 @@
 #define kCFCoreFoundationVersionNumber_iPhoneOS_3_2 478.61
 #endif
 
-static NSString * const placeholderText$ =
-    @"Please enter details here, such as:\n\n"
-    "* When did the issue begin?\n\n"
-    "* What steps led to the crash?\n\n"
-    "* Does the crash happen every time?";
-
 @interface UIColor ()
 + (id)tableCellBlueTextColor;
 @end
@@ -42,6 +36,8 @@ static NSString * const placeholderText$ =
 @implementation ContactViewController {
     UITextView *textView_;
     UITableView *tableView_;
+
+    NSString *placeholderText_;
 
     Package *package_;
     NSString *suspect_;
@@ -57,6 +53,8 @@ static NSString * const placeholderText$ =
         linkInstruction_ = [linkInstruction retain];
         includeInstructions_ = [includeInstructions copy];
 
+        placeholderText_ = [NSLocalizedString(@"EMAIL_PLACEHOLDER", nil) retain];
+
         self.title = [suspect lastPathComponent];
         UIBarButtonItem *buttonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAction target:self action:@selector(barButtonTapped)];
         self.navigationItem.rightBarButtonItem = buttonItem;
@@ -68,6 +66,8 @@ static NSString * const placeholderText$ =
 - (void)dealloc {
     [textView_ release];
     [tableView_ release];
+
+    [placeholderText_ release];
 
     [package_ release];
     [suspect_ release];
@@ -87,7 +87,7 @@ static NSString * const placeholderText$ =
     textView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
     textView.delegate = self;
     textView.font = [UIFont systemFontOfSize:18.0];
-    textView.text = placeholderText$;
+    textView.text = placeholderText_;
     textView.textColor = [UIColor lightGrayColor];
     textView_ = textView;
 
@@ -149,7 +149,7 @@ static NSString * const placeholderText$ =
 
     // Add details from user.
     NSString *text = textView_.text;
-    if (![text isEqualToString:placeholderText$]) {
+    if (![text isEqualToString:placeholderText_]) {
         [string appendFormat:
             @"\n\nDetails from the user:\n"
             "-------------------------------------------\n"
@@ -322,7 +322,7 @@ static NSString * const placeholderText$ =
 #pragma mark - UITextViewDelegate
 
 - (void)textViewDidBeginEditing:(UITextView *)textView {
-    if ([textView.text isEqualToString:placeholderText$]) {
+    if ([textView.text isEqualToString:placeholderText_]) {
          textView.text = @"";
          textView.textColor = [UIColor blackColor];
     }
@@ -331,7 +331,7 @@ static NSString * const placeholderText$ =
 
 - (void)textViewDidEndEditing:(UITextView *)textView {
     if ([textView.text isEqualToString:@""]) {
-        textView.text = placeholderText$;
+        textView.text = placeholderText_;
         textView.textColor = [UIColor lightGrayColor];
     }
     [textView resignFirstResponder];

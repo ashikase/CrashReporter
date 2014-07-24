@@ -27,6 +27,7 @@ VIEW_IN_APP_STORE = "到 App Store 管理程式";
 CONTACT_AUTHOR = "电邮给开发者";
 VIEW_IN_CYDIA = "到 Cydia 管理程式";
 
+EMAIL_PLACEHOLDER = "Please enter details here, such as:\n\n* When did the issue begin?\n\n* What steps led to the crash?\n\n* Does the crash happen every time?";
 CANNOT_EMAIL = "无法发送电邮。";
 EMAIL_FAILED_1 = "发送电邮失败.\n错误：";
 ATTACHMENTS = "附件";

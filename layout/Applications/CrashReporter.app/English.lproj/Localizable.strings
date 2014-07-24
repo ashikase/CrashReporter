@@ -27,6 +27,7 @@ VIEW_IN_APP_STORE = "View package in App Store";
 CONTACT_AUTHOR = "Contact author";
 VIEW_IN_CYDIA = "View package in Cydia";
 
+EMAIL_PLACEHOLDER = "Please enter details here, such as:\n\n* When did the issue begin?\n\n* What steps led to the crash?\n\n* Does the crash happen every time?";
 CANNOT_EMAIL = "Cannot send email from this device.";
 EMAIL_FAILED_1 = "Failed to send email.\nError: ";
 ATTACHMENTS = "Attachments";
