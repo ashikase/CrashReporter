@@ -41,7 +41,7 @@ static inline NSUInteger indexOf(NSUInteger section, NSUInteger row, BOOL delete
     if (IOS_GTE(6_0)) {
         UITableView *tableView = [self tableView];
         tableView.alwaysBounceVertical = YES;
-        UIRefreshControl *refreshControl = [UIRefreshControl new];
+        UIRefreshControl *refreshControl = [NSClassFromString(@"UIRefreshControl") new];
         [refreshControl addTarget:self action:@selector(refresh:) forControlEvents:UIControlEventValueChanged];
         [tableView addSubview:refreshControl];
         [refreshControl release];
