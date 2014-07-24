@@ -239,12 +239,18 @@ static UIButton *logButton() {
         if (linkInstruction.isSupport) {
             // Report issue.
             NSString *crashlogLine = [NSString stringWithFormat:@"include as \"Crash log\" file \"%@\"", [crashLog_ filepath]];
-            NSString *syslogLine = [NSString stringWithFormat:@"include as syslog file \"%@\"", [self syslogPath]];
-            NSMutableArray *includeInstructions = [[NSMutableArray alloc] initWithObjects:
-                [IncludeInstruction instructionWithLine:crashlogLine],
-                [IncludeInstruction instructionWithLine:syslogLine],
-                [IncludeInstruction instructionWithLine:@"include as \"Package List\" command dpkg -l"],
-                nil];
+            NSString *syslogLine = nil;
+            NSString *syslogPath = [self syslogPath];
+            if ([[NSFileManager defaultManager] fileExistsAtPath:syslogPath]) {
+                syslogLine = [NSString stringWithFormat:@"include as syslog file \"%@\"", [self syslogPath]];
+            }
+
+            NSMutableArray *includeInstructions = [NSMutableArray new];
+            [includeInstructions addObject:[IncludeInstruction instructionWithLine:crashlogLine]];
+            if (syslogLine != nil) {
+                [includeInstructions addObject:[IncludeInstruction instructionWithLine:syslogLine]];
+            }
+            [includeInstructions addObject:[IncludeInstruction instructionWithLine:@"include as \"Package List\" command dpkg -l"]];
             [includeInstructions addObjectsFromArray:[IncludeInstruction includeInstructionsForPackage:lastSelectedPackage_]];
 
             ContactViewController *viewController = [[ContactViewController alloc] initWithPackage:lastSelectedPackage_ suspect:lastSelectedPath_
