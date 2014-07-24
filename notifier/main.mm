@@ -23,6 +23,50 @@ extern "C" mach_port_t SBSSpringBoardServerPort();
 + (void)scheduleLocalNotification:(id)notification bundleIdentifier:(id)bundleIdentifier;
 @end
 
+static void fixFileOwnership(NSString *filepath) {
+    NSString *directory = [filepath stringByDeletingLastPathComponent];
+    NSError *error = nil;
+    NSDictionary *attrib = [[NSFileManager defaultManager] attributesOfItemAtPath:directory error:&error];
+    if (attrib != nil) {
+        if ([[attrib fileOwnerAccountName] isEqualToString:@"mobile"]) {
+            if (lchown([filepath UTF8String], 501, 501) != 0) {
+                fprintf(stderr, "WARNING: Failed to change ownership of file: %s, errno = %d.\n", [filepath UTF8String], errno);
+            }
+        }
+    } else {
+        fprintf(stderr, "ERROR: Unable to determine attributes for file: %s, %s.\n",
+            [filepath UTF8String], [[error localizedDescription] UTF8String]);
+    }
+}
+
+static void replaceSymbolicLink(NSString *linkPath, NSString *oldDestPath, NSString *newDestPath) {
+    // NOTE: Must check the destination of the links, as the links may have
+    //       been updated since this tool began executing.
+    NSFileManager *fileMan = [NSFileManager defaultManager];
+    NSError *error = nil;
+    NSString *destPath = [fileMan destinationOfSymbolicLinkAtPath:linkPath error:&error];
+    if (destPath != nil) {
+        if ([destPath isEqualToString:oldDestPath]) {
+            // Remove old link.
+            if ([fileMan removeItemAtPath:linkPath error:&error]) {
+                // Create new link.
+                if ([fileMan createSymbolicLinkAtPath:linkPath withDestinationPath:newDestPath error:&error]) {
+                    fixFileOwnership(linkPath);
+                } else {
+                    fprintf(stderr, "ERROR: Failed to create \"%s\" symbolic link: %s.\n",
+                        [[linkPath lastPathComponent] UTF8String], [[error localizedDescription] UTF8String]);
+                }
+            } else {
+                fprintf(stderr, "ERROR: Failed to remove old \"%s\" symbolic link: %s.\n",
+                    [[linkPath lastPathComponent] UTF8String], [[error localizedDescription] UTF8String]);
+            }
+        }
+    } else {
+        fprintf(stderr, "ERROR: Failed to determine destination of \"%s\" symbolic link: %s.\n",
+            [[linkPath lastPathComponent] UTF8String], [[error localizedDescription] UTF8String]);
+    }
+}
+
 int main(int argc, char **argv, char **envp) {
     NSAutoreleasePool *pool = [NSAutoreleasePool new];
 
@@ -60,8 +104,9 @@ int main(int argc, char **argv, char **envp) {
     // NOTE: Make sure not to overwrite file if it already exists.
     // NOTE: This should only be a concern if someone were to later manually
     //       call notifier on the same crash log file.
+    NSFileManager *fileMan = [NSFileManager defaultManager];
     NSString *syslogPath = [[filepath stringByDeletingPathExtension] stringByAppendingPathExtension:@"syslog"];
-    if (![[NSFileManager defaultManager] fileExistsAtPath:syslogPath]) {
+    if (![fileMan fileExistsAtPath:syslogPath]) {
         // NOTE: Do this here as the following symbolication may take some time,
         //       during which the syslog could change.
         NSMutableString *syslog = [NSMutableString new];
@@ -97,10 +142,7 @@ int main(int argc, char **argv, char **envp) {
         // NOTE: Syslog may be empty.
         NSError *error = nil;
         if ([syslog writeToFile:syslogPath atomically:YES encoding:NSUTF8StringEncoding error:&error]) {
-            // Change ownership of file to "mobile" user.
-            if (chown([syslogPath UTF8String], 501, 501) != 0) {
-                fprintf(stderr, "WARNING: Failed to change ownership of syslog file: %d.\n", errno);
-            }
+            fixFileOwnership(syslogPath);
         } else {
             fprintf(stderr, "WARNING: Failed to save syslog information to file: %s.\n", [[error localizedDescription] UTF8String]);
         }
@@ -112,13 +154,58 @@ int main(int argc, char **argv, char **envp) {
     //        will detect it and not symbolicate it again.
     [report symbolicate];
 
-    // Determine possible cause of the crash.
-    NSDictionary *filters = [[NSDictionary alloc] initWithContentsOfFile:@"/etc/symbolicate/blame_filters.plist"];
-    if (![report blameUsingFilters:filters]) {
-        fprintf(stderr, "WARNING: Failed to process blame.\n");
+
+    // Symbolicate.
+    // TODO: This code is very close to the symbolicate method in the app's
+    //       CrashLog class. Consider using CrashLog class here as well.
+    NSArray *suspects = nil;
+    if ([report symbolicate]) {
+        // Process blame.
+        NSDictionary *filters = [[NSDictionary alloc] initWithContentsOfFile:@"/etc/symbolicate/blame_filters.plist"];
+        if ([report blameUsingFilters:filters]) {
+            // Write output to file.
+            NSString *pathExtension = [filepath pathExtension];
+            NSString *outputFilepath = [NSString stringWithFormat:@"%@.symbolicated.%@",
+                    [filepath stringByDeletingPathExtension], pathExtension];
+            NSError *error = nil;
+            if ([[report stringRepresentation] writeToFile:outputFilepath atomically:YES encoding:NSUTF8StringEncoding error:&error]) {
+                // Fix the "LatestCrash-*" symbolic links for this file.
+                NSString *oldDestPath = [filepath lastPathComponent];
+                NSString *newDestPath = [outputFilepath lastPathComponent];
+                NSString *linkPath;
+                linkPath = [NSString stringWithFormat:@"%@/LatestCrash.%@",
+                    [filepath stringByDeletingLastPathComponent], pathExtension];
+                replaceSymbolicLink(linkPath, oldDestPath, newDestPath);
+
+                linkPath = [NSString stringWithFormat:@"%@/LatestCrash-%@.%@",
+                    [filepath stringByDeletingLastPathComponent], processName, pathExtension];
+                replaceSymbolicLink(linkPath, oldDestPath, newDestPath);
+
+                // Delete the original (non-symbolicated) crash log file.
+                if (![fileMan removeItemAtPath:filepath error:&error]) {
+                    fprintf(stderr, "ERROR: Failed to delete original log file: %s.\n",
+                        [[error localizedDescription] UTF8String]);
+                }
+
+                // Update path for this crash log instance.
+                filepath = outputFilepath;
+
+                // Update file ownership.
+                fixFileOwnership(filepath);
+
+                // Retrieve list of suspects.
+                suspects = [properties objectForKey:@"blame"];
+            } else {
+                fprintf(stderr, "ERROR: Unable to write to file \"%s\": %s.\n",
+                    [outputFilepath UTF8String], [[error localizedDescription] UTF8String]);
+            }
+        } else {
+            fprintf(stderr, "ERROR: Failed to process blame.\n");
+        }
+        [filters release];
+    } else {
+        fprintf(stderr, "ERROR: Unable to symbolicate file \"%s\".\n", [filepath UTF8String]);
     }
-    NSArray *suspects = [properties objectForKey:@"blame"];
-    [filters release];
 
     // Determine the bundle name.
     NSString *bundleName = [properties objectForKey:@"app_name"];
