@@ -216,7 +216,7 @@ static const CGFloat kTableRowHeight = 48.0;
 }
 
 - (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section {
-    return NSLocalizedString(@"Attachments", nil);
+    return NSLocalizedString(@"ATTACHMENTS", nil);
 }
 
 - (UITableViewCellEditingStyle)tableView:(UITableView *)tableView editingStyleForRowAtIndexPath:(NSIndexPath *)indexPath {
