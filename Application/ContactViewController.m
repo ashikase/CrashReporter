@@ -26,6 +26,8 @@
 #define kCFCoreFoundationVersionNumber_iPhoneOS_3_2 478.61
 #endif
 
+static const CGFloat kTableRowHeight = 48.0;
+
 @interface UIColor ()
 + (id)tableCellBlueTextColor;
 @end
@@ -79,7 +81,8 @@
 
 - (void)loadView {
     CGRect screenBounds = [[UIScreen mainScreen] bounds];
-    CGFloat tableViewHeight = 23.0 + 44.0 * MIN(4.0, [includeInstructions_ count]);
+    const CGFloat sectionHeaderHeight = 23.0;
+    CGFloat tableViewHeight = sectionHeaderHeight + kTableRowHeight * MIN(4.0, [includeInstructions_ count]);
     CGFloat textViewHeight = (screenBounds.size.height - tableViewHeight);
 
     // Create a text view to enter crash details.
@@ -260,6 +263,11 @@
     [controller release];
 }
 
+- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
+    // NOTE: Setting "rowHeight" in loadView would be more efficient, but for
+    //       some reason it had no effect (tested with iOS 7.1.2).
+    return kTableRowHeight;
+}
 
 #pragma mark - UIBarButtonItem Actions
 
