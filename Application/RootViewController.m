@@ -23,7 +23,7 @@
 - (id)init {
     self = [super initWithStyle:UITableViewStylePlain];
     if (self != nil) {
-        self.title = [[NSBundle mainBundle] localizedStringForKey:@"CrashReporter" value:nil table:nil];
+        self.title = [[NSBundle mainBundle] localizedStringForKey:@"CRASHREPORTER" value:nil table:nil];
     }
     return self;
 }

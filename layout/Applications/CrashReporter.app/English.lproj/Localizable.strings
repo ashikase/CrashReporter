@@ -1,31 +1,45 @@
-"OK" = "OK";
-"Crashed process" = "Crashed process";
-"Main suspect" = "Main suspect";
-"Other suspects" = "Other suspects";
-"View crash log" = "View crash log";
-"View syslog" = "View syslog";
-"Symbolicating..." = "Symbolicating...";
-"Latest" = "Latest";
-"Earlier" = "Earlier";
-"CrashReporter" = "CrashReporter";
-"Attachments" = "Attachments";
-"Copy" = "Copy";
-"Edit" = "Edit"; // currently unimplemented in code
+CRASHREPORTER = "CrashReporter";
 
-"View package in App Store" = "View package in App Store"; // currently unimplemented in code
-"Contact author" = "Contact author"; // currently unimplemented in code
-"View package in Cydia" = "View package in Cydia"; // currently unimplemented in code
+OK = "OK";
+CANCEL = "Cancel";
+COPY = "Copy";
+EDIT = "Edit";
+
+CRASHED_PROCESS = "Crashed process";
+MAIN_SUSPECT = "Main suspect";
+OTHER_SUSPECTS = "Other suspects";
+
+VIEW_CRASH_LOG = "View crash log";
+VIEW_SYSLOG = "View syslog";
+
+SYMBOLICATING_MODAL = "Symbolicating...";
+
+LATEST = "Latest";
+EARLIER = "Earlier";
+
+ERROR = "Error";
+FILE_DELETION_FAILED = "Could not delete the selected file.";
+PACKAGE_FAILED_1 = "The package that owns this file is either no longer installed, or was not installed via either Cydia or the App Store.";
+
+VIEW_IN_APP_STORE = "link url \"http://itunes.apple.com/WebObjects/MZStore.woa/wa/viewSoftware?id=%lld&mt=8\" as \"View package in App Store\"";
+CONTACT_AUTHOR = "link email %@ as \"Contact author\" is_support yes";
+VIEW_IN_CYDIA = "link url \"cydia://package/%@\" as \"View package in Cydia\"";
 
 CANNOT_EMAIL = "Cannot send email from this device.";
 EMAIL_FAILED_1 = "Failed to send email.\nError: ";
+ATTACHMENTS = "Attachments";
 
-"Script" = "Script";
+SCRIPT = "Script";
 CUSTOM_BLAME_WARNING = "Warning: Entering invalid data may corrupt your system. Use this page only in guidance of the developer.";
-"Back" = "Back";
-"Continue" = "Continue";
+BACK = "Back";
+CONTINUE = "Continue";
 
-"syslog not found!" = "syslog not found!";
+SYSLOG_NOT_FOUND = "syslog not found!";
 SYSLOG_NOT_FOUND_DETAIL = "Crash reports without syslog are often useless. Please install \"%@\" or \"syslogd\", and reproduce a new crash report.";
-"Install Syslog Toggle" = "Install Syslog Toggle";
-"Install syslogd" = "Install syslogd";
-"Ignore once" = "Ignore once";
+INSTALL = "Install %@";
+INSTALL_SYSLOGD = "Install syslogd";
+IGNORE_ONCE = "Ignore once";
+
+CRASH_DETECTED = "Crash Detected";
+VIEW = "View";
+IGNORE = "Ignore";

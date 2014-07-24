@@ -145,13 +145,13 @@ static UIButton *logButton() {
     UIButton *button;
     button = logButton();
     [button setFrame:CGRectMake(10.0, 10.0, screenBounds.size.width - 20.0, 44.0)];
-    [button setTitle:NSLocalizedString(@"View crash log", @"View crash log") forState:UIControlStateNormal];
+    [button setTitle:NSLocalizedString(@"VIEW_CRASH_LOG", nil) forState:UIControlStateNormal];
     [button addTarget:self action:@selector(crashlogTapped) forControlEvents:UIControlEventTouchUpInside];
     [buttonView addSubview:button];
 
     button = logButton();
     [button setFrame:CGRectMake(10.0, 10.0 + 44.0 + 10.0, screenBounds.size.width - 20.0, 44.0)];
-    [button setTitle:NSLocalizedString(@"View syslog", @"View syslog") forState:UIControlStateNormal];
+    [button setTitle:NSLocalizedString(@"VIEW_SYSLOG", nil) forState:UIControlStateNormal];
     [button addTarget:self action:@selector(syslogTapped) forControlEvents:UIControlEventTouchUpInside];
     [buttonView addSubview:button];
 
@@ -171,7 +171,7 @@ static UIButton *logButton() {
         // Symbolicate.
         // NOTE: Done via performSelector:... so that popup is shown.
         statusPopup_ = [ModalActionSheet new];
-        [statusPopup_ updateText:NSLocalizedString(@"Symbolicating...", @"Symbolicating...")];
+        [statusPopup_ updateText:NSLocalizedString(@"SYMBOLICATING_MODAL", nil)];
         [statusPopup_ show];
         [self performSelector:@selector(symbolicate) withObject:nil afterDelay:0];
     }
@@ -236,9 +236,9 @@ static UIButton *logButton() {
 - (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section {
     NSString *key = nil;
     switch (section) {
-        case 0: key = NSLocalizedString(@"Crashed process", @"Crashed process"); break;
-        case 1: key = NSLocalizedString(@"Main suspect", @"Main suspect"); break;
-        case 2: key = NSLocalizedString(@"Other suspects", @"Other suspects"); break;
+        case 0: key = NSLocalizedString(@"CRASHED_PROCESS", nil); break;
+        case 1: key = NSLocalizedString(@"MAIN_SUSPECT", nil); break;
+        case 2: key = NSLocalizedString(@"OTHER_SUSPECTS", nil); break;
         default: break;
 
     }
@@ -282,7 +282,7 @@ static UIButton *logButton() {
     if ([linkInstructions count] > 0) {
         // Determine and present choices.
         NSBundle *mainBundle = [NSBundle mainBundle];
-        NSString *cancelTitle = [mainBundle localizedStringForKey:@"Cancel" value:nil table:nil];
+        NSString *cancelTitle = [mainBundle localizedStringForKey:@"CANCEL" value:nil table:nil];
         UIAlertView *alert = [[UIAlertView alloc] initWithTitle:package.name message:nil delegate:self
             cancelButtonTitle:cancelTitle otherButtonTitles:nil];
         for (LinkInstruction *linkInstruction in linkInstructions) {
@@ -297,7 +297,7 @@ static UIButton *logButton() {
         lastSelectedPath_ = [path retain];
     } else {
         NSBundle *mainBundle = [NSBundle mainBundle];
-        NSString *message = [mainBundle localizedStringForKey:@"PACKAGE_FAILED_1" value:@"The package that owns this file is either no longer installed, or was not installed via either Cydia or AppStore." table:nil];
+        NSString *message = [mainBundle localizedStringForKey:@"PACKAGE_FAILED_1" value:nil table:nil];
         NSString *okMessage = [mainBundle localizedStringForKey:@"OK" value:nil table:nil];
         UIAlertView *alert = [[UIAlertView alloc] initWithTitle:nil message:message delegate:nil
             cancelButtonTitle:okMessage otherButtonTitles:nil];
@@ -342,7 +342,7 @@ static UIButton *logButton() {
                 } else {
                     NSBundle *mainBundle = [NSBundle mainBundle];
                     NSString *okMessage = [mainBundle localizedStringForKey:@"OK" value:nil table:nil];
-                    NSString *cannotMailMessage = [mainBundle localizedStringForKey:@"CANNOT_EMAIL" value:@"Cannot send email from this device." table:nil];
+                    NSString *cannotMailMessage = [mainBundle localizedStringForKey:@"CANNOT_EMAIL" value:nil table:nil];
                     UIAlertView *alert = [[UIAlertView alloc] initWithTitle:cannotMailMessage message:nil delegate:nil cancelButtonTitle:okMessage otherButtonTitles:nil];
                     [alert show];
                     [alert release];
@@ -369,7 +369,7 @@ static UIButton *logButton() {
 
     if (result == MFMailComposeResultFailed) {
         NSBundle *mainBundle = [NSBundle mainBundle];
-        NSString *message = [[mainBundle localizedStringForKey:@"EMAIL_FAILED_1" value:@"Failed to send email.\nError: " table:nil]
+        NSString *message = [[mainBundle localizedStringForKey:@"EMAIL_FAILED_1" value:nil table:nil]
             stringByAppendingString:[error localizedDescription]];
         NSString *okMessage = [mainBundle localizedStringForKey:@"OK" value:nil table:nil];
         UIAlertView *alert = [[UIAlertView alloc] initWithTitle:nil message:message delegate:nil

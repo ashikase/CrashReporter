@@ -47,12 +47,10 @@
     NSBundle *mainBundle = [NSBundle mainBundle];
     self.title = [mainBundle localizedStringForKey:@"Script" value:nil table:nil];
 
-    NSString *message = [mainBundle localizedStringForKey:@"CUSTOM_BLAME_WARNING"
-        value:@"Warning: Entering invalid data may corrupt your system. Use this page only in guidance of the developer."
-        table:nil];
+    NSString *message = [mainBundle localizedStringForKey:@"CUSTOM_BLAME_WARNING" value:nil table:nil];
     UIAlertView *confirmDialog = [[UIAlertView alloc] initWithTitle:nil message:message delegate:self
-        cancelButtonTitle:[mainBundle localizedStringForKey:@"Back" value:nil table:nil]
-        otherButtonTitles:[mainBundle localizedStringForKey:@"Continue" value:nil table:nil], nil];
+        cancelButtonTitle:[mainBundle localizedStringForKey:@"BACK" value:nil table:nil]
+        otherButtonTitles:[mainBundle localizedStringForKey:@"CONTINUE" value:nil table:nil], nil];
     [confirmDialog performSelector:@selector(show) withObject:nil afterDelay:0.1];
     // confirmDialog's +1 retain count is intentional.
 }
