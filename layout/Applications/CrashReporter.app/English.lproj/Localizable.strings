@@ -23,9 +23,9 @@ ERROR = "Error";
 FILE_DELETION_FAILED = "Could not delete the selected file.";
 PACKAGE_FAILED_1 = "The package that owns this file is either no longer installed, or was not installed via either Cydia or the App Store.";
 
-VIEW_IN_APP_STORE = "link url \"http://itunes.apple.com/WebObjects/MZStore.woa/wa/viewSoftware?id=%lld&mt=8\" as \"View package in App Store\"";
-CONTACT_AUTHOR = "link email %@ as \"Contact author\" is_support yes";
-VIEW_IN_CYDIA = "link url \"cydia://package/%@\" as \"View package in Cydia\"";
+VIEW_IN_APP_STORE = "View package in App Store";
+CONTACT_AUTHOR = "Contact author";
+VIEW_IN_CYDIA = "View package in Cydia";
 
 CANNOT_EMAIL = "Cannot send email from this device.";
 EMAIL_FAILED_1 = "Failed to send email.\nError: ";

@@ -50,8 +50,11 @@
 
         if (package.isAppStore) {
             // Add App Store link.
-            long long item = [package.storeIdentifier longLongValue]; // we need long long here because there are 2 billion apps on the App Store already... :)
-            NSString *line = [NSString stringWithFormat:NSLocalizedString(@"VIEW_IN_APP_STORE", nil), item];
+            // NOTE: Must use long long here as there are over 2 billion apps on the App Store.
+            long long item = [package.storeIdentifier longLongValue];
+            NSString *line = [NSString stringWithFormat:
+                @"link url \"http://itunes.apple.com/WebObjects/MZStore.woa/wa/viewSoftware?id=%lld&mt=8\" as \"%@\"",
+                item, NSLocalizedString(@"VIEW_IN_APP_STORE", nil)];
             LinkInstruction *instruction = [self instructionWithLine:line];
             if (instruction != nil) {
                 [result addObject:instruction];
@@ -68,7 +71,8 @@
                             if (leftAngleRange.location < rightAngleRange.location) {
                                 NSRange range = NSMakeRange(leftAngleRange.location + 1, rightAngleRange.location - leftAngleRange.location - 1);
                                 NSString *emailAddress = [author substringWithRange:range];
-                                NSString *line = [NSString stringWithFormat:NSLocalizedString(@"CONTACT_AUTHOR", nil), emailAddress];
+                                NSString *line = [NSString stringWithFormat:@"link email %@ as \"%@\" is_support yes",
+                                    emailAddress, NSLocalizedString(@"CONTACT_AUTHOR", nil)];
                                 LinkInstruction *instruction = [self instructionWithLine:line];
                                 if (instruction != nil) {
                                     [result addObject:instruction];
@@ -80,7 +84,8 @@
             }
 
             // Add Cydia link.
-            NSString *line = [NSString stringWithFormat:NSLocalizedString(@"VIEW_IN_CYDIA", nil), package.storeIdentifier];
+            NSString *line = [NSString stringWithFormat:@"link url \"cydia://package/%@\" as \"%@\"",
+                package.storeIdentifier, NSLocalizedString(@"VIEW_IN_CYDIA", nil)];
             LinkInstruction *instruction = [self instructionWithLine:line];
             if (instruction != nil) {
                 [result addObject:instruction];

@@ -23,9 +23,9 @@ ERROR = "错误";
 FILE_DELETION_FAILED = "不能删除文件。";
 PACKAGE_FAILED_1 = "这个文件关联的程序包不存在、还是可能不是从Cydia还是App Store来的。";
 
-VIEW_IN_APP_STORE = "link url \"http://itunes.apple.com/WebObjects/MZStore.woa/wa/viewSoftware?id=%lld&mt=8\" as \"到 App Store 管理程式\"";
-CONTACT_AUTHOR = "link email %@ as \"电邮给开发者\" is_support yes";
-VIEW_IN_CYDIA = "link url \"cydia://package/%@\" as \"到 Cydia 管理程式\"";
+VIEW_IN_APP_STORE = "到 App Store 管理程式";
+CONTACT_AUTHOR = "电邮给开发者";
+VIEW_IN_CYDIA = "到 Cydia 管理程式";
 
 CANNOT_EMAIL = "无法发送电邮。";
 EMAIL_FAILED_1 = "发送电邮失败.\n错误：";
