@@ -11,6 +11,9 @@
 
 #import <Foundation/Foundation.h>
 
+extern NSString * const kCrashLogDirectoryForMobile;
+extern NSString * const kCrashLogDirectoryForRoot;
+
 @class CrashLog;
 
 @interface CrashLogGroup : NSObject
@@ -19,6 +22,7 @@
 @property (nonatomic, readonly) NSArray *crashLogs;
 + (NSArray *)groupsForMobile;
 + (NSArray *)groupsForRoot;
++ (void)forgetGroups;
 + (instancetype)groupWithName:(NSString *)name logDirectory:(NSString *)logDirectory;
 - (instancetype)initWithName:(NSString *)name logDirectory:(NSString *)logDirectory;
 - (void)addCrashLog:(CrashLog *)crashLog;

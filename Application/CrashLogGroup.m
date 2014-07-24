@@ -13,6 +13,13 @@
 
 #import "CrashLog.h"
 
+// NOTE: These constants are accessed externally.
+NSString * const kCrashLogDirectoryForMobile = @"/var/mobile/Library/Logs/CrashReporter";
+NSString * const kCrashLogDirectoryForRoot = @"/Library/Logs/CrashReporter";
+
+static NSMutableArray *mobileCrashLogGroups$ = nil;
+static NSMutableArray *rootCrashLogGroups$ = nil;
+
 static NSArray *crashLogGroupsForDirectory(NSString *directory) {
     NSMutableDictionary *groups = [NSMutableDictionary dictionary];
     NSMutableArray *existentFilepaths = [NSMutableArray new];
@@ -81,13 +88,26 @@ static NSInteger reverseCompareCrashLogs(CrashLog *a, CrashLog *b, void *context
 @synthesize logDirectory = logDirectory_;
 
 + (NSArray *)groupsForMobile {
-    NSArray *groups = crashLogGroupsForDirectory(@"/var/mobile/Library/Logs/CrashReporter");
-    return [groups sortedArrayUsingFunction:compareCrashLogGroups context:NULL];
+    if (mobileCrashLogGroups$ == nil) {
+        NSArray *groups = crashLogGroupsForDirectory(kCrashLogDirectoryForMobile);
+        mobileCrashLogGroups$ = [[groups sortedArrayUsingFunction:compareCrashLogGroups context:NULL] mutableCopy];
+    }
+    return mobileCrashLogGroups$;
 }
 
 + (NSArray *)groupsForRoot {
-    NSArray *groups = crashLogGroupsForDirectory(@"/Library/Logs/CrashReporter");
-    return [groups sortedArrayUsingFunction:compareCrashLogGroups context:NULL];
+    if (rootCrashLogGroups$ == nil) {
+        NSArray *groups = crashLogGroupsForDirectory(kCrashLogDirectoryForRoot);
+        rootCrashLogGroups$ = [[groups sortedArrayUsingFunction:compareCrashLogGroups context:NULL] mutableCopy];
+    }
+    return rootCrashLogGroups$;
+}
+
++ (void)forgetGroups {
+    [mobileCrashLogGroups$ release];
+    mobileCrashLogGroups$ = nil;
+    [rootCrashLogGroups$ release];
+    rootCrashLogGroups$ = nil;
 }
 
 + (instancetype)groupWithName:(NSString *)name logDirectory:(NSString *)logDirectory {
@@ -120,6 +140,7 @@ static NSInteger reverseCompareCrashLogs(CrashLog *a, CrashLog *b, void *context
 }
 
 - (BOOL)delete {
+    // Delete contained crash logs.
     NSUInteger count = [crashLogs_ count];
     for (NSInteger i = (count - 1); i >= 0; --i) {
         CrashLog *crashLog = [crashLogs_ objectAtIndex:i];
@@ -130,6 +151,12 @@ static NSInteger reverseCompareCrashLogs(CrashLog *a, CrashLog *b, void *context
             return NO;
         }
     }
+
+    // Remove group from global array.
+    NSMutableArray *crashLogGroups = [[self logDirectory] isEqualToString:kCrashLogDirectoryForMobile] ?
+        mobileCrashLogGroups$ : rootCrashLogGroups$;
+    [crashLogGroups removeObject:self];
+
     return YES;
 }
 

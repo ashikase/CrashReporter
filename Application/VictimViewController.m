@@ -32,8 +32,20 @@ static inline NSUInteger indexOf(NSUInteger section, NSUInteger row, BOOL delete
 }
 
 - (void)viewDidLoad {
+    // Localize the edit button.
+    // NOTE: Apparently it does not get localized by default?
     self.navigationItem.rightBarButtonItem = [self editButtonItem];
     self.editButtonItem.title = NSLocalizedString(@"EDIT", nil);
+
+    // Add a refresh control.
+    if (IOS_GTE(6_0)) {
+        UITableView *tableView = [self tableView];
+        tableView.alwaysBounceVertical = YES;
+        UIRefreshControl *refreshControl = [UIRefreshControl new];
+        [refreshControl addTarget:self action:@selector(refresh:) forControlEvents:UIControlEventValueChanged];
+        [tableView addSubview:refreshControl];
+        [refreshControl release];
+    }
 }
 
 - (void)viewWillAppear:(BOOL)animated {
@@ -44,7 +56,35 @@ static inline NSUInteger indexOf(NSUInteger section, NSUInteger row, BOOL delete
     return interfaceOrientation != UIInterfaceOrientationPortraitUpsideDown;
 }
 
+#pragma mark - Actions
+
+- (void)refresh:(UIRefreshControl *)refreshControl {
+    [self reloadCrashLogGroup];
+    [self.tableView reloadData];
+    [refreshControl endRefreshing];
+}
+
 #pragma mark - Other
+
+- (void)reloadCrashLogGroup {
+    NSString *groupName = [group_ name];
+    NSString *logDirectory = [group_ logDirectory];
+
+    // Reload all crash log groups.
+    [CrashLogGroup forgetGroups];
+    NSArray *crashLogGroups = [logDirectory isEqualToString:kCrashLogDirectoryForMobile] ?
+        [CrashLogGroup groupsForMobile] : [CrashLogGroup groupsForRoot];
+
+    // Find the new group with the same group name (i.e. same process).
+    for (CrashLogGroup *group in crashLogGroups) {
+        if ([[group name] isEqualToString:groupName]) {
+            [group_ release];
+            group_ = [group retain];
+            [self.tableView reloadData];
+            break;
+        }
+    }
+}
 
 - (void)showSuspectsForCrashLog:(CrashLog *)crashLog {
     SuspectsViewController *controller = [[SuspectsViewController alloc] initWithCrashLog:crashLog];

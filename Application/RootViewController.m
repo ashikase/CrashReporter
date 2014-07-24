@@ -15,10 +15,7 @@
 #import "VictimViewController.h"
 #import "ManualScriptViewController.h"
 
-@implementation RootViewController {
-    NSMutableArray *mobileCrashLogGroups_;
-    NSMutableArray *rootCrashLogGroups_;
-}
+@implementation RootViewController
 
 - (id)init {
     self = [super initWithStyle:UITableViewStylePlain];
@@ -28,22 +25,27 @@
     return self;
 }
 
-- (void)dealloc {
-    [mobileCrashLogGroups_ release];
-    [rootCrashLogGroups_ release];
-    [super dealloc];
-}
-
 - (void)viewDidLoad {
+    // Add button for accessing "manual script" view.
     UIBarButtonItem *buttonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemCompose
         target:self action:@selector(editBlame)];
     self.navigationItem.rightBarButtonItem = buttonItem;
     [buttonItem release];
+
+    // Add a refresh control.
+    if (IOS_GTE(6_0)) {
+        UITableView *tableView = [self tableView];
+        tableView.alwaysBounceVertical = YES;
+        UIRefreshControl *refreshControl = [UIRefreshControl new];
+        [refreshControl addTarget:self action:@selector(refresh:) forControlEvents:UIControlEventValueChanged];
+        [tableView addSubview:refreshControl];
+        [refreshControl release];
+    }
 }
 
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
-    [self reloadCrashLogs];
+    [CrashLogGroup forgetGroups];
     [self.tableView reloadData];
 }
 
@@ -59,13 +61,10 @@
     [controller release];
 }
 
-#pragma mark - Other
-
-- (void)reloadCrashLogs {
-    [mobileCrashLogGroups_ release];
-    mobileCrashLogGroups_ = [[CrashLogGroup groupsForMobile] mutableCopy];
-    [rootCrashLogGroups_ release];
-    rootCrashLogGroups_ = [[CrashLogGroup groupsForRoot] mutableCopy];
+- (void)refresh:(UIRefreshControl *)refreshControl {
+    [CrashLogGroup forgetGroups];
+    [self.tableView reloadData];
+    [refreshControl endRefreshing];
 }
 
 #pragma mark - UITableViewDataSource
@@ -79,7 +78,8 @@
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-    return (section == 0) ? [mobileCrashLogGroups_ count] : [rootCrashLogGroups_ count];
+    NSArray *crashLogGroups = (section == 0) ?  [CrashLogGroup groupsForMobile] : [CrashLogGroup groupsForRoot];
+    return [crashLogGroups count];
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
@@ -88,8 +88,8 @@
         cell = [[[UITableViewCell alloc] initWithStyle:UITableViewCellStyleValue1 reuseIdentifier:@"."] autorelease];
         cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
     }
-    NSArray *crashLogs = (indexPath.section == 0) ?  mobileCrashLogGroups_ : rootCrashLogGroups_;
-    CrashLogGroup *group = [crashLogs objectAtIndex:indexPath.row];
+    NSArray *crashLogGroups = (indexPath.section == 0) ?  [CrashLogGroup groupsForMobile] : [CrashLogGroup groupsForRoot];
+    CrashLogGroup *group = [crashLogGroups objectAtIndex:indexPath.row];
     cell.textLabel.text = group.name;
     cell.detailTextLabel.text = [NSString stringWithFormat:@"%lu", (unsigned long)[group.crashLogs count]];
     return cell;
@@ -98,8 +98,8 @@
 #pragma mark - UITableViewDelegate
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
-    NSArray *crashLogs = (indexPath.section == 0) ?  mobileCrashLogGroups_ : rootCrashLogGroups_;
-    CrashLogGroup *group = [crashLogs objectAtIndex:indexPath.row];
+    NSArray *crashLogGroups = (indexPath.section == 0) ?  [CrashLogGroup groupsForMobile] : [CrashLogGroup groupsForRoot];
+    CrashLogGroup *group = [crashLogGroups objectAtIndex:indexPath.row];
 
     VictimViewController *controller = [[VictimViewController alloc] initWithStyle:UITableViewStylePlain];
     controller.title = group.name;
@@ -109,13 +109,9 @@
 }
 
 - (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath*)indexPath {
-    NSUInteger section = indexPath.section;
-    NSUInteger row = indexPath.row;
-    NSMutableArray *crashLogs = (section == 0) ?  mobileCrashLogGroups_ : rootCrashLogGroups_;
-
-    CrashLogGroup *group = [crashLogs objectAtIndex:row];
+    NSArray *crashLogGroups = (indexPath.section == 0) ?  [CrashLogGroup groupsForMobile] : [CrashLogGroup groupsForRoot];
+    CrashLogGroup *group = [crashLogGroups objectAtIndex:indexPath.row];
     if ([group delete]) {
-        [crashLogs removeObjectAtIndex:row];
         [tableView deleteRowsAtIndexPaths:[NSArray arrayWithObject:indexPath] withRowAnimation:UITableViewRowAnimationLeft];
     } else {
         NSLog(@"ERROR: Failed to delete logs for group \"%@\".", [group name]);
