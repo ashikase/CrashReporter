@@ -18,19 +18,27 @@ static NSArray *crashLogGroupsForDirectory(NSString *directory) {
 
     // Look in path for crash log files; group logs by app name.
     NSFileManager *fileMan = [NSFileManager defaultManager];
-    for (NSString *filename in [fileMan contentsOfDirectoryAtPath:directory error:NULL]) {
-        NSString *filepath = [directory stringByAppendingPathComponent:filename];
-        CrashLog *crashLog = [[CrashLog alloc] initWithFilepath:filepath];
-        if (crashLog != nil) {
-            NSString *name = [crashLog processName];
-            CrashLogGroup *group = [groups objectForKey:name];
-            if (group == nil) {
-                group = [[CrashLogGroup alloc] initWithName:name logDirectory:directory];
-                [groups setObject:group forKey:name];
+    NSError *error = nil;
+    NSArray *contents = [fileMan contentsOfDirectoryAtPath:directory error:&error];
+    if (contents != nil) {
+        for (NSString *filename in contents) {
+            if ([filename hasSuffix:@"ips"] || [filename hasSuffix:@"plist"] || [filename hasSuffix:@"synced"]) {
+                NSString *filepath = [directory stringByAppendingPathComponent:filename];
+                CrashLog *crashLog = [[CrashLog alloc] initWithFilepath:filepath];
+                if (crashLog != nil) {
+                    NSString *name = [crashLog processName];
+                    CrashLogGroup *group = [groups objectForKey:name];
+                    if (group == nil) {
+                        group = [[CrashLogGroup alloc] initWithName:name logDirectory:directory];
+                        [groups setObject:group forKey:name];
+                    }
+                    [group addCrashLog:crashLog];
+                    [crashLog release];
+                }
             }
-            [group addCrashLog:crashLog];
-            [crashLog release];
         }
+    } else {
+        NSLog(@"ERROR: Unable to retrieve contents of directory \"%@\": %@", directory, [error localizedDescription]);
     }
 
     return [groups allValues];
