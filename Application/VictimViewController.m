@@ -60,7 +60,7 @@ static inline NSUInteger indexOf(NSUInteger section, NSUInteger row, BOOL delete
 
 - (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section {
     NSString *key = (section == 0) ? @"LATEST" : @"EARLIER";
-    return [[NSBundle mainBundle] localizedStringForKey:key value:nil table:nil];
+    return NSLocalizedString(key, nil);
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
@@ -118,11 +118,10 @@ static inline NSUInteger indexOf(NSUInteger section, NSUInteger row, BOOL delete
         }
         [tableView deleteRowsAtIndexPaths:[NSArray arrayWithObject:indexPath] withRowAnimation:UITableViewRowAnimationLeft];
     } else {
-        NSBundle *mainBundle = [NSBundle mainBundle];
-        NSString *title = [mainBundle localizedStringForKey:@"ERROR" value:nil table:nil];
-        NSString *message = [mainBundle localizedStringForKey:@"FILE_DELETION_FAILED"
-            value:nil table:nil];
-        NSString *okMessage = [mainBundle localizedStringForKey:@"OK" value:nil table:nil];
+        NSString *title = NSLocalizedString(@"ERROR", nil);
+        NSString *message = NSLocalizedString(@"FILE_DELETION_FAILED"
+           , nil);
+        NSString *okMessage = NSLocalizedString(@"OK", nil);
         UIAlertView* alert = [[UIAlertView alloc] initWithTitle:title message:message delegate:nil
             cancelButtonTitle:okMessage otherButtonTitles:nil];
         [alert show];

@@ -159,16 +159,16 @@ static NSURL* pastieOne(NSString* str, ModalActionSheet* hud) {
 	NSURLRequest* req = multipartRequest([NSURL URLWithString:@"http://pastie.org/pastes"], dict);
 	[dict release];
 
-	[hud updateText:[NSString stringWithFormat:[mainBundle localizedStringForKey:@"Uploading %@" value:nil table:nil], firstLine]];
+	[hud updateText:[NSString stringWithFormat:NSLocalizedString(@"Uploading %@", nil), firstLine]];
 
 	NSURLResponse* resp = nil;
 	NSError* err = nil;
 	if (![NSURLConnection sendSynchronousRequest:req returningResponse:&resp error:&err]) {
 #if !DEBUG_PASTIE
-		UIAlertView* alert = [[UIAlertView alloc] initWithTitle:[mainBundle localizedStringForKey:@"Upload failed" value:nil table:nil]
-														message:[NSString stringWithFormat:[mainBundle localizedStringForKey:@"UPLOAD_FAILED_2" value:@"Failed to upload %@.\n Error: %@" table:nil],
+		UIAlertView* alert = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"Upload failed", nil)
+														message:[NSString stringWithFormat:NSLocalizedString(@"UPLOAD_FAILED_2", nil),
 																 firstLine, [err localizedDescription]]
-													   delegate:nil cancelButtonTitle:[mainBundle localizedStringForKey:@"OK" value:nil table:nil] otherButtonTitles:nil];
+													   delegate:nil cancelButtonTitle:NSLocalizedString(@"OK", nil) otherButtonTitles:nil];
 		[alert show];
 		[alert release];
 #endif

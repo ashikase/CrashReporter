@@ -242,7 +242,7 @@ static UIButton *logButton() {
         default: break;
 
     }
-    return [[NSBundle mainBundle] localizedStringForKey:key value:nil table:nil];
+    return NSLocalizedString(key, nil);
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
@@ -281,8 +281,7 @@ static UIButton *logButton() {
     NSArray *linkInstructions = [LinkInstruction linkInstructionsForPackage:package];
     if ([linkInstructions count] > 0) {
         // Determine and present choices.
-        NSBundle *mainBundle = [NSBundle mainBundle];
-        NSString *cancelTitle = [mainBundle localizedStringForKey:@"CANCEL" value:nil table:nil];
+        NSString *cancelTitle = NSLocalizedString(@"CANCEL", nil);
         UIAlertView *alert = [[UIAlertView alloc] initWithTitle:package.name message:nil delegate:self
             cancelButtonTitle:cancelTitle otherButtonTitles:nil];
         for (LinkInstruction *linkInstruction in linkInstructions) {
@@ -296,9 +295,8 @@ static UIButton *logButton() {
         lastSelectedPackage_ = [package retain];
         lastSelectedPath_ = [path retain];
     } else {
-        NSBundle *mainBundle = [NSBundle mainBundle];
-        NSString *message = [mainBundle localizedStringForKey:@"PACKAGE_FAILED_1" value:nil table:nil];
-        NSString *okMessage = [mainBundle localizedStringForKey:@"OK" value:nil table:nil];
+        NSString *message = NSLocalizedString(@"PACKAGE_FAILED_1", nil);
+        NSString *okMessage = NSLocalizedString(@"OK", nil);
         UIAlertView *alert = [[UIAlertView alloc] initWithTitle:nil message:message delegate:nil
             cancelButtonTitle:okMessage otherButtonTitles:nil];
         [alert show];
@@ -340,9 +338,8 @@ static UIButton *logButton() {
                     [self presentModalViewController:controller animated:YES];
                     [controller release];
                 } else {
-                    NSBundle *mainBundle = [NSBundle mainBundle];
-                    NSString *okMessage = [mainBundle localizedStringForKey:@"OK" value:nil table:nil];
-                    NSString *cannotMailMessage = [mainBundle localizedStringForKey:@"CANNOT_EMAIL" value:nil table:nil];
+                    NSString *okMessage = NSLocalizedString(@"OK", nil);
+                    NSString *cannotMailMessage = NSLocalizedString(@"CANNOT_EMAIL", nil);
                     UIAlertView *alert = [[UIAlertView alloc] initWithTitle:cannotMailMessage message:nil delegate:nil cancelButtonTitle:okMessage otherButtonTitles:nil];
                     [alert show];
                     [alert release];
@@ -368,10 +365,9 @@ static UIButton *logButton() {
     [self dismissModalViewControllerAnimated:YES];
 
     if (result == MFMailComposeResultFailed) {
-        NSBundle *mainBundle = [NSBundle mainBundle];
-        NSString *message = [[mainBundle localizedStringForKey:@"EMAIL_FAILED_1" value:nil table:nil]
+        NSString *message = [NSLocalizedString(@"EMAIL_FAILED_1", nil)
             stringByAppendingString:[error localizedDescription]];
-        NSString *okMessage = [mainBundle localizedStringForKey:@"OK" value:nil table:nil];
+        NSString *okMessage = NSLocalizedString(@"OK", nil);
         UIAlertView *alert = [[UIAlertView alloc] initWithTitle:nil message:message delegate:nil
             cancelButtonTitle:okMessage otherButtonTitles:nil];
         [alert show];

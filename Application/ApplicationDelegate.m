@@ -61,13 +61,12 @@
         NSString *toggleName = (kCFCoreFoundationVersionNumber < kCFCoreFoundationVersionNumber_iOS_7_0) ?
             @"Syslog Toggle" : @"Syslog Flipswitch";
 
-        NSBundle *mainBundle = [NSBundle mainBundle];
-        NSString *title = [mainBundle localizedStringForKey:@"SYSLOG_NOT_FOUND" value:nil table:nil];
+        NSString *title = NSLocalizedString(@"SYSLOG_NOT_FOUND", nil);
         NSString *message = [NSString stringWithFormat:
-            [mainBundle localizedStringForKey:@"SYSLOG_NOT_FOUND_DETAIL" value:nil table:nil], toggleName];
-        NSString *installSyslogToggleTitle = [mainBundle localizedStringForKey:[NSString stringWithFormat:NSLocalizedString(@"INSTALL", nil), toggleName] value:nil table:nil];
-        NSString *installSyslogdTitle = [mainBundle localizedStringForKey:@"INSTALL_SYSLOGD" value:nil table:nil];
-        NSString *ignoreOnceTitle = [mainBundle localizedStringForKey:@"IGNORE_ONCE" value:nil table:nil];
+            NSLocalizedString(@"SYSLOG_NOT_FOUND_DETAIL", nil), toggleName];
+        NSString *installSyslogToggleTitle = NSLocalizedString(([NSString stringWithFormat:NSLocalizedString(@"INSTALL", nil), toggleName]), nil);
+        NSString *installSyslogdTitle = NSLocalizedString(@"INSTALL_SYSLOGD", nil);
+        NSString *ignoreOnceTitle = NSLocalizedString(@"IGNORE_ONCE", nil);
 
         UIAlertView *alert = [[UIAlertView alloc] initWithTitle:title message:message delegate:self
             cancelButtonTitle:ignoreOnceTitle otherButtonTitles:installSyslogToggleTitle, installSyslogdTitle, nil];
@@ -107,10 +106,9 @@
     UIApplicationState state = [application applicationState];
     if (state == UIApplicationStateActive) {
         // CrashReporter is in the foreground.
-        NSBundle *mainBundle = [NSBundle mainBundle];
-        NSString *title = [mainBundle localizedStringForKey:@"CRASH_DETECTED" value:nil table:nil];
-        NSString *viewTitle = [mainBundle localizedStringForKey:@"VIEW" value:nil table:nil];
-        NSString *ignoreTitle = [mainBundle localizedStringForKey:@"IGNORE" value:nil table:nil];
+        NSString *title = NSLocalizedString(@"CRASH_DETECTED", nil);
+        NSString *viewTitle = NSLocalizedString(@"VIEW", nil);
+        NSString *ignoreTitle = NSLocalizedString(@"IGNORE", nil);
         UIAlertView *alert = [[UIAlertView alloc] initWithTitle:title message:[notification alertBody]
             delegate:self cancelButtonTitle:ignoreTitle otherButtonTitles:viewTitle, nil];
         [alert setTag:1];

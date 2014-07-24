@@ -51,11 +51,10 @@
     self.view = webView;
     webView_ = webView;
 
-    NSBundle *mainBundle = [NSBundle mainBundle];
     IncludeInstruction *instruction = [self instruction];
-    self.title = instruction ? [instruction title] : [mainBundle localizedStringForKey:@"Untitled" value:nil table:nil];
+    self.title = instruction ? [instruction title] : NSLocalizedString(@"Untitled", nil);
 
-    NSString *title = [mainBundle localizedStringForKey:@"Copy" value:nil table:nil];
+    NSString *title = NSLocalizedString(@"Copy", nil);
     UIBarButtonItem *copyButton = [[UIBarButtonItem alloc] initWithTitle:title
         style:UIBarButtonItemStyleBordered target:self action:@selector(copyEverything)];
     self.navigationItem.rightBarButtonItem = copyButton;

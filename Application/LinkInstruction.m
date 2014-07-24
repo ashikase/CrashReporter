@@ -144,7 +144,7 @@
         if (unlocalizedTitle_ == nil) {
             unlocalizedTitle_ = [(isEmail_ ? recipients_ : [url_ absoluteString]) copy];
         }
-        [self setTitle:[[NSBundle mainBundle] localizedStringForKey:unlocalizedTitle_ value:nil table:nil]];
+        [self setTitle:NSLocalizedString(unlocalizedTitle_, nil)];
     }
     return self;
 }

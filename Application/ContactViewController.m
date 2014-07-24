@@ -186,10 +186,9 @@ static NSString * const placeholderText$ =
                 [urlsString appendString:@"\n"];
             }
         } else {
-            NSBundle *mainBundle = [NSBundle mainBundle];
-            NSString *title = [mainBundle localizedStringForKey:@"Upload failed" value:nil table:nil];
-            NSString *message = [mainBundle localizedStringForKey:@"pastie.org is unreachable." value:nil table:nil];
-            NSString *cancel = [mainBundle localizedStringForKey:@"OK" value:nil table:nil];
+            NSString *title = NSLocalizedString(@"Upload failed", nil);
+            NSString *message = NSLocalizedString(@"pastie.org is unreachable.", nil);
+            NSString *cancel = NSLocalizedString(@"OK", nil);
             UIAlertView *alert = [[UIAlertView alloc] initWithTitle:title message:message delegate:nil
                 cancelButtonTitle:cancel otherButtonTitles:nil];
             [alert show];
@@ -214,7 +213,7 @@ static NSString * const placeholderText$ =
 }
 
 - (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section {
-    return [[NSBundle mainBundle] localizedStringForKey:@"Attachments" value:nil table:nil];
+    return NSLocalizedString(@"Attachments", nil);
 }
 
 - (UITableViewCellEditingStyle)tableView:(UITableView *)tableView editingStyleForRowAtIndexPath:(NSIndexPath *)indexPath {
@@ -265,8 +264,7 @@ static NSString * const placeholderText$ =
 #pragma mark - UIBarButtonItem Actions
 
 - (void)barButtonTapped {
-    NSBundle *mainBundle = [NSBundle mainBundle];
-    NSString *okMessage = [mainBundle localizedStringForKey:@"OK" value:nil table:nil];
+    NSString *okMessage = NSLocalizedString(@"OK", nil);
 
     if ([linkInstruction_ isEmail]) {
         if ([MFMailComposeViewController canSendMail]) {
@@ -298,7 +296,7 @@ static NSString * const placeholderText$ =
             [self presentModalViewController:controller animated:YES];
             [controller release];
         } else {
-            NSString *cannotMailMessage = [mainBundle localizedStringForKey:@"CANNOT_EMAIL" value:@"Cannot send email from this device." table:nil];
+            NSString *cannotMailMessage = NSLocalizedString(@"CANNOT_EMAIL", nil);
             UIAlertView *alert = [[UIAlertView alloc] initWithTitle:cannotMailMessage message:nil delegate:nil cancelButtonTitle:okMessage otherButtonTitles:nil];
             [alert show];
             [alert release];
@@ -345,10 +343,8 @@ static NSString * const placeholderText$ =
     [self dismissModalViewControllerAnimated:YES];
 
     if (result == MFMailComposeResultFailed) {
-        NSBundle *mainBundle = [NSBundle mainBundle];
-        NSString *message = [[mainBundle localizedStringForKey:@"EMAIL_FAILED_1" value:@"Failed to send email.\nError: " table:nil]
-            stringByAppendingString:[error localizedDescription]];
-        NSString *okMessage = [mainBundle localizedStringForKey:@"OK" value:nil table:nil];
+        NSString *message = [NSLocalizedString(@"EMAIL_FAILED_1", nil) stringByAppendingString:[error localizedDescription]];
+        NSString *okMessage = NSLocalizedString(@"OK", nil);
         UIAlertView *alert = [[UIAlertView alloc] initWithTitle:nil message:message delegate:nil
             cancelButtonTitle:okMessage otherButtonTitles:nil];
         [alert show];

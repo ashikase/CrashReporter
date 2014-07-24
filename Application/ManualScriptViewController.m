@@ -44,13 +44,12 @@
     self.navigationItem.rightBarButtonItem = done;
     [done release];
 
-    NSBundle *mainBundle = [NSBundle mainBundle];
-    self.title = [mainBundle localizedStringForKey:@"Script" value:nil table:nil];
+    self.title = NSLocalizedString(@"Script", nil);
 
-    NSString *message = [mainBundle localizedStringForKey:@"CUSTOM_BLAME_WARNING" value:nil table:nil];
+    NSString *message = NSLocalizedString(@"CUSTOM_BLAME_WARNING", nil);
     UIAlertView *confirmDialog = [[UIAlertView alloc] initWithTitle:nil message:message delegate:self
-        cancelButtonTitle:[mainBundle localizedStringForKey:@"BACK" value:nil table:nil]
-        otherButtonTitles:[mainBundle localizedStringForKey:@"CONTINUE" value:nil table:nil], nil];
+        cancelButtonTitle:NSLocalizedString(@"BACK", nil)
+        otherButtonTitles:NSLocalizedString(@"CONTINUE", nil), nil];
     [confirmDialog performSelector:@selector(show) withObject:nil afterDelay:0.1];
     // confirmDialog's +1 retain count is intentional.
 }
