@@ -37,12 +37,6 @@ CUSTOM_BLAME_WARNING = "警告：在此输入无效的资料可能导致系统�
 BACK = "返回";
 CONTINUE = "继续";
 
-SYSLOG_NOT_FOUND = "找不到系统记录 (syslog)!";
-SYSLOG_NOT_FOUND_DETAIL = "没有系统记录 (syslog) 的错误报告通常都是无用的。请安装 %@ 或 syslogd，并复制一次程式崩溃。";
-INSTALL = "安装 %@";
-INSTALL_SYSLOGD = "安装 syslogd";
-IGNORE_ONCE = "略过一次";
-
 CRASH_DETECTED = "检测到崩溃"; // the previous Chinese translator seems to refer to "crashes" as "errors" instead - I translated it to "crash" in this case. not sure whether to stick with "error" for consistency or...
 VIEW = "查看";
 IGNORE = "略过";

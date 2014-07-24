@@ -97,24 +97,6 @@ static NSMutableDictionary *instructions$ = nil;
     instructions$ = nil;
 }
 
-static NSCalendar *calendar$ = nil;
-
-// FIXME: Does this belong in this class?
-+ (NSString *)formatSyslogTime:(NSDate *)date {
-    if (calendar$ == nil) {
-        calendar$ = [[NSCalendar alloc] initWithCalendarIdentifier:NSGregorianCalendar];
-    }
-
-    static const char * const months[] = {"", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
-    NSDateComponents *components = [calendar$ components:(
-            NSMonthCalendarUnit | NSDayCalendarUnit |
-            NSHourCalendarUnit | NSMinuteCalendarUnit
-            )
-        fromDate:date];
-    return [NSString stringWithFormat:@"%s %2ld %02ld:%02ld", months[[components month]],
-           (long)[components day], (long)[components hour], (long)[components minute]];
-}
-
 - (instancetype)initWithTokens:(NSArray *)tokens {
     self = [super init];
     if (self != nil) {

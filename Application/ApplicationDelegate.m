@@ -48,24 +48,6 @@
     }
     [window_ makeKeyAndVisible];
 
-    // Check if syslog is present. Alert the user if not.
-    if (![[NSFileManager defaultManager] fileExistsAtPath:@"/etc/syslog.conf"]) {
-        NSString *toggleName = IOS_LT(7_0) ? @"Syslog Toggle" : @"Syslog Flipswitch";
-
-        NSString *title = NSLocalizedString(@"SYSLOG_NOT_FOUND", nil);
-        NSString *message = [NSString stringWithFormat:
-            NSLocalizedString(@"SYSLOG_NOT_FOUND_DETAIL", nil), toggleName];
-        NSString *installSyslogToggleTitle = NSLocalizedString(([NSString stringWithFormat:NSLocalizedString(@"INSTALL", nil), toggleName]), nil);
-        NSString *installSyslogdTitle = NSLocalizedString(@"INSTALL_SYSLOGD", nil);
-        NSString *ignoreOnceTitle = NSLocalizedString(@"IGNORE_ONCE", nil);
-
-        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:title message:message delegate:self
-            cancelButtonTitle:ignoreOnceTitle otherButtonTitles:installSyslogToggleTitle, installSyslogdTitle, nil];
-        [alert setNumberOfRows:3];
-        [alert show];
-        [alert release];
-    }
-
     // If launched via notification, handle the notification.
     UILocalNotification *notification = [launchOptions objectForKey:UIApplicationLaunchOptionsLocalNotificationKey];
     if (notification != nil) {
@@ -102,7 +84,6 @@
         NSString *ignoreTitle = NSLocalizedString(@"IGNORE", nil);
         UIAlertView *alert = [[UIAlertView alloc] initWithTitle:title message:[notification alertBody]
             delegate:self cancelButtonTitle:ignoreTitle otherButtonTitles:viewTitle, nil];
-        [alert setTag:1];
 
         if (filepath != nil) {
             NSString *key = [NSString stringWithFormat:@"%p", alert];
@@ -154,31 +135,15 @@
 #pragma mark - UIAlertViewDelegate
 
 - (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
-    if ([alertView tag] == 1) {
-        // Is local notification alert.
-        NSString *key = [NSString stringWithFormat:@"%p", alertView];
-        if (buttonIndex != 0) {
-            NSString *filepath = [notificationFilepaths_ objectForKey:key];
-            if (filepath != nil) {
-                [self showDetailsForLogAtPath:filepath animated:YES];
-            }
-        }
-
-        [notificationFilepaths_ removeObjectForKey:key];
-    } else {
-        // Is missing syslog alert.
-        if (buttonIndex != 0) {
-            NSString *urlString = nil;
-            if (buttonIndex == 1) {
-                urlString = IOS_LT(7_0) ?
-                    @"cydia://package/sbsettingssyslogd" :
-                    @"cydia://package/de.j-gessner.syslogflipswitch";
-            } else {
-                urlString = @"cydia://package/syslogd";
-            }
-            [[UIApplication sharedApplication] openURL:[NSURL URLWithString:urlString]];
+    // Is local notification alert.
+    NSString *key = [NSString stringWithFormat:@"%p", alertView];
+    if (buttonIndex != 0) {
+        NSString *filepath = [notificationFilepaths_ objectForKey:key];
+        if (filepath != nil) {
+            [self showDetailsForLogAtPath:filepath animated:YES];
         }
     }
+    [notificationFilepaths_ removeObjectForKey:key];
 }
 
 @end

@@ -18,7 +18,6 @@
 @property(nonatomic, readonly) NSArray *tokens;
 + (instancetype)instructionWithLine:(NSString *)line;
 + (void)flushInstructions;
-+ (NSString *)formatSyslogTime:(NSDate *)date;
 - (instancetype)initWithTokens:(NSArray *)tokens;
 - (NSComparisonResult)compare:(Instruction *)other;
 - (UITableViewCell *)format:(UITableViewCell *)cell;

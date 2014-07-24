@@ -37,12 +37,6 @@ CUSTOM_BLAME_WARNING = "Warning: Entering invalid data may corrupt your system. 
 BACK = "Back";
 CONTINUE = "Continue";
 
-SYSLOG_NOT_FOUND = "syslog not found!";
-SYSLOG_NOT_FOUND_DETAIL = "Crash reports without syslog are often useless. Please install \"%@\" or \"syslogd\", and reproduce a new crash report.";
-INSTALL = "Install %@";
-INSTALL_SYSLOGD = "Install syslogd";
-IGNORE_ONCE = "Ignore once";
-
 CRASH_DETECTED = "Crash Detected";
 VIEW = "View";
 IGNORE = "Ignore";

@@ -39,7 +39,6 @@
     ModalActionSheet *statusPopup_;
 
     CrashLog *crashLog_;
-    NSString *dateString_;
     NSArray *lastSelectedLinkInstructions_;
     Package *lastSelectedPackage_;
     NSString *lastSelectedPath_;
@@ -50,12 +49,8 @@
     if (self != nil) {
         crashLog_ = [crashLog retain];
 
-        // Create date string for syslog output.
-        // FIXME: Is it necessary to cache this?
-        NSDate *date = [crashLog date];
-        dateString_ = [[Instruction formatSyslogTime:date] retain];
-
         // Set title using date.
+        NSDate *date = [crashLog date];
         NSDateFormatter *formatter = [NSDateFormatter new];
         [formatter setDateFormat:@"HH:mm:ss"];
         self.title = [formatter stringFromDate:date];
@@ -68,7 +63,6 @@
     [tableView_ release];
     [statusPopup_ release];
     [crashLog_ release];
-    [dateString_ release];
     [lastSelectedLinkInstructions_ release];
     [lastSelectedPackage_ release];
     [lastSelectedPath_ release];
