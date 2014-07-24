@@ -347,31 +347,22 @@ static UIButton *logButton() {
     }
     Package *package = [Package packageForFile:path];
 
-    // Get links for package.
+    // Determine and present choices for the given package.
+    NSString *message = (package == nil) ? NSLocalizedString(@"PACKAGE_FAILED_1", nil) : nil;
+    NSString *cancelTitle = NSLocalizedString(@"CANCEL", nil);
     NSArray *linkInstructions = [LinkInstruction linkInstructionsForPackage:package];
-    if ([linkInstructions count] > 0) {
-        // Determine and present choices.
-        NSString *cancelTitle = NSLocalizedString(@"CANCEL", nil);
-        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:package.name message:nil delegate:self
-            cancelButtonTitle:cancelTitle otherButtonTitles:nil];
-        for (LinkInstruction *linkInstruction in linkInstructions) {
-            [alert addButtonWithTitle:[linkInstruction title]];
-        }
-        [alert setNumberOfRows:(1 + [linkInstructions count])];
-        [alert show];
-        [alert release];
-
-        lastSelectedLinkInstructions_ = [linkInstructions retain];
-        lastSelectedPackage_ = [package retain];
-        lastSelectedPath_ = [path retain];
-    } else {
-        NSString *message = NSLocalizedString(@"PACKAGE_FAILED_1", nil);
-        NSString *okMessage = NSLocalizedString(@"OK", nil);
-        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:nil message:message delegate:nil
-            cancelButtonTitle:okMessage otherButtonTitles:nil];
-        [alert show];
-        [alert release];
+    UIAlertView *alert = [[UIAlertView alloc] initWithTitle:package.name message:message delegate:self
+        cancelButtonTitle:cancelTitle otherButtonTitles:nil];
+    for (LinkInstruction *linkInstruction in linkInstructions) {
+        [alert addButtonWithTitle:[linkInstruction title]];
     }
+    [alert setNumberOfRows:(1 + [linkInstructions count])];
+    [alert show];
+    [alert release];
+
+    lastSelectedLinkInstructions_ = [linkInstructions retain];
+    lastSelectedPackage_ = [package retain];
+    lastSelectedPath_ = [path retain];
 
     [tableView deselectRowAtIndexPath:[tableView indexPathForSelectedRow] animated:YES];
 }

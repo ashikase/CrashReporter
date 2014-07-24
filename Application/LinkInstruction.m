@@ -96,13 +96,13 @@
         // Add optional link commands.
         [result addObjectsFromArray:instructions];
         [instructions release];
+    }
 
-        // Add an email link to send to an arbitrary address.
-        NSString *line = [NSString stringWithFormat:@"link email \"\" as \"%@\" is_support", NSLocalizedString(@"FORWARD_TO", nil)];
-        LinkInstruction *instruction = [self instructionWithLine:line];
-        if (instruction != nil) {
-            [result addObject:instruction];
-        }
+    // Add an email link to send to an arbitrary address.
+    NSString *line = [NSString stringWithFormat:@"link email \"\" as \"%@\" is_support", NSLocalizedString(@"FORWARD_TO", nil)];
+    LinkInstruction *instruction = [self instructionWithLine:line];
+    if (instruction != nil) {
+        [result addObject:instruction];
     }
 
     return result;
