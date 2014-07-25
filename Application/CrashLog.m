@@ -186,9 +186,6 @@ static void saveViewedState(NSString *filepath) {
             // Update path for this crash log instance.
             filepath_ = [outputFilepath retain];
 
-            // Record list of suspects.
-            suspects_ = [[[report properties] objectForKey:@"blame"] retain];
-
             // Note that symbolication succeeded.
             didSymbolicate = YES;
         }
