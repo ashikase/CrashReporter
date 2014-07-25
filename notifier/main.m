@@ -122,11 +122,12 @@ int main(int argc, char **argv, char **envp) {
     }
 
     // Create notification message.
-    NSMutableString *body = [NSMutableString stringWithFormat:@"\"%@\" has crashed.\n", bundleName];
+    NSMutableString *body = [NSMutableString stringWithFormat:NSLocalizedString(@"NOTIFY_CRASHED", nil), bundleName];
+    [body appendString:@"\n"];
     if ([suspects count] > 0) {
-        [body appendFormat:@"\"%@\" is main suspect.", [[suspects objectAtIndex:0] lastPathComponent]];
+        [body appendFormat:NSLocalizedString(@"NOTIFY_MAIN_SUSPECT", nil), [[suspects objectAtIndex:0] lastPathComponent]];
     } else {
-        [body appendString:@"There are no suspects."];
+        [body appendString:NSLocalizedString(@"NOTIFY_NO_SUSPECTS", nil)];
     }
     [report release];
 
