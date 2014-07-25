@@ -12,7 +12,6 @@
 #import "CrashLogViewController.h"
 
 #import <MobileCoreServices/MobileCoreServices.h>
-#import <RegexKitLite/RegexKitLite.h>
 #import "IncludeInstruction.h"
 
 @interface UIWebDocumentView : UIView

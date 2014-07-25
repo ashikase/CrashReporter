@@ -13,8 +13,6 @@
 
 #import <Foundation/Foundation.h>
 #import <MessageUI/MessageUI.h>
-#import <RegexKitLite/RegexKitLite.h>
-#import <libsymbolicate/CRCrashReport.h>
 #import "ContactViewController.h"
 #import "CrashLog.h"
 #import "CrashLogViewController.h"
