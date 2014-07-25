@@ -1,4 +1,4 @@
- /*
+/**
  * Author: Lance Fetters (aka. ashikase)
  * License: GPL v3 (See LICENSE file for details)
  */
