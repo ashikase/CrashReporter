@@ -17,7 +17,7 @@
 #include <time.h>
 #include <unistd.h>
 
-extern "C" mach_port_t SBSSpringBoardServerPort();
+extern mach_port_t SBSSpringBoardServerPort();
 
 @interface SBSLocalNotificationClient : NSObject
 + (void)scheduleLocalNotification:(id)notification bundleIdentifier:(id)bundleIdentifier;
