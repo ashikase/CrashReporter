@@ -111,6 +111,22 @@ static void saveViewedState(NSString *filepath) {
     return processPath_;
 }
 
+- (NSArray *)suspects {
+    if (suspects_ == nil) {
+        if ([self isSymbolicated]) {
+            NSData *data = dataForFile([self filepath]);
+            if (data != nil) {
+                CRCrashReport *report = [[CRCrashReport alloc] initWithData:data];
+                if (report != nil) {
+                    suspects_ = [[[report properties] objectForKey:@"blame"] retain];
+                    [report release];
+                }
+            }
+        }
+    }
+    return suspects_;
+}
+
 - (BOOL)isSymbolicated {
     // NOTE: This assumes that symbolicated files have a specific extension,
     //       which may not be the case if the file was symbolicated by a
@@ -161,22 +177,22 @@ static void saveViewedState(NSString *filepath) {
         NSString *inputFilepath = [self filepath];
         NSString *outputFilepath = symbolicateFile(inputFilepath, nil);
         if (outputFilepath != nil) {
-                        // Update name used for determining viewed state.
-                        if ([self isViewed]) {
+            // Update name used for determining viewed state.
+            if ([self isViewed]) {
                 deleteViewedState(inputFilepath);
-                            saveViewedState(outputFilepath);
-                        }
+                saveViewedState(outputFilepath);
+            }
 
-                        // Update path for this crash log instance.
-                        filepath_ = [outputFilepath retain];
+            // Update path for this crash log instance.
+            filepath_ = [outputFilepath retain];
 
-                    // Record list of suspects.
-                    suspects_ = [[[report properties] objectForKey:@"blame"] retain];
+            // Record list of suspects.
+            suspects_ = [[[report properties] objectForKey:@"blame"] retain];
 
             // Note that symbolication succeeded.
             didSymbolicate = YES;
-            }
         }
+    }
 
     return didSymbolicate;
 }
