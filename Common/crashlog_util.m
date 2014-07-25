@@ -57,7 +57,7 @@ NSData *dataForFile(NSString *filepath) {
 }
 
 BOOL deleteFile(NSString *filepath) {
-    BOOL didDelete = NO;
+    BOOL didDelete = YES;
 
     NSError *error = nil;
     if (![[NSFileManager defaultManager] removeItemAtPath:filepath error:&error]) {
@@ -65,6 +65,7 @@ BOOL deleteFile(NSString *filepath) {
         if (!delete_as_root([filepath UTF8String])) {
             fprintf(stderr, "WARNING: Unable to delete file \"%s\": \"%s\".\n",
                     [filepath UTF8String], [[error localizedDescription] UTF8String]);
+            didDelete = NO;
         }
     }
 
