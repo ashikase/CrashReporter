@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//GNUstep//DTD plist 0.9//EN" "http://www.gnustep.org/plist-0_9.xml">
+<plist version="0.9">
+    <dict>
+        <key>title</key>
+        <string>CrashReporter</string>
+        <key>entry</key>
+        <dict>
+            <key>cell</key>
+            <string>PSLinkCell</string>
+            <key>label</key>
+            <string>CrashReporter</string>
+            <key>icon</key>
+            <string>icon.png</string>
+        </dict>
+        <key>items</key>
+        <array>
+            <dict>
+                <key>cell</key>
+                <string>PSGroupCell</string>
+                <key>label</key>
+                <string>Send notifications for:</string>
+            </dict>
+            <dict>
+                <key>cell</key>
+                <string>PSSwitchCell</string>
+                <key>label</key>
+                <string>Sandbox Violations</string>
+                <key>key</key>
+                <string>notifySandboxViolations</string>
+                <key>default</key>
+                <false/>
+                <key>defaults</key>
+                <string>crash-reporter</string>
+                <key>PostNotification</key>
+                <string>crash-reporter-settingsChanged</string>
+            </dict>
+            <dict>
+                <key>cell</key>
+                <string>PSSwitchCell</string>
+                <key>label</key>
+                <string>Execution Timeouts</string>
+                <key>key</key>
+                <string>notifyExecutionTimeouts</string>
+                <key>default</key>
+                <false/>
+                <key>defaults</key>
+                <string>crash-reporter</string>
+                <key>PostNotification</key>
+                <string>crash-reporter-settingsChanged</string>
+            </dict>
+        </array>
+    </dict>
+</plist>

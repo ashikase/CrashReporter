@@ -19,6 +19,9 @@
 
 #import "crashlog_util.h"
 
+#define kNotifySandboxViolations "notifySandboxViolations"
+#define kNotifyExecutionTimeouts "notifyExecutionTimeouts"
+
 extern mach_port_t SBSSpringBoardServerPort();
 
 @interface SBSLocalNotificationClient : NSObject
@@ -115,65 +118,76 @@ int main(int argc, char **argv, char **envp) {
         suspects = [properties objectForKey:@"blame"];
     }
 
-    // Determine the bundle name.
-    NSString *bundleName = [properties objectForKey:@"app_name"];
-    if (bundleName == nil) {
-        bundleName = [properties objectForKey:@"displayName"];
+    // Determine if notification should be sent.
+    NSDictionary *processInfo = [report processInfo];
+    BOOL isSandbox = ([processInfo objectForKey:@"Sandbox Violation"] != nil);
+    BOOL isTimeout = [[processInfo objectForKey:@"Exception Codes"] isEqualToString:@"0x000000008badf00d"];
+    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+    BOOL notifySandbox = [defaults boolForKey:@kNotifySandboxViolations];
+    BOOL notifyTimeout = [defaults boolForKey:@kNotifyExecutionTimeouts];
+    BOOL shouldNotify = (!isSandbox || notifySandbox) && (!isTimeout || notifyTimeout);
+    if (shouldNotify) {
+        // Determine the bundle name.
+        NSString *bundleName = [properties objectForKey:@"app_name"];
+        if (bundleName == nil) {
+            bundleName = [properties objectForKey:@"displayName"];
+        }
+
+        // Create notification message.
+        NSMutableString *body = [NSMutableString stringWithFormat:NSLocalizedString(@"NOTIFY_CRASHED", nil), bundleName];
+        [body appendString:@"\n"];
+        if ([suspects count] > 0) {
+            [body appendFormat:NSLocalizedString(@"NOTIFY_MAIN_SUSPECT", nil), [[suspects objectAtIndex:0] lastPathComponent]];
+        } else {
+            [body appendString:NSLocalizedString(@"NOTIFY_NO_SUSPECTS", nil)];
+        }
+
+        // Make sure that SpringBoard's local notification server is up.
+        // NOTE: If SpringBoard is not running (i.e. it is what crashed), will
+        //       not be able to register a local notification.
+        // FIXME: Even if port is non-zero, it does not mean that SpringBoard is
+        //        ready to handle notifications.
+        BOOL shouldDelay = NO;
+        mach_port_t port;
+        while ((port = SBSSpringBoardServerPort()) == 0) {
+            [NSThread sleepForTimeInterval:1.0];
+            shouldDelay = YES;
+        }
+
+        if (shouldDelay) {
+            // Wait serveral seconds to give time for SpringBoard to finish launching.
+            // FIXME: This is needed due to issue mentioned above. The time
+            //        interval was chosen arbitrarily and may not be long enough
+            //        in some cases.
+            [NSThread sleepForTimeInterval:20.0];
+        }
+
+        // Load UIKit framework.
+        void *handle = dlopen("/System/Library/Frameworks/UIKit.framework/UIKit", RTLD_LAZY);
+
+        // Send the notification.
+        UILocalNotification *notification = [objc_getClass("UILocalNotification") new];
+        [notification setAlertBody:body];
+        [notification setUserInfo:[NSDictionary dictionaryWithObjectsAndKeys:filepath, @"filepath", nil]];
+
+        // FIXME: Determine how to increase the current badge number.
+        [notification setApplicationIconBadgeNumber:1];
+
+        // NOTE: Passing nil as the action will cause iOS to display "View" (localized).
+        [notification setHasAction:YES];
+        [notification setAlertAction:nil];
+
+        // NOTE: Notification will be shown immediately as no fire date was set.
+        [SBSLocalNotificationClient scheduleLocalNotification:notification bundleIdentifier:@"crash-reporter"];
+        [notification release];
+
+        dlclose(handle);
     }
-
-    // Create notification message.
-    NSMutableString *body = [NSMutableString stringWithFormat:NSLocalizedString(@"NOTIFY_CRASHED", nil), bundleName];
-    [body appendString:@"\n"];
-    if ([suspects count] > 0) {
-        [body appendFormat:NSLocalizedString(@"NOTIFY_MAIN_SUSPECT", nil), [[suspects objectAtIndex:0] lastPathComponent]];
-    } else {
-        [body appendString:NSLocalizedString(@"NOTIFY_NO_SUSPECTS", nil)];
-    }
-    [report release];
-
-    // Make sure that SpringBoard's local notification server is up.
-    // NOTE: If SpringBoard is not running (i.e. it is what crashed), will
-    //       not be able to register a local notification.
-    // FIXME: Even if port is non-zero, it does not mean that SpringBoard is
-    //        ready to handle notifications.
-    BOOL shouldDelay = NO;
-    mach_port_t port;
-    while ((port = SBSSpringBoardServerPort()) == 0) {
-        [NSThread sleepForTimeInterval:1.0];
-        shouldDelay = YES;
-    }
-
-    if (shouldDelay) {
-        // Wait serveral seconds to give time for SpringBoard to finish launching.
-        // FIXME: This is needed due to issue mentioned above. The time
-        //        interval was chosen arbitrarily and may not be long enough
-        //        in some cases.
-        [NSThread sleepForTimeInterval:20.0];
-    }
-
-    // Load UIKit framework.
-    void *handle = dlopen("/System/Library/Frameworks/UIKit.framework/UIKit", RTLD_LAZY);
-
-    // Send the notification.
-    UILocalNotification *notification = [objc_getClass("UILocalNotification") new];
-    [notification setAlertBody:body];
-    [notification setUserInfo:[NSDictionary dictionaryWithObjectsAndKeys:filepath, @"filepath", nil]];
-
-    // FIXME: Determine how to increase the current badge number.
-    [notification setApplicationIconBadgeNumber:1];
-
-    // NOTE: Passing nil as the action will cause iOS to display "View" (localized).
-    [notification setHasAction:YES];
-    [notification setAlertAction:nil];
-
-    // NOTE: Notification will be shown immediately as no fire date was set.
-    [SBSLocalNotificationClient scheduleLocalNotification:notification bundleIdentifier:@"crash-reporter"];
-    [notification release];
 
     // Must execute the run loop once so the above is processed.
     CFRunLoopRunInMode(kCFRunLoopDefaultMode, 0, true);
 
-    dlclose(handle);
+    [report release];
     [pool release];
     return 0;
 }
