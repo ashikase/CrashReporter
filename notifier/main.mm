@@ -268,4 +268,4 @@ int main(int argc, char **argv, char **envp) {
     return 0;
 }
 
-// vim:ft=objc
+/* vim: set ft=objc ff=unix sw=4 ts=4 tw=80 expandtab: */
