@@ -22,7 +22,7 @@
 #import "LinkInstruction.h"
 #import "Package.h"
 
-#include "SystemInfo.h"
+#include "system_info.h"
 
 static const CGFloat kTableRowHeight = 48.0;
 

@@ -15,7 +15,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-#include "Paths.h"
+#include "paths.h"
 
 static void print_usage() {
     fprintf(stderr,
