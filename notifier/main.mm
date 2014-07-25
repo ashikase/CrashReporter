@@ -28,14 +28,13 @@ static void fixFileOwnership(NSString *filepath) {
     NSError *error = nil;
     NSDictionary *attrib = [[NSFileManager defaultManager] attributesOfItemAtPath:directory error:&error];
     if (attrib != nil) {
-        if ([[attrib fileOwnerAccountName] isEqualToString:@"mobile"]) {
-            if (lchown([filepath UTF8String], 501, 501) != 0) {
-                fprintf(stderr, "WARNING: Failed to change ownership of file: %s, errno = %d.\n", [filepath UTF8String], errno);
-            }
+        uid_t owner = [[attrib fileOwnerAccountName] isEqualToString:@"mobile"] ? 501 : 0;
+        gid_t group = owner;
+        if (lchown([filepath UTF8String], owner, group) != 0) {
+            NSLog(@"WARNING: Failed to change ownership of file: %@, errno = %d.\n", filepath, errno);
         }
     } else {
-        fprintf(stderr, "ERROR: Unable to determine attributes for file: %s, %s.\n",
-            [filepath UTF8String], [[error localizedDescription] UTF8String]);
+        NSLog(@"ERROR: Unable to determine attributes for file: %@, %@.\n", filepath, [error localizedDescription]);
     }
 }
 
