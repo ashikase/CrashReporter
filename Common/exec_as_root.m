@@ -7,15 +7,16 @@
 
 #include "exec_as_root.h"
 
-static char as_root_path$[64];
+static NSString *as_root_path$ = nil;
 
 static const char *as_root_path() {
-    if (as_root_path$[0] == '\0') {
-        [[[NSBundle mainBundle] pathForResource:@"as_root" ofType:nil]
-            getCString:as_root_path$ maxLength:sizeof(as_root_path$)
-            encoding:NSUTF8StringEncoding];
+    if (as_root_path$ == nil) {
+        as_root_path$ = [[[NSBundle mainBundle] pathForResource:@"as_root" ofType:nil] retain];
+        if (as_root_path$ == nil) {
+            fprintf(stderr, "ERROR: Unable to determine path for \"as_root\" tool.\n");
+        }
     }
-    return as_root_path$;
+    return [as_root_path$ UTF8String];
 }
 
 static BOOL as_root(const char *action, const char *param1, const char *param2, const char *param3) {
