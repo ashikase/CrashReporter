@@ -148,12 +148,6 @@ int main(int argc, char **argv, char **envp) {
         [syslog release];
     }
 
-    // Symbolicate the report.
-    // FIXME: Save the result with the "symbolicated" suffix so that CrashReporter
-    //        will detect it and not symbolicate it again.
-    [report symbolicate];
-
-
     // Symbolicate.
     // TODO: This code is very close to the symbolicate method in the app's
     //       CrashLog class. Consider using CrashLog class here as well.
