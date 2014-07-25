@@ -12,26 +12,31 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 
-const char * const kLogPath = "/Library/Logs/CrashReporter/";
-const char * const kTemporaryPath = "/tmp/";
+#include "Paths.h"
 
 static void print_usage() {
     fprintf(stderr,
-            "Usage: as_root copy <from_filepath> <to_filepath>\n"
-            "       as_root move <from_filepath> <to_filepath>\n"
+            "Usage: as_root chmod <filepath> <mode>\n"
+            "       as_root chown <filepath> <owner> <group>\n"
+            "       as_root copy <from_filepath> <to_filepath>\n"
             "       as_root delete <filepath>\n"
+            "       as_root move <from_filepath> <to_filepath>\n"
             "\n"
             "       Note that only filepaths with the following prefixes are permitted:\n"
             "       * \"%s\"\n"
+            "       * \"%s\"\n"
             "       * \"%s\"\n",
-            kLogPath, kTemporaryPath
+            kCrashLogDirectoryForMobile, kCrashLogDirectoryForRoot, kTemporaryPath
            );
 }
 
 static int is_valid_filepath(const char *filepath) {
     return
-        (strncmp(filepath, kLogPath, strlen(kLogPath)) == 0) ||
+        (strncmp(filepath, kCrashLogDirectoryForMobile, strlen(kCrashLogDirectoryForMobile)) == 0) ||
+        (strncmp(filepath, kCrashLogDirectoryForRoot, strlen(kCrashLogDirectoryForRoot)) == 0) ||
         (strncmp(filepath, kTemporaryPath, strlen(kTemporaryPath)) == 0);
 }
 
@@ -42,7 +47,26 @@ int main(int argc, const char *argv[]) {
         return EXIT_FAILURE;
     }
 
-    if ((argc == 4) && (strcasecmp(argv[1], "copy") == 0)) {
+    if ((argc == 4) && (strcasecmp(argv[1], "chmod") == 0)) {
+        // Get filepath and ownership info.
+        const char *filepath = argv[2];
+        mode_t mode = strtol(argv[3], NULL, 8);
+
+        // Change mode for filepath.
+        if (chmod(filepath, mode) != 0) {
+            fprintf(stderr, "WARNING: Failed to change mode of file: %s, errno = %d.\n", filepath, errno);
+        }
+    } else if ((argc == 5) && (strcasecmp(argv[1], "chown") == 0)) {
+        // Get filepath and ownership info.
+        const char *filepath = argv[2];
+        uid_t owner = atoi(argv[3]);
+        gid_t group = atoi(argv[4]);
+
+        // Change ownership for filepath.
+        if (lchown(filepath, owner, group) != 0) {
+            fprintf(stderr, "WARNING: Failed to change ownership of file: %s, errno = %d.\n", filepath, errno);
+        }
+    } else if ((argc == 4) && (strcasecmp(argv[1], "copy") == 0)) {
         // Get filepaths.
         const char *from_filepath = argv[2];
         const char *to_filepath = argv[3];
