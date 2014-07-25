@@ -137,7 +137,7 @@ static const CGFloat kTableRowHeight = 48.0;
 
     // Add device information.
     UIDevice *device = [UIDevice currentDevice];
-    [string appendFormat:@"%@ (%@) %@: %@\n\n\n", platformVersion(), [device name], [device systemVersion], uniqueId()];
+    [string appendFormat:@"%@ %@: %@\n\n\n", platformVersion(), [device systemVersion], uniqueId()];
 
     // Add default message.
     BOOL isForward = ([linkInstruction_ recipients] == nil);
