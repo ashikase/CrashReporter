@@ -12,10 +12,7 @@
 #import "CrashLogGroup.h"
 
 #import "CrashLog.h"
-
-// NOTE: These constants are accessed externally.
-NSString * const kCrashLogDirectoryForMobile = @"/var/mobile/Library/Logs/CrashReporter";
-NSString * const kCrashLogDirectoryForRoot = @"/Library/Logs/CrashReporter";
+#include "paths.h"
 
 static NSMutableArray *mobileCrashLogGroups$ = nil;
 static NSMutableArray *rootCrashLogGroups$ = nil;
@@ -89,7 +86,7 @@ static NSInteger reverseCompareCrashLogs(CrashLog *a, CrashLog *b, void *context
 
 + (NSArray *)groupsForMobile {
     if (mobileCrashLogGroups$ == nil) {
-        NSArray *groups = crashLogGroupsForDirectory(kCrashLogDirectoryForMobile);
+        NSArray *groups = crashLogGroupsForDirectory(@kCrashLogDirectoryForMobile);
         mobileCrashLogGroups$ = [[groups sortedArrayUsingFunction:compareCrashLogGroups context:NULL] mutableCopy];
     }
     return mobileCrashLogGroups$;
@@ -97,7 +94,7 @@ static NSInteger reverseCompareCrashLogs(CrashLog *a, CrashLog *b, void *context
 
 + (NSArray *)groupsForRoot {
     if (rootCrashLogGroups$ == nil) {
-        NSArray *groups = crashLogGroupsForDirectory(kCrashLogDirectoryForRoot);
+        NSArray *groups = crashLogGroupsForDirectory(@kCrashLogDirectoryForRoot);
         rootCrashLogGroups$ = [[groups sortedArrayUsingFunction:compareCrashLogGroups context:NULL] mutableCopy];
     }
     return rootCrashLogGroups$;
@@ -153,7 +150,7 @@ static NSInteger reverseCompareCrashLogs(CrashLog *a, CrashLog *b, void *context
     }
 
     // Remove group from global array.
-    NSMutableArray *crashLogGroups = [[self logDirectory] isEqualToString:kCrashLogDirectoryForMobile] ?
+    NSMutableArray *crashLogGroups = [[self logDirectory] isEqualToString:@kCrashLogDirectoryForMobile] ?
         mobileCrashLogGroups$ : rootCrashLogGroups$;
     [crashLogGroups removeObject:self];
 

@@ -16,6 +16,8 @@
 #import "CrashLogGroup.h"
 #import "SuspectsViewController.h"
 
+#include "paths.h"
+
 static inline NSUInteger indexOf(NSUInteger section, NSUInteger row, BOOL deletedRowZero) {
     return section + row - (deletedRowZero ? 1 : 0);
 }
@@ -72,7 +74,7 @@ static inline NSUInteger indexOf(NSUInteger section, NSUInteger row, BOOL delete
 
     // Reload all crash log groups.
     [CrashLogGroup forgetGroups];
-    NSArray *crashLogGroups = [logDirectory isEqualToString:kCrashLogDirectoryForMobile] ?
+    NSArray *crashLogGroups = [logDirectory isEqualToString:@kCrashLogDirectoryForMobile] ?
         [CrashLogGroup groupsForMobile] : [CrashLogGroup groupsForRoot];
 
     // Find the new group with the same group name (i.e. same process).
