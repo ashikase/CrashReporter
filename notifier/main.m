@@ -54,9 +54,6 @@ int main(int argc, char **argv, char **envp) {
 
     // Determine the name of the process.
     NSString *processName = [properties objectForKey:@"name"];
-    if (processName == nil) {
-        processName = [properties objectForKey:@"name"];
-    }
 
     // Capture syslog output via ASL (Apple System Log).
     // NOTE: Make sure not to overwrite file if it already exists.
