@@ -1,5 +1,7 @@
 APPLICATION_NAME = CrashReporter
 CrashReporter_FILES = \
+    ../Common/crashlog_util.m \
+    ../Common/exec_as_root.m \
     ApplicationDelegate.m \
     ContactViewController.m \
     CrashLog.m \
@@ -17,7 +19,6 @@ CrashReporter_FILES = \
     VictimViewController.m \
     common.c \
     main.m \
-    as_root.m \
     pastie.m
 CrashReporter_CFLAGS = -I../Libraries
 CrashReporter_LDFLAGS = -llockdown -lsymbolicate

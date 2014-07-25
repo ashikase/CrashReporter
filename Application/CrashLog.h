@@ -23,7 +23,7 @@ extern NSString * const kViewedCrashLogs;
 @property(nonatomic, assign, getter = isViewed) BOOL viewed;
 - (instancetype)initWithFilepath:(NSString *)filepath;
 - (BOOL)delete;
-- (void)symbolicate;
+- (BOOL)symbolicate;
 @end
 
 /* vim: set ft=objc ff=unix sw=4 ts=4 tw=80 expandtab: */

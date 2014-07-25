@@ -13,12 +13,9 @@
 
 #import <RegexKitLite/RegexKitLite.h>
 #import <libsymbolicate/CRCrashReport.h>
-
-#include "exec_as_root.h"
+#import "crashlog_util.h"
 
 NSString * const kViewedCrashLogs = @"viewedCrashLogs";
-
-static const char * const kTempFilepath = "/tmp/CrashReporter.XXXXXX";
 
 static NSCalendar *calendar() {
     static NSCalendar *calendar = nil;
@@ -28,24 +25,24 @@ static NSCalendar *calendar() {
     return calendar;
 }
 
-static void saveViewedState(NSString *filepath) {
-    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-    NSArray *viewedCrashLogs = [defaults arrayForKey:kViewedCrashLogs];
-    if (![viewedCrashLogs containsObject:filepath]) {
-        NSMutableArray *array = [[NSMutableArray alloc] initWithArray:viewedCrashLogs];
-        [array addObject:filepath];
-        [defaults setObject:array forKey:kViewedCrashLogs];
-        [defaults synchronize];
-        [array release];
-    }
-}
-
 static void deleteViewedState(NSString *filepath) {
     NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
     NSArray *viewedCrashLogs = [defaults arrayForKey:kViewedCrashLogs];
     if ([viewedCrashLogs containsObject:filepath]) {
         NSMutableArray *array = [[NSMutableArray alloc] initWithArray:viewedCrashLogs];
         [array removeObject:filepath];
+        [defaults setObject:array forKey:kViewedCrashLogs];
+        [defaults synchronize];
+        [array release];
+    }
+}
+
+static void saveViewedState(NSString *filepath) {
+    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+    NSArray *viewedCrashLogs = [defaults arrayForKey:kViewedCrashLogs];
+    if (![viewedCrashLogs containsObject:filepath]) {
+        NSMutableArray *array = [[NSMutableArray alloc] initWithArray:viewedCrashLogs];
+        [array addObject:filepath];
         [defaults setObject:array forKey:kViewedCrashLogs];
         [defaults synchronize];
         [array release];
@@ -143,20 +140,10 @@ static void deleteViewedState(NSString *filepath) {
 
 #pragma mark - Other
 
-static BOOL deleteFileAtPath(NSString *filepath) {
-    if ([[NSFileManager defaultManager] removeItemAtPath:filepath error:NULL]) {
-        // Successfullly deleted.
-        return YES;
-    } else {
-        // Try to delete as root.
-        return delete_as_root([filepath UTF8String]);
-    }
-}
-
 - (BOOL)delete {
     NSString *filepath = [self filepath];
 
-    BOOL didDelete = deleteFileAtPath(filepath);
+    BOOL didDelete = deleteFile(filepath);
     if (didDelete) {
         if ([self isViewed]) {
             // Must remove from list of viewed entries.
@@ -166,95 +153,32 @@ static BOOL deleteFileAtPath(NSString *filepath) {
     return didDelete;
 }
 
-- (void)symbolicate {
+- (BOOL)symbolicate {
+    BOOL didSymbolicate = NO;
+
     if (![self isSymbolicated]) {
-        NSString *filepath = [self filepath];
-
-        // Check if file is readable.
-        NSString *actualFilepath = nil;
-        NSFileManager *fileMan = [NSFileManager defaultManager];
-        if (![fileMan isReadableFileAtPath:filepath]) {
-            // Copy file to temporary directory.
-            char tempFilepath[strlen(kTempFilepath) + 1 ];
-            memcpy(tempFilepath, kTempFilepath, sizeof(tempFilepath));
-            if (mktemp(tempFilepath) == NULL) {
-                NSLog(@"ERROR: Unable to create temporary filepath.");
-                return;
-            }
-            if (!copy_as_root([filepath UTF8String], tempFilepath)) {
-                NSLog(@"ERROR: Failed to move file to temorary filepath.");
-                return;
-            }
-
-            actualFilepath = filepath;
-            filepath = [NSString stringWithCString:tempFilepath encoding:NSUTF8StringEncoding];
-        }
-
-        // Load crash report.
-        CRCrashReport *report = [[CRCrashReport alloc] initWithFile:filepath];
-
         // Symbolicate.
-        if ([report symbolicate]) {
-            // Process blame.
-            NSDictionary *filters = [[NSDictionary alloc] initWithContentsOfFile:@"/etc/symbolicate/blame_filters.plist"];
-            if ([report blameUsingFilters:filters]) {
-                // Write output to file.
-                NSString *outputFilepath = [NSString stringWithFormat:@"%@.symbolicated.%@",
-                        [filepath stringByDeletingPathExtension], [filepath pathExtension]];
-                NSError *error = nil;
-                if ([[report stringRepresentation] writeToFile:outputFilepath atomically:YES encoding:NSUTF8StringEncoding error:&error]) {
-                    // Delete input file.
-                    if (!deleteFileAtPath(filepath)) {
-                        NSLog(@"ERROR: Failed to delete original log file.\n");
-                    }
-
-                    if (actualFilepath != nil) {
-                        // Move symbolicated file to actual directory.
-                        NSString *actualOutputFilepath = [NSString stringWithFormat:@"%@.symbolicated.%@",
-                                 [actualFilepath stringByDeletingPathExtension], [actualFilepath pathExtension]];
-                        if (move_as_root([outputFilepath UTF8String], [actualOutputFilepath UTF8String])) {
-                            // Delete actual file.
-                            if (!delete_as_root([actualFilepath UTF8String])) {
-                                NSLog(@"ERROR: Failed to delete original root-owned log file.\n");
-                            }
-                        } else {
-                            NSLog(@"ERROR: Failed to move symbolicated log file back to original directory.\n");
-                        }
-
+        NSString *inputFilepath = [self filepath];
+        NSString *outputFilepath = symbolicateFile(inputFilepath, nil);
+        if (outputFilepath != nil) {
                         // Update name used for determining viewed state.
                         if ([self isViewed]) {
-                            deleteViewedState(actualFilepath);
-                            saveViewedState(actualOutputFilepath);
-                        }
-
-                        // Update path for this crash log instance.
-                        filepath_ = [actualOutputFilepath retain];
-                    } else {
-                        // Update name used for determining viewed state.
-                        if ([self isViewed]) {
-                            deleteViewedState(filepath);
+                deleteViewedState(inputFilepath);
                             saveViewedState(outputFilepath);
                         }
 
                         // Update path for this crash log instance.
                         filepath_ = [outputFilepath retain];
-                    }
 
                     // Record list of suspects.
                     suspects_ = [[[report properties] objectForKey:@"blame"] retain];
-                } else {
-                    NSLog(@"ERROR: Unable to write to file \"%@\": %@.", outputFilepath, [error localizedDescription]);
-                }
-            } else {
-                NSLog(@"ERROR: Failed to process blame.");
+
+            // Note that symbolication succeeded.
+            didSymbolicate = YES;
             }
-            [filters release];
-        } else {
-            NSLog(@"ERROR: Unable to symbolicate file \"%@\".", filepath);
         }
 
-        [report release];
-    }
+    return didSymbolicate;
 }
 
 @end
