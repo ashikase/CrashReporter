@@ -40,7 +40,6 @@ static BOOL as_root(const char *action, const char *param1, const char *param2, 
 
         // Check the exit status to determine if the operation was successful.
         if (WIFEXITED(stat_loc)) {
-            printf("%d", WEXITSTATUS(stat_loc));
             if (WEXITSTATUS(stat_loc) == 0) {
                 succeeded = YES;
             }
