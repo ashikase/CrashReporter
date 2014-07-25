@@ -14,7 +14,7 @@
 #import <RegexKitLite/RegexKitLite.h>
 #import <libsymbolicate/CRCrashReport.h>
 
-#include "as_root.h"
+#include "exec_as_root.h"
 
 NSString * const kViewedCrashLogs = @"viewedCrashLogs";
 

@@ -1,9 +1,5 @@
 /**
- * Name: CrashReporter
- * Type: iOS application
- * Desc: iOS app for viewing the details of a crash, determining the possible
- *       cause of said crash, and reporting this information to the developer(s)
- *       responsible.
+ * Desc: Collection of utility functions for calling as_root command line tool.
  *
  * Author: Lance Fetters (aka. ashikase)
  * License: GPL v3 (See LICENSE file for details)
