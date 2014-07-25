@@ -172,7 +172,7 @@ NSString *symbolicateFile(NSString *filepath, CRCrashReport *report) {
                 }
 
                 // Update file ownership.
-                fixFileOwnership(filepath);
+                fixFileOwnership(path);
 
                 // Save write path.
                 outputFilepath = path;
