@@ -101,10 +101,7 @@ NSData *dataForFile(NSString *filepath) {
 
     // Delete temporary file, if necessary.
     if (tempFilepath != nil) {
-        if (![fileMan removeItemAtPath:tempFilepath error:&error]) {
-            fprintf(stderr, "WARNING: Unable to delete temporary file \"%s\": \"%s\".\n",
-                    [tempFilepath UTF8String], [[error localizedDescription] UTF8String]);
-        }
+        deleteFile(tempFilepath);
         [tempFilepath release];
     }
 
@@ -175,7 +172,7 @@ static void replaceSymbolicLink(NSString *linkPath, NSString *oldDestPath, NSStr
     if (destPath != nil) {
         if ([destPath isEqualToString:oldDestPath]) {
             // Remove old link.
-            if ([fileMan removeItemAtPath:linkPath error:&error]) {
+            if (deleteFile(linkPath)) {
                 // Create new link.
                 if ([fileMan createSymbolicLinkAtPath:linkPath withDestinationPath:newDestPath error:&error]) {
                     fixFileOwnershipAndPermissions(linkPath);
@@ -183,9 +180,6 @@ static void replaceSymbolicLink(NSString *linkPath, NSString *oldDestPath, NSStr
                     fprintf(stderr, "ERROR: Failed to create \"%s\" symbolic link: %s.\n",
                         [[linkPath lastPathComponent] UTF8String], [[error localizedDescription] UTF8String]);
                 }
-            } else {
-                fprintf(stderr, "ERROR: Failed to remove old \"%s\" symbolic link: %s.\n",
-                    [[linkPath lastPathComponent] UTF8String], [[error localizedDescription] UTF8String]);
             }
         }
     } else {
