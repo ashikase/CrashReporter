@@ -128,11 +128,7 @@ static void saveViewedState(NSString *filepath) {
 }
 
 - (BOOL)isSymbolicated {
-    // NOTE: This assumes that symbolicated files have a specific extension,
-    //       which may not be the case if the file was symbolicated by a
-    //       tool other than CrashReporter.
-    NSString *basename = [[[self filepath] lastPathComponent] stringByDeletingPathExtension];
-    return [basename hasSuffix:@".symbolicated"];
+    return fileIsSymbolicated([self filepath], nil);
 }
 
 - (BOOL)isViewed {
