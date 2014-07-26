@@ -136,7 +136,7 @@ int main(int argc, char **argv, char **envp) {
         // Write syslog to file (if syslog data exists).
         NSError *error = nil;
         if (writeToFile(syslog, syslogPath)) {
-            fixFileOwnership(syslogPath);
+            fixFileOwnershipAndPermissions(syslogPath);
         } else {
             fprintf(stderr, "WARNING: Failed to save syslog information to file: %s.\n", [[error localizedDescription] UTF8String]);
         }

@@ -11,7 +11,7 @@
 BOOL fileIsSymbolicated(NSString *filepath, CRCrashReport *report);
 NSData *dataForFile(NSString *filepath);
 BOOL deleteFile(NSString *filepath);
-BOOL fixFileOwnership(NSString *filepath);
+BOOL fixFileOwnershipAndPermissions(NSString *filepath);
 NSString *symbolicateFile(NSString *filepath, CRCrashReport *report);
 NSString *syslogPathForFile(NSString *filepath);
 BOOL writeToFile(NSString *string, NSString *outputFilepath);

@@ -9,6 +9,8 @@
 #import "crashlog_util.h"
 
 #import <libsymbolicate/CRCrashReport.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 #include "exec_as_root.h"
 
 static const char * const kTemporaryFilepath = "/tmp/CrashReporter.temp.XXXXXX";
@@ -125,7 +127,7 @@ BOOL deleteFile(NSString *filepath) {
     return didDelete;
 }
 
-BOOL fixFileOwnership(NSString *filepath) {
+BOOL fixFileOwnershipAndPermissions(NSString *filepath) {
     BOOL didFix = NO;
 
     // Determine ownership of containing directory.
@@ -133,15 +135,27 @@ BOOL fixFileOwnership(NSString *filepath) {
     NSError *error = nil;
     NSDictionary *attrib = [[NSFileManager defaultManager] attributesOfItemAtPath:directory error:&error];
     if (attrib != nil) {
+        // Determine owner of filepath.
+        BOOL isMobile = [[attrib fileOwnerAccountName] isEqualToString:@"mobile"];
+
         // Apply same ownership to the filepath.
         const char *path = [filepath UTF8String];
-        uid_t owner = [[attrib fileOwnerAccountName] isEqualToString:@"mobile"] ? 501 : 0;
+        uid_t owner = isMobile ? 501 : 0;
         gid_t group = owner;
 
         if (lchown(path, owner, group) != 0) {
             // Try again using as_root tool.
             if (!chown_as_root(path, owner, group)) {
                 fprintf(stderr, "WARNING: Failed to change ownership of file: %s, errno = %d.\n", path, errno);
+            }
+        }
+
+        // Update permissions using known values.
+        mode_t mode = isMobile ? 0644 : 0640;
+        if (chmod(path, mode) != 0) {
+            // Try again using as_root tool.
+            if (!chmod_as_root(path, mode)) {
+                fprintf(stderr, "WARNING: Failed to change mode of file: %s, errno = %d.\n", path, errno);
             }
         }
     } else {
@@ -164,7 +178,7 @@ static void replaceSymbolicLink(NSString *linkPath, NSString *oldDestPath, NSStr
             if ([fileMan removeItemAtPath:linkPath error:&error]) {
                 // Create new link.
                 if ([fileMan createSymbolicLinkAtPath:linkPath withDestinationPath:newDestPath error:&error]) {
-                    fixFileOwnership(linkPath);
+                    fixFileOwnershipAndPermissions(linkPath);
                 } else {
                     fprintf(stderr, "ERROR: Failed to create \"%s\" symbolic link: %s.\n",
                         [[linkPath lastPathComponent] UTF8String], [[error localizedDescription] UTF8String]);
@@ -226,8 +240,8 @@ NSString *symbolicateFile(NSString *filepath, CRCrashReport *report) {
                         fprintf(stderr, "WARNING: Failed to delete original log file \"%s\".\n", [filepath UTF8String]);
                     }
 
-                    // Update file ownership.
-                    fixFileOwnership(path);
+                    // Update file ownership and permissions.
+                    fixFileOwnershipAndPermissions(path);
 
                     // Save write path.
                     outputFilepath = path;
