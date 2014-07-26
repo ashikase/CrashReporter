@@ -23,6 +23,7 @@ MAIN_SUSPECT = "Main suspect";
 NOTIFY_CRASHED = "\"%@\" has crashed.";
 NOTIFY_MAIN_SUSPECT = "\"%@\" is main suspect.";
 NOTIFY_NO_SUSPECTS = "There are no suspects.";
+NOTIFY_SANDBOX_VIOLATION = "\"%@\" violated sandbox.";
 OK = "OK";
 OTHER_SUSPECTS = "Other suspects";
 PACKAGE_FAILED_1 = "The package that owns this file is either no longer installed, or was not installed via Cydia or the App Store.";

@@ -143,39 +143,53 @@ int main(int argc, char **argv, char **envp) {
         [syslog release];
     }
 
+    // Determine the type of crash.
+    NSDictionary *processInfo = [report processInfo];
+    BOOL isSandboxViolation = ([processInfo objectForKey:@"Sandbox Violation"] != nil);
+    BOOL isExecutionTimeout = [[processInfo objectForKey:@"Exception Codes"] hasSuffix:@"8badf00d"];
+
     // Symbolicate and determine blame.
     NSArray *suspects = nil;
-    NSString *outputFilepath = symbolicateFile(filepath, report);
-    if  (outputFilepath != nil) {
-        // Update path for this crash log instance.
-        filepath = outputFilepath;
+    if (!isSandboxViolation) {
+        NSString *outputFilepath = symbolicateFile(filepath, report);
+        if  (outputFilepath != nil) {
+            // Update path for this crash log instance.
+            filepath = outputFilepath;
 
-        // Retrieve list of suspects.
-        suspects = [properties objectForKey:@"blame"];
+            // Retrieve list of suspects.
+            suspects = [properties objectForKey:@"blame"];
+        }
     }
 
     // Determine if notification should be sent.
-    NSDictionary *processInfo = [report processInfo];
-    BOOL isSandbox = ([processInfo objectForKey:@"Sandbox Violation"] != nil);
-    BOOL isTimeout = [[processInfo objectForKey:@"Exception Codes"] isEqualToString:@"0x000000008badf00d"];
     NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
     BOOL notifySandbox = [defaults boolForKey:@kNotifySandboxViolations];
     BOOL notifyTimeout = [defaults boolForKey:@kNotifyExecutionTimeouts];
-    BOOL shouldNotify = (!isSandbox || notifySandbox) && (!isTimeout || notifyTimeout);
+    BOOL shouldNotify = (!isSandboxViolation || notifySandbox) && (!isExecutionTimeout || notifyTimeout);
     if (shouldNotify) {
         // Determine the bundle name.
         NSString *bundleName = [properties objectForKey:@"app_name"];
         if (bundleName == nil) {
             bundleName = [properties objectForKey:@"displayName"];
+            if (bundleName == nil) {
+                // NOTE: For sandbox violations, at least, bundle info is not
+                //       included in the report.
+                bundleName = [[[report processInfo] objectForKey:@"Path"] lastPathComponent];
+            }
         }
 
         // Create notification message.
-        NSMutableString *body = [NSMutableString stringWithFormat:NSLocalizedString(@"NOTIFY_CRASHED", nil), bundleName];
-        [body appendString:@"\n"];
-        if ([suspects count] > 0) {
-            [body appendFormat:NSLocalizedString(@"NOTIFY_MAIN_SUSPECT", nil), [[suspects objectAtIndex:0] lastPathComponent]];
+        NSMutableString *body = nil;
+        if (isSandboxViolation) {
+            body = [NSMutableString stringWithFormat:NSLocalizedString(@"NOTIFY_SANDBOX_VIOLATION", nil), bundleName];
         } else {
-            [body appendString:NSLocalizedString(@"NOTIFY_NO_SUSPECTS", nil)];
+            body = [NSMutableString stringWithFormat:NSLocalizedString(@"NOTIFY_CRASHED", nil), bundleName];
+            [body appendString:@"\n"];
+            if ([suspects count] > 0) {
+                [body appendFormat:NSLocalizedString(@"NOTIFY_MAIN_SUSPECT", nil), [[suspects objectAtIndex:0] lastPathComponent]];
+            } else {
+                [body appendString:NSLocalizedString(@"NOTIFY_NO_SUSPECTS", nil)];
+            }
         }
 
         // Make sure that SpringBoard's local notification server is up.
