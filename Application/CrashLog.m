@@ -158,6 +158,7 @@ static void saveViewedState(NSString *filepath) {
     BOOL didDelete = deleteFile(filepath);
     if (didDelete) {
         // Also delete the associated syslog file.
+        // TODO: Should also update any associated "Latest-" links.
         NSString *syslogPath = syslogPathForFile(filepath);
         if (syslogPath != nil) {
             deleteFile(syslogPath);
