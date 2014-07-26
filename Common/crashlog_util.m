@@ -13,6 +13,59 @@
 
 static const char * const kTemporaryFilepath = "/tmp/CrashReporter.temp.XXXXXX";
 
+BOOL fileIsSymbolicated(NSString *filepath, CRCrashReport *report) {
+    BOOL isSymbolicated = NO;
+
+    // NOTE: Marking and checking for symbolication status via a filename is
+    //       not the best method; however, the filename is checked first
+    //       because:
+    //       * It allows checking without having to load the crash log file.
+    //       * Earlier versions of libsymbolicate did not include the
+    //         "symbolicated" property.
+    // XXX: Checking the filename may lead to incorrectly marking a file as
+    //      symbolicated if the name of the crashed process includes the text
+    //      ".symbolicated.". The chance of such a process existing, though, is
+    //      considered to be low enough that code for this has not been added.
+    NSString *pathExtension = nil;
+    do {
+        // NOTE: This assumes that symbolicated files have a specific extension,
+        //       which may not be the case if the file was symbolicated by a
+        //       tool other than CrashReporter.
+        pathExtension = [filepath pathExtension];
+        if ([pathExtension isEqualToString:@"symbolicated"]) {
+            isSymbolicated = YES;
+            break;
+        }
+        filepath = [filepath stringByDeletingPathExtension];
+    } while ([pathExtension length] > 0);
+
+    if (!isSymbolicated) {
+        // Load crash report if necessary.
+        BOOL needsRelease = NO;
+        if (report == nil) {
+            // Get data for crash log file.
+            NSData *data = dataForFile(filepath);
+            if (data != nil) {
+                // Load crash report.
+                report = [[CRCrashReport alloc] initWithData:data];
+                if (report != nil) {
+                    needsRelease = YES;
+                }
+            }
+        }
+
+        // Check for "symbolicated" key.
+        isSymbolicated = [report isSymbolicated];
+
+        // Cleanup.
+        if (needsRelease) {
+            [report release];
+        }
+    }
+
+    return isSymbolicated;
+}
+
 NSData *dataForFile(NSString *filepath) {
     NSData *data = nil;
 
@@ -145,45 +198,50 @@ NSString *symbolicateFile(NSString *filepath, CRCrashReport *report) {
     }
 
     // Symbolicate.
-    if ([report symbolicate]) {
-        // Process blame.
-        NSDictionary *filters = [[NSDictionary alloc] initWithContentsOfFile:@"/etc/symbolicate/blame_filters.plist"];
-        if ([report blameUsingFilters:filters]) {
-            // Write output to file.
-            NSString *pathExtension = [filepath pathExtension];
-            NSString *path = [NSString stringWithFormat:@"%@.symbolicated.%@",
-                     [filepath stringByDeletingPathExtension], pathExtension];
-            if (writeToFile([report stringRepresentation], path)) {
-                // Fix any "LatestCrash-*" symbolic links for this file.
-                NSString *oldDestPath = [filepath lastPathComponent];
-                NSString *newDestPath = [path lastPathComponent];
-                NSString *linkPath;
-                linkPath = [NSString stringWithFormat:@"%@/LatestCrash.%@",
-                    [filepath stringByDeletingLastPathComponent], pathExtension];
-                replaceSymbolicLink(linkPath, oldDestPath, newDestPath);
+    if (!fileIsSymbolicated(filepath, report)) {
+        if ([report symbolicate]) {
+            // Process blame.
+            NSDictionary *filters = [[NSDictionary alloc] initWithContentsOfFile:@"/etc/symbolicate/blame_filters.plist"];
+            if ([report blameUsingFilters:filters]) {
+                // Write output to file.
+                NSString *pathExtension = [filepath pathExtension];
+                NSString *path = [NSString stringWithFormat:@"%@.symbolicated.%@",
+                        [filepath stringByDeletingPathExtension], pathExtension];
+                if (writeToFile([report stringRepresentation], path)) {
+                    // Fix any "LatestCrash-*" symbolic links for this file.
+                    NSString *oldDestPath = [filepath lastPathComponent];
+                    NSString *newDestPath = [path lastPathComponent];
+                    NSString *linkPath;
+                    linkPath = [NSString stringWithFormat:@"%@/LatestCrash.%@",
+                        [filepath stringByDeletingLastPathComponent], pathExtension];
+                    replaceSymbolicLink(linkPath, oldDestPath, newDestPath);
 
-                NSString *processName = [[report properties] objectForKey:@"name"];
-                linkPath = [NSString stringWithFormat:@"%@/LatestCrash-%@.%@",
-                    [filepath stringByDeletingLastPathComponent], processName, pathExtension];
-                replaceSymbolicLink(linkPath, oldDestPath, newDestPath);
+                    NSString *processName = [[report properties] objectForKey:@"name"];
+                    linkPath = [NSString stringWithFormat:@"%@/LatestCrash-%@.%@",
+                        [filepath stringByDeletingLastPathComponent], processName, pathExtension];
+                    replaceSymbolicLink(linkPath, oldDestPath, newDestPath);
 
-                // Delete the original (non-symbolicated) crash log file.
-                if (!deleteFile(filepath)) {
-                    fprintf(stderr, "WARNING: Failed to delete original log file \"%s\".\n", [filepath UTF8String]);
+                    // Delete the original (non-symbolicated) crash log file.
+                    if (!deleteFile(filepath)) {
+                        fprintf(stderr, "WARNING: Failed to delete original log file \"%s\".\n", [filepath UTF8String]);
+                    }
+
+                    // Update file ownership.
+                    fixFileOwnership(path);
+
+                    // Save write path.
+                    outputFilepath = path;
                 }
-
-                // Update file ownership.
-                fixFileOwnership(path);
-
-                // Save write path.
-                outputFilepath = path;
+            } else {
+                fprintf(stderr, "ERROR: Failed to process blame.\n");
             }
+            [filters release];
         } else {
-            fprintf(stderr, "ERROR: Failed to process blame.\n");
+            fprintf(stderr, "ERROR: Unable to symbolicate file \"%s\"\n.", [filepath UTF8String]);
         }
-        [filters release];
     } else {
-        fprintf(stderr, "ERROR: Unable to symbolicate file \"%s\"\n.", [filepath UTF8String]);
+        // Already symbolicated.
+        outputFilepath = filepath;
     }
 
     // Cleanup.

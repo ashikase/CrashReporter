@@ -8,6 +8,7 @@
 
 @class CRCrashReport;
 
+BOOL fileIsSymbolicated(NSString *filepath, CRCrashReport *report);
 NSData *dataForFile(NSString *filepath);
 BOOL deleteFile(NSString *filepath);
 BOOL fixFileOwnership(NSString *filepath);
