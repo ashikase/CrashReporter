@@ -219,8 +219,7 @@ static const CGFloat kTableRowHeight = 48.0;
 #pragma mark - MFMailComposeViewControllerDelegate
 
 - (void)mailComposeController:(MFMailComposeViewController *)controller didFinishWithResult:(MFMailComposeResult)result error:(NSError *)error {
-    [self dismissModalViewControllerAnimated:YES];
-
+    // Display error on failure.
     if (result == MFMailComposeResultFailed) {
         NSString *message = [NSLocalizedString(@"EMAIL_FAILED_1", nil) stringByAppendingString:[error localizedDescription]];
         NSString *okMessage = NSLocalizedString(@"OK", nil);
@@ -228,6 +227,19 @@ static const CGFloat kTableRowHeight = 48.0;
             cancelButtonTitle:okMessage otherButtonTitles:nil];
         [alert show];
         [alert release];
+    }
+
+    // Dismiss mail controller and optionally return to previous controller.
+    if (IOS_LT(6_0)) {
+        [self dismissModalViewControllerAnimated:YES];
+    } else {
+        if ((result == MFMailComposeResultCancelled) || (result == MFMailComposeResultFailed)) {
+            [self dismissViewControllerAnimated:YES completion:nil];
+        } else {
+            [self dismissViewControllerAnimated:YES completion:^{
+                [self.navigationController popViewControllerAnimated:YES];
+            }];
+        }
     }
 }
 
