@@ -128,8 +128,12 @@ int main(int argc, char **argv, char **envp) {
         aslresponse_free(response);
         asl_free(query);
 
-        // Write syslog to file.
-        // NOTE: Syslog may be empty.
+        // If no syslog data is available, add a message stating such.
+        if ([syslog length] == 0) {
+            [syslog appendString:@"Syslog did not contain any relevant information."];
+        }
+
+        // Write syslog to file (if syslog data exists).
         NSError *error = nil;
         if (writeToFile(syslog, syslogPath)) {
             fixFileOwnership(syslogPath);
