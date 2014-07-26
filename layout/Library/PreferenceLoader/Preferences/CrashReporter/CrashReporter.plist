@@ -21,6 +21,7 @@
                 <key>label</key>
                 <string>Send notifications for:</string>
             </dict>
+            <!--
             <dict>
                 <key>cell</key>
                 <string>PSSwitchCell</string>
@@ -35,6 +36,7 @@
                 <key>PostNotification</key>
                 <string>crash-reporter-settingsChanged</string>
             </dict>
+            -->
             <dict>
                 <key>cell</key>
                 <string>PSSwitchCell</string>
