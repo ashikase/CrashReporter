@@ -44,9 +44,16 @@ int main(int argc, char **argv, char **envp) {
     NSString *filepath = [NSString stringWithFormat:@"%s", argv[1]];
 
     // Load and parse the crash log.
-    CRCrashReport *report = [[CRCrashReport alloc] initWithFile:filepath];
-    if (report == nil) {
-        fprintf(stderr, "ERROR: Could not load or parse crash log.\n");
+    CRCrashReport *report = nil;
+    NSData *data = dataForFile(filepath);
+    if (data != nil) {
+        report = [[CRCrashReport alloc] initWithData:data];
+        if (report == nil) {
+            fprintf(stderr, "ERROR: Could not parse crash log file \"%s\".\n", [filepath UTF8String]);
+            return 1;
+        }
+    } else {
+        fprintf(stderr, "ERROR: Could not load crash log file \"%s\".\n", [filepath UTF8String]);
         return 1;
     }
 
