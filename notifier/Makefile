@@ -10,3 +10,6 @@ notifier_CODESIGN_FLAGS="-SEntitlements.plist"
 
 include $(THEOS_MAKE_PATH)/common.mk
 include $(THEOS_MAKE_PATH)/tool.mk
+
+after-clean::
+	- rm -rf $(THEOS_PROJECT_DIR)/notifier/Common

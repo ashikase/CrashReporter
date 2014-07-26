@@ -27,3 +27,6 @@ CrashReporter_PRIVATE_FRAMEWORKS = Symbolication
 
 include $(THEOS_MAKE_PATH)/common.mk
 include $(THEOS_MAKE_PATH)/application.mk
+
+after-clean::
+	- rm -rf $(THEOS_PROJECT_DIR)/Application/Common
