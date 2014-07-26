@@ -95,7 +95,7 @@ int main(int argc, char **argv, char **envp) {
     // NOTE: This should only be a concern if someone were to later manually
     //       call notifier on the same crash log file.
     NSFileManager *fileMan = [NSFileManager defaultManager];
-    NSString *syslogPath = [[filepath stringByDeletingPathExtension] stringByAppendingPathExtension:@"syslog"];
+    NSString *syslogPath = syslogPathForFile(filepath);
     if (![fileMan fileExistsAtPath:syslogPath]) {
         // NOTE: Do this here as the following symbolication may take some time,
         //       during which the syslog could change.
