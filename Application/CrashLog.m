@@ -157,8 +157,14 @@ static void saveViewedState(NSString *filepath) {
 
     BOOL didDelete = deleteFile(filepath);
     if (didDelete) {
+        // Also delete the associated syslog file.
+        NSString *syslogPath = syslogPathForFile(filepath);
+        if (syslogPath != nil) {
+            deleteFile(syslogPath);
+        }
+
+        // Remove from list of viewed entries.
         if ([self isViewed]) {
-            // Must remove from list of viewed entries.
             deleteViewedState(filepath);
         }
     }

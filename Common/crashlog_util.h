@@ -13,6 +13,7 @@ NSData *dataForFile(NSString *filepath);
 BOOL deleteFile(NSString *filepath);
 BOOL fixFileOwnership(NSString *filepath);
 NSString *symbolicateFile(NSString *filepath, CRCrashReport *report);
+NSString *syslogPathForFile(NSString *filepath);
 BOOL writeToFile(NSString *string, NSString *outputFilepath);
 
 /* vim: set ft=objc ff=unix sw=4 ts=4 tw=80 expandtab: */

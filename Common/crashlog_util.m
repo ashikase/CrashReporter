@@ -252,6 +252,24 @@ NSString *symbolicateFile(NSString *filepath, CRCrashReport *report) {
     return outputFilepath;
 }
 
+NSString *syslogPathForFile(NSString *filepath) {
+    NSString *syslogPath = filepath;
+
+    // Strip known path extensions.
+    NSString *pathExtension = [syslogPath pathExtension];
+    while (
+            [pathExtension isEqualToString:@"ips"] ||
+            [pathExtension isEqualToString:@"plist"] ||
+            [pathExtension isEqualToString:@"symbolicated"] ||
+            [pathExtension isEqualToString:@"synced"]
+          ) {
+        syslogPath = [syslogPath stringByDeletingPathExtension];
+        pathExtension = [syslogPath pathExtension];
+    }
+
+    return [syslogPath stringByAppendingPathExtension:@"syslog"];
+}
+
 BOOL writeToFile(NSString *string, NSString *outputFilepath) {
     BOOL didWrite = NO;
 
