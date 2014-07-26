@@ -13,6 +13,7 @@
 
 #import "NSString+CrashReporter.h"
 #import "Package.h"
+#import "crashlog_util.h"
 
 @interface Instruction (Private)
 @property(nonatomic, copy) NSString *title;
@@ -112,16 +113,21 @@ loop_exit:
     if (content_ == nil) {
         NSString *filepath = [self filepath];
         if (type_ == IncludeInstructionTypeFile) {
-            content_ = [[NSString alloc] initWithContentsOfFile:filepath usedEncoding:NULL error:NULL];
-        } else if (type_ == IncludeInstructionTypePlist) {
-            NSData *data = [NSData dataWithContentsOfFile:filepath];
-            id plist = nil;
-            if ([NSPropertyListSerialization respondsToSelector:@selector(propertyListWithData:options:format:error:)]) {
-                plist = [NSPropertyListSerialization propertyListWithData:data options:0 format:NULL error:NULL];
-            } else {
-                plist = [NSPropertyListSerialization propertyListFromData:data mutabilityOption:0 format:NULL errorDescription:NULL];
+            NSData *data = dataForFile(filepath);
+            if (data != nil) {
+                content_ = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
             }
-            content_ = [[plist description] retain];
+        } else if (type_ == IncludeInstructionTypePlist) {
+            NSData *data = dataForFile(filepath);
+            if (data != nil) {
+                id plist = nil;
+                if ([NSPropertyListSerialization respondsToSelector:@selector(propertyListWithData:options:format:error:)]) {
+                    plist = [NSPropertyListSerialization propertyListWithData:data options:0 format:NULL error:NULL];
+                } else {
+                    plist = [NSPropertyListSerialization propertyListFromData:data mutabilityOption:0 format:NULL errorDescription:NULL];
+                }
+                content_ = [[plist description] retain];
+            }
         } else {
             fflush(stdout);
             FILE *f = popen([filepath UTF8String], "r");
