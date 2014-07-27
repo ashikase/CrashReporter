@@ -16,6 +16,18 @@
 #import "SuspectsViewController.h"
 #import "Instruction.h"
 
+#include "preferences.h"
+
+static void resetIconBadgeNumber() {
+    // Reset preference used for tracking count.
+    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+    [defaults setInteger:0 forKey:@kCrashesSinceLastLaunch];
+    [defaults synchronize];
+
+    // Reset icon badge number to zero.
+    [[UIApplication sharedApplication] setApplicationIconBadgeNumber:0];
+}
+
 @interface UIAlertView ()
 - (void)setNumberOfRows:(int)rows;
 @end
@@ -57,8 +69,8 @@
         }
     }
 
-    // Reset icon badge number to zero.
-    [application setApplicationIconBadgeNumber:0];
+    // Reset icon badge number.
+    resetIconBadgeNumber();
 
     return YES;
 }
@@ -92,19 +104,24 @@
 
         [alert show];
         [alert release];
+
+        // Reset icon badge number.
+        resetIconBadgeNumber();
     } else {
         // CrashReporter was in the background.
         if (filepath != nil) {
             [self showDetailsForLogAtPath:filepath animated:NO];
         }
     }
-
-    // Reset icon badge number to zero.
-    [application setApplicationIconBadgeNumber:0];
 }
 
 - (void)applicationDidReceiveMemoryWarning:(UIApplication *)application {
     [Instruction flushInstructions];
+}
+
+- (void)applicationWillEnterForeground:(UIApplication *)application {
+        // Reset icon badge count.
+        resetIconBadgeNumber();
 }
 
 #pragma mark - Other

@@ -18,6 +18,7 @@
 #include <unistd.h>
 
 #import "crashlog_util.h"
+#include "preferences.h"
 
 #define kNotifySandboxViolations "notifySandboxViolations"
 #define kNotifyExecutionTimeouts "notifyExecutionTimeouts"
@@ -220,8 +221,15 @@ int main(int argc, char **argv, char **envp) {
         [notification setAlertBody:body];
         [notification setUserInfo:[NSDictionary dictionaryWithObjectsAndKeys:filepath, @"filepath", nil]];
 
-        // FIXME: Determine how to increase the current badge number.
-        [notification setApplicationIconBadgeNumber:1];
+        // Increment and request update of icon badge number.
+        uid_t user = geteuid();
+        seteuid(501);
+        NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+        NSInteger crashesSinceLastLaunch = 1 + [defaults integerForKey:@kCrashesSinceLastLaunch];
+        [defaults setInteger:crashesSinceLastLaunch forKey:@kCrashesSinceLastLaunch];
+        [defaults synchronize];
+        seteuid(user);
+        [notification setApplicationIconBadgeNumber:crashesSinceLastLaunch];
 
         // NOTE: Passing nil as the action will cause iOS to display "View" (localized).
         [notification setHasAction:YES];
