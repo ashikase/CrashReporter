@@ -18,6 +18,8 @@
 
 #include "preferences.h"
 
+NSString * const kNotificationCrashLogsChanged = @"notificationCrashLogsChanged";
+
 static void resetIconBadgeNumber() {
     // Reset preference used for tracking count.
     NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
@@ -113,6 +115,9 @@ static void resetIconBadgeNumber() {
             [self showDetailsForLogAtPath:filepath animated:NO];
         }
     }
+
+    // Post notification to update views.
+    [[NSNotificationCenter defaultCenter] postNotificationName:kNotificationCrashLogsChanged object:self];
 }
 
 - (void)applicationDidReceiveMemoryWarning:(UIApplication *)application {
@@ -120,8 +125,11 @@ static void resetIconBadgeNumber() {
 }
 
 - (void)applicationWillEnterForeground:(UIApplication *)application {
-        // Reset icon badge count.
-        resetIconBadgeNumber();
+    // Reset icon badge count.
+    resetIconBadgeNumber();
+
+    // Post notification to update views.
+    [[NSNotificationCenter defaultCenter] postNotificationName:kNotificationCrashLogsChanged object:self];
 }
 
 #pragma mark - Other

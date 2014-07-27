@@ -18,17 +18,31 @@
 
 #include "paths.h"
 
+extern NSString * const kNotificationCrashLogsChanged;
+
 static inline NSUInteger indexOf(NSUInteger section, NSUInteger row, BOOL deletedRowZero) {
     return section + row - (deletedRowZero ? 1 : 0);
 }
 
 @implementation VictimViewController {
+    CrashLogGroup *group_;
     BOOL deletedRowZero_;
 }
 
-@synthesize group = group_;
+- (id)initWithGroup:(CrashLogGroup *)group {
+    self = [super initWithStyle:UITableViewStylePlain];
+    if (self != nil) {
+        group_ = [group retain];
+        self.title = group_.name;
+
+        // Listen for changes to crash log files.
+        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(refresh:) name:kNotificationCrashLogsChanged object:nil];
+    }
+    return self;
+}
 
 - (void)dealloc {
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
     [group_ release];
     [super dealloc];
 }
@@ -60,10 +74,13 @@ static inline NSUInteger indexOf(NSUInteger section, NSUInteger row, BOOL delete
 
 #pragma mark - Actions
 
-- (void)refresh:(UIRefreshControl *)refreshControl {
+- (void)refresh:(id)sender {
     [self reloadCrashLogGroup];
     [self.tableView reloadData];
-    [refreshControl endRefreshing];
+
+    if ([sender isKindOfClass:NSClassFromString(@"UIRefreshControl")]) {
+        [sender endRefreshing];
+    }
 }
 
 #pragma mark - Other
@@ -107,7 +124,7 @@ static inline NSUInteger indexOf(NSUInteger section, NSUInteger row, BOOL delete
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
     NSUInteger numRows = 0;
-    NSUInteger count = [[[self group] crashLogs] count];
+    NSUInteger count = [[group_ crashLogs] count];
     if (count != 0) {
         if (section == 0) {
             numRows = deletedRowZero_? 0 : 1;
@@ -126,8 +143,7 @@ static inline NSUInteger indexOf(NSUInteger section, NSUInteger row, BOOL delete
     }
 
     NSUInteger index = indexOf(indexPath.section, indexPath.row, deletedRowZero_);
-    CrashLogGroup *group = [self group];
-    CrashLog *crashLog = [[group crashLogs] objectAtIndex:index];
+    CrashLog *crashLog = [[group_ crashLogs] objectAtIndex:index];
 
     NSDateFormatter *formatter = [NSDateFormatter new];
     [formatter setDateFormat:@"HH:mm:ss (yyyy MMM d)"];
@@ -143,18 +159,16 @@ static inline NSUInteger indexOf(NSUInteger section, NSUInteger row, BOOL delete
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     NSUInteger index = indexOf(indexPath.section, indexPath.row, deletedRowZero_);
-    CrashLogGroup *group = [self group];
-    CrashLog *crashLog = [[group crashLogs] objectAtIndex:index];
+    CrashLog *crashLog = [[group_ crashLogs] objectAtIndex:index];
     [self showSuspectsForCrashLog:crashLog];
 }
 
 - (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath {
     NSUInteger section = indexPath.section;
 
-    CrashLogGroup *group = [self group];
     NSUInteger index = indexOf(section, indexPath.row, deletedRowZero_);
-    CrashLog *crashLog = [[group crashLogs] objectAtIndex:index];
-    if ([group deleteCrashLog:crashLog]) {
+    CrashLog *crashLog = [[group_ crashLogs] objectAtIndex:index];
+    if ([group_ deleteCrashLog:crashLog]) {
         if (section == 0) {
             deletedRowZero_ = YES;
         }

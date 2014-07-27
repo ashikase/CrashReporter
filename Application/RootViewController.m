@@ -16,14 +16,24 @@
 #import "VictimViewController.h"
 #import "ManualScriptViewController.h"
 
+extern NSString * const kNotificationCrashLogsChanged;
+
 @implementation RootViewController
 
 - (id)init {
     self = [super initWithStyle:UITableViewStylePlain];
     if (self != nil) {
         self.title = NSLocalizedString(@"CRASHREPORTER", nil);
+
+        // Listen for changes to crash log files.
+        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(refresh:) name:kNotificationCrashLogsChanged object:nil];
     }
     return self;
+}
+
+- (void)dealloc {
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
+    [super dealloc];
 }
 
 - (void)viewDidLoad {
@@ -62,10 +72,13 @@
     [controller release];
 }
 
-- (void)refresh:(UIRefreshControl *)refreshControl {
+- (void)refresh:(id)sender {
     [CrashLogGroup forgetGroups];
     [self.tableView reloadData];
-    [refreshControl endRefreshing];
+
+    if ([sender isKindOfClass:NSClassFromString(@"UIRefreshControl")]) {
+        [sender endRefreshing];
+    }
 }
 
 #pragma mark - UITableViewDataSource
@@ -113,9 +126,7 @@
     NSArray *crashLogGroups = (indexPath.section == 0) ?  [CrashLogGroup groupsForMobile] : [CrashLogGroup groupsForRoot];
     CrashLogGroup *group = [crashLogGroups objectAtIndex:indexPath.row];
 
-    VictimViewController *controller = [[VictimViewController alloc] initWithStyle:UITableViewStylePlain];
-    controller.title = group.name;
-    controller.group = group;
+    VictimViewController *controller = [[VictimViewController alloc] initWithGroup:group];
     [self.navigationController pushViewController:controller animated:YES];
     [controller release];
 }

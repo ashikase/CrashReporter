@@ -14,7 +14,7 @@
 @class CrashLogGroup;
 
 @interface VictimViewController : UITableViewController
-@property(nonatomic, retain) CrashLogGroup *group;
+- (id)initWithGroup:(CrashLogGroup *)group;
 @end
 
 /* vim: set ft=objc ff=unix sw=4 ts=4 tw=80 expandtab: */
