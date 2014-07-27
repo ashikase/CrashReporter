@@ -209,7 +209,13 @@ NSString *symbolicateFile(NSString *filepath, CRCrashReport *report) {
     if (!fileIsSymbolicated(filepath, report)) {
         if ([report symbolicate]) {
             // Process blame.
-            NSDictionary *filters = [[NSDictionary alloc] initWithContentsOfFile:@"/etc/symbolicate/blame_filters.plist"];
+            // NOTE: The below plist is included in the "symbolicate" package.
+            NSString *filtersFilepath = @"/etc/symbolicate/blame_filters.plist";
+            if (![[NSFileManager defaultManager] isReadableFileAtPath:filtersFilepath]) {
+                // Use bundled list of filters.
+                filtersFilepath = [[NSBundle mainBundle] pathForResource:@"blame_filters" ofType:@"plist"];
+            }
+            NSDictionary *filters = [[NSDictionary alloc] initWithContentsOfFile:filtersFilepath];
             if ([report blameUsingFilters:filters]) {
                 // Write output to file.
                 NSString *pathExtension = [filepath pathExtension];
