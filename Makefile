@@ -12,6 +12,9 @@ include theos/makefiles/aggregate.mk
 after-stage::
 	# Give as_root the power of root in order to move/delete root-owned files.
 	- chmod u+s $(THEOS_STAGING_DIR)/Applications/CrashReporter.app/as_root
+	# Copy localization files.
+	- cp -a $(THEOS_PROJECT_DIR)/Localization/CrashReporter/Application/*.lproj $(THEOS_STAGING_DIR)/Applications/CrashReporter.app/
+	- cp -a $(THEOS_PROJECT_DIR)/Localization/CrashReporter/Preferences/*.lproj $(THEOS_STAGING_DIR)/Library/PreferenceLoader/Preferences/CrashReporter/
 	# Optimize png files
 	- find $(THEOS_STAGING_DIR) -iname '*.png' -exec pincrush -i {} \;
 	# Convert plist files to binary
