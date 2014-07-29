@@ -12,7 +12,6 @@ CrashReporter_FILES = \
     RootViewController.m \
     SuspectsViewController.m \
     VictimViewController.m \
-    common.c \
     main.m \
     pastie.m
 CrashReporter_CFLAGS = -F$(TECHSUPPORT_FRAMEWORK) -I$(THEOS_PROJECT_DIR)/Libraries
