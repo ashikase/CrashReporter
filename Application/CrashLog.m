@@ -103,10 +103,12 @@ static void saveViewedState(NSString *filepath) {
 
 - (NSString *)processPath {
     if (processPath_ == nil) {
-        NSString *filepath = [self filepath];
-        CRCrashReport *report = [[CRCrashReport alloc] initWithFile:filepath];
-        processPath_ = [[[report processInfo] objectForKey:@"Path"] retain];
-        [report release];
+        NSData *data = dataForFile([self filepath]);
+        if (data != nil) {
+            CRCrashReport *report = [[CRCrashReport alloc] initWithData:data];
+            processPath_ = [[[report processInfo] objectForKey:@"Path"] retain];
+            [report release];
+        }
     }
     return processPath_;
 }
