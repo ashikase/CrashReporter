@@ -1,8 +1,8 @@
-*.o
 theos
+theos/*
 .theos/*
-debs/*
+*.o
+*/obj/*
+**/obj/*
+_/*
 *.deb
-*.dylib
-**/.theos/*
-*/.theos/*
