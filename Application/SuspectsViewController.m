@@ -13,13 +13,11 @@
 
 #import <Foundation/Foundation.h>
 #import <MessageUI/MessageUI.h>
-#import "ContactViewController.h"
+#import <TechSupport/TechSupport.h>
 #import "CrashLog.h"
-#import "CrashLogViewController.h"
-#import "IncludeInstruction.h"
-#import "LinkInstruction.h"
 #import "ModalActionSheet.h"
-#import "Package.h"
+
+#include "paths.h"
 
 @interface UIAlertView ()
 - (void)setNumberOfRows:(int)rows;
@@ -38,7 +36,7 @@
 
     CrashLog *crashLog_;
     NSArray *lastSelectedLinkInstructions_;
-    Package *lastSelectedPackage_;
+    TSPackage *lastSelectedPackage_;
     NSString *lastSelectedPath_;
 }
 
@@ -205,20 +203,42 @@ static UIButton *logButton() {
 #pragma mark - Button Actions
 
 - (void)presentViewerWithLine:(NSString *)line {
-    CrashLogViewController *viewController = [CrashLogViewController new];
-    viewController.instruction = (IncludeInstruction *)[Instruction instructionWithLine:line];
-    [self.navigationController pushViewController:viewController animated:YES];
-    [viewController release];
+    TSIncludeInstruction *instruction = (TSIncludeInstruction *)[TSInstruction instructionWithLine:line];
+    if (instruction != nil) {
+        NSString *content = [[NSString alloc] initWithData:[instruction content] encoding:NSUTF8StringEncoding];
+        if (content != nil) {
+            TSHTMLViewController *controller = [[TSHTMLViewController alloc] initWithHTMLContent:content];
+            controller.title = [instruction title] ?: NSLocalizedString(@"INCLUDE_UNTITLED", nil);
+            [self.navigationController pushViewController:controller animated:YES];
+            [controller release];
+            [content release];
+        } else {
+            NSLog(@"ERROR: Content could not be interpreted as a string.");
+        }
+    }
+}
+
+static NSString *createIncludeLineForFilepath(NSString *filepath, NSString *name) {
+    NSString *line = [NSString alloc];
+    if ([filepath hasPrefix:@kCrashLogDirectoryForRoot]) {
+        line = [line initWithFormat:@"include as \"%@\" command %@ read \"%@\"",
+             name, [[NSBundle mainBundle] pathForResource:@"as_root" ofType:nil], filepath];
+    } else {
+        line = [line initWithFormat:@"include as \"%@\" file \"%@\"", name, filepath];
+    }
+    return line;
 }
 
 - (void)crashlogTapped {
-    NSString *line = [NSString stringWithFormat:@"include as \"Crash log\" file \"%@\"", [crashLog_ filepath]];
+    NSString *line = createIncludeLineForFilepath([crashLog_ filepath], @"Crash log");
     [self presentViewerWithLine:line];
+    [line release];
 }
 
 - (void)syslogTapped {
-    NSString *line = [NSString stringWithFormat:@"include as syslog file \"%@\"", [self syslogPath]];
+    NSString *line = createIncludeLineForFilepath([self syslogPath], @"syslog");
     [self presentViewerWithLine:line];
+    [line release];
 }
 
 #pragma mark - MFMailComposeViewControllerDelegate
@@ -252,25 +272,27 @@ static UIButton *logButton() {
             [alert show];
             [alert release];
         } else {
-            LinkInstruction *linkInstruction = [lastSelectedLinkInstructions_ objectAtIndex:(buttonIndex - 1)];
+            TSLinkInstruction *linkInstruction = [lastSelectedLinkInstructions_ objectAtIndex:(buttonIndex - 1)];
             if (linkInstruction.isSupport) {
                 // Report issue.
-                NSString *crashlogLine = [NSString stringWithFormat:@"include as \"Crash log\" file \"%@\"", [crashLog_ filepath]];
+                NSString *crashlogLine = createIncludeLineForFilepath([crashLog_ filepath], @"Crash log");
                 NSString *syslogLine = nil;
                 NSString *syslogPath = [self syslogPath];
                 if ([[NSFileManager defaultManager] fileExistsAtPath:syslogPath]) {
-                    syslogLine = [NSString stringWithFormat:@"include as syslog file \"%@\"", [self syslogPath]];
+                    syslogLine = createIncludeLineForFilepath([self syslogPath], @"syslog");
                 }
 
                 NSMutableArray *includeInstructions = [NSMutableArray new];
-                [includeInstructions addObject:[IncludeInstruction instructionWithLine:crashlogLine]];
+                [includeInstructions addObject:[TSIncludeInstruction instructionWithLine:crashlogLine]];
+                [crashlogLine release];
                 if (syslogLine != nil) {
-                    [includeInstructions addObject:[IncludeInstruction instructionWithLine:syslogLine]];
+                    [includeInstructions addObject:[TSIncludeInstruction instructionWithLine:syslogLine]];
+                    [syslogLine release];
                 }
-                [includeInstructions addObject:[IncludeInstruction instructionWithLine:@"include as \"Package List\" command dpkg -l"]];
-                [includeInstructions addObjectsFromArray:[IncludeInstruction includeInstructionsForPackage:lastSelectedPackage_]];
+                [includeInstructions addObject:[TSIncludeInstruction instructionWithLine:@"include as \"Package List\" command dpkg -l"]];
+                [includeInstructions addObjectsFromArray:[lastSelectedPackage_ supportAttachments]];
 
-                ContactViewController *viewController = [[ContactViewController alloc] initWithPackage:lastSelectedPackage_ suspect:lastSelectedPath_
+                TSContactViewController *viewController = [[TSContactViewController alloc] initWithPackage:lastSelectedPackage_ suspect:lastSelectedPath_
                     linkInstruction:linkInstruction includeInstructions:includeInstructions];
                 viewController.title = [lastSelectedPath_ lastPathComponent];
                 [self.navigationController pushViewController:viewController animated:YES];
@@ -369,15 +391,39 @@ static UIButton *logButton() {
         NSUInteger index = (section == 1) ? 0 : (indexPath.row + 1);
         path = [[crashLog_ suspects] objectAtIndex:index];
     }
-    Package *package = [Package packageForFile:path];
+    TSPackage *package = [TSPackage packageForFile:path];
 
-    // Determine and present choices for the given package.
+    // Determine for the given package.
+    NSMutableArray *linkInstructions = [NSMutableArray new];
+
+    // Add a link to contact the author of the package.
+    TSLinkInstruction *instruction = [package supportLink];
+    if (instruction != nil) {
+        [linkInstructions addObject:instruction];
+    }
+
+    // Add a link to the package's depiction in the store that it came from.
+    instruction = [package storeLink];
+    if (instruction != nil) {
+        [linkInstructions addObject:instruction];
+    }
+
+    // Add an email link to send to an arbitrary address.
+    NSString *line = [NSString stringWithFormat:@"link email \"\" as \"%@\" is_support", NSLocalizedString(@"FORWARD_TO", nil)];
+    instruction = [TSLinkInstruction instructionWithLine:line];
+    if (instruction != nil) {
+        [linkInstructions addObject:instruction];
+    }
+
+    // Add optional links provided by package (link to FAQ, Known Issues, etc).
+    [linkInstructions addObjectsFromArray:[package otherLinks]];
+
+    // Present choices.
     NSString *message = (package == nil) ? NSLocalizedString(@"PACKAGE_FAILED_1", nil) : nil;
     NSString *cancelTitle = NSLocalizedString(@"CANCEL", nil);
-    NSArray *linkInstructions = [LinkInstruction linkInstructionsForPackage:package];
     UIAlertView *alert = [[UIAlertView alloc] initWithTitle:package.name message:message delegate:self
         cancelButtonTitle:cancelTitle otherButtonTitles:nil];
-    for (LinkInstruction *linkInstruction in linkInstructions) {
+    for (TSLinkInstruction *linkInstruction in linkInstructions) {
         [alert addButtonWithTitle:[linkInstruction title]];
     }
     [alert addButtonWithTitle:@"Notifications..."];

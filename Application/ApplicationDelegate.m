@@ -11,10 +11,10 @@
 
 #import "ApplicationDelegate.h"
 
-#import "RootViewController.h"
+#import <TechSupport/TechSupport.h>
 #import "CrashLog.h"
+#import "RootViewController.h"
 #import "SuspectsViewController.h"
-#import "Instruction.h"
 
 #include "preferences.h"
 
@@ -121,7 +121,7 @@ static void resetIconBadgeNumber() {
 }
 
 - (void)applicationDidReceiveMemoryWarning:(UIApplication *)application {
-    [Instruction flushInstructions];
+    [TSInstruction flushInstructions];
 }
 
 - (void)applicationWillEnterForeground:(UIApplication *)application {

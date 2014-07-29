@@ -1,4 +1,5 @@
 *.o
+theos
 .theos/*
 debs/*
 *.deb

@@ -11,9 +11,7 @@
 
 #import "ManualScriptViewController.h"
 
-#import "ContactViewController.h"
-#import "IncludeInstruction.h"
-#import "LinkInstruction.h"
+#import <TechSupport/TechSupport.h>
 
 @interface ManualScriptViewController () <UIAlertViewDelegate>
 @end
@@ -73,23 +71,23 @@
 }
 
 - (void)submit {
-    LinkInstruction *linkInstruction = nil;
+    TSLinkInstruction *linkInstruction = nil;
     NSMutableArray *includeInstructions = [NSMutableArray new];
 
     NSArray *lines = [textView_.text componentsSeparatedByString:@"\n"];
-    Class $LinkInstruction = [LinkInstruction class];
+    Class $TSLinkInstruction = [TSLinkInstruction class];
     for (NSString *line in lines) {
-        Instruction *instruction = [Instruction instructionWithLine:line];
+        TSInstruction *instruction = [TSInstruction instructionWithLine:line];
         if (instruction != nil) {
-            if ([instruction isKindOfClass:$LinkInstruction]) {
-                linkInstruction = [LinkInstruction instructionWithLine:line];
+            if ([instruction isKindOfClass:$TSLinkInstruction]) {
+                linkInstruction = [TSLinkInstruction instructionWithLine:line];
             } else {
                 [includeInstructions addObject:instruction];
             }
         }
     }
 
-    ContactViewController *controller = [[ContactViewController alloc] initWithPackage:nil suspect:nil linkInstruction:linkInstruction includeInstructions:includeInstructions];
+    TSContactViewController *controller = [[TSContactViewController alloc] initWithPackage:nil suspect:nil linkInstruction:linkInstruction includeInstructions:includeInstructions];
     [self.navigationController pushViewController:controller animated:YES];
     [controller release];
 

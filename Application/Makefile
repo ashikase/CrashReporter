@@ -1,27 +1,22 @@
+TECHSUPPORT_FRAMEWORK = $(THEOS_PROJECT_DIR)/Frameworks/TechSupport/_/Library/Frameworks
+
 APPLICATION_NAME = CrashReporter
 CrashReporter_FILES = \
     ../Common/crashlog_util.m \
     ../Common/exec_as_root.m \
     ApplicationDelegate.m \
-    ContactViewController.m \
     CrashLog.m \
     CrashLogGroup.m \
-    CrashLogViewController.m \
-    IncludeInstruction.m \
-    Instruction.m \
-    LinkInstruction.m \
     ManualScriptViewController.m \
     ModalActionSheet.m \
-    NSString+CrashReporter.m \
-    Package.m \
     RootViewController.m \
     SuspectsViewController.m \
     VictimViewController.m \
     common.c \
     main.m \
     pastie.m
-CrashReporter_CFLAGS = -I../Libraries
-CrashReporter_LDFLAGS = -llockdown -lsymbolicate
+CrashReporter_CFLAGS = -F$(TECHSUPPORT_FRAMEWORK) -I$(THEOS_PROJECT_DIR)/Libraries
+CrashReporter_LDFLAGS = -llockdown -lsymbolicate -F$(TECHSUPPORT_FRAMEWORK) -framework TechSupport
 CrashReporter_FRAMEWORKS = MessageUI SystemConfiguration UIKit
 CrashReporter_PRIVATE_FRAMEWORKS = Symbolication
 

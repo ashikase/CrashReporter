@@ -1,3 +1,6 @@
 [submodule "Localization"]
 	path = Localization
 	url = https://github.com/ashikase/Localization.git
+[submodule "Frameworks/TechSupport"]
+	path = Frameworks/TechSupport
+	url = https://github.com/ashikase/TechSupport.git
