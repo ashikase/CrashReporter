@@ -10,6 +10,8 @@
 #define kCrashLogDirectoryForRoot   "/Library/Logs/CrashReporter"
 #define kTemporaryPath              "/tmp/"
 
+#define kIsRunningFilepath          "/tmp/crashreporter_is_running"
+
 #endif // COMMON_PATHS_H_
 
 /* vim: set ft=c ff=unix sw=4 ts=4 expandtab tw=80: */

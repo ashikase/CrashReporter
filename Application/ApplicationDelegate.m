@@ -16,6 +16,8 @@
 #import "RootViewController.h"
 #import "SuspectsViewController.h"
 
+#include <errno.h>
+#include "paths.h"
 #include "preferences.h"
 
 NSString * const kNotificationCrashLogsChanged = @"notificationCrashLogsChanged";
@@ -125,11 +127,39 @@ static void resetIconBadgeNumber() {
 }
 
 - (void)applicationWillEnterForeground:(UIApplication *)application {
+    // Recreate the "is_running" file.
+    FILE *f = fopen(kIsRunningFilepath, "w");
+    if (f != NULL) {
+        fclose(f);
+    } else {
+        fprintf(stderr, "ERROR: Failed to recreate \"is running\" file, errno = %d.\n", errno);
+    }
+
     // Reset icon badge count.
     resetIconBadgeNumber();
 
     // Post notification to update views.
     [[NSNotificationCenter defaultCenter] postNotificationName:kNotificationCrashLogsChanged object:self];
+}
+
+- (void)applicationDidEnterBackground:(UIApplication *)application {
+    // NOTE: Although the app has not technically shutdown, this may be our last
+    //       chance to do any processing, as once the app is suspended in the
+    //       background, it will be shutdown via SIGKILL.
+    // NOTE: If a tweak causes an issue after this point, we will not be able to
+    //       detect it and will not be able to enable Safe Mode on next start-up.
+    if (unlink(kIsRunningFilepath) != 0) {
+        fprintf(stderr, "ERROR: Failed to delete \"is running\" file, errno = %d.\n", errno);
+    }
+}
+
+- (void)applicationWillTerminate:(UIApplication *)application {
+    // NOTE: As this app supports background suspension (as opposed to
+    //       termination), this method will only be called if the user manually
+    //       terminates the app.
+    if (unlink(kIsRunningFilepath) != 0) {
+        fprintf(stderr, "ERROR: Failed to delete \"is running\" file, errno = %d.\n", errno);
+    }
 }
 
 #pragma mark - Other

@@ -9,7 +9,7 @@
         <string>CrashReporter</string>
 
         <key>CFBundleExecutable</key>
-        <string>CrashReporter</string>
+        <string>CrashReporter_</string>
 
         <key>CFBundleIconFiles</key>
         <array>

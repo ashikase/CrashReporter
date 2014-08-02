@@ -1,0 +1,11 @@
+#!/bin/bash
+
+if [ -f "/tmp/crashreporter_is_running" ]; then
+    # Previous launch did not shutdown properly; invoke Safe Mode.
+    unset DYLD_INSERT_LIBRARIES
+fi
+
+# NOTE: The following is modified from Cydia's launch script.
+C=/${0}
+C=${C%/*}
+exec "${C:-.}"/CrashReporter 2>>/tmp/crashreporter.log

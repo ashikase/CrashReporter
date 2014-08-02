@@ -16,9 +16,17 @@
 #import "VictimViewController.h"
 #import "ManualScriptViewController.h"
 
+#include <sys/stat.h>
+#include <errno.h>
+#include "paths.h"
+
 extern NSString * const kNotificationCrashLogsChanged;
 
-@implementation RootViewController
+static BOOL isSafeMode$ = NO;
+
+@implementation RootViewController {
+    BOOL hasShownSafeModeMessage_;
+}
 
 - (id)init {
     self = [super initWithStyle:UITableViewStylePlain];
@@ -65,6 +73,22 @@ extern NSString * const kNotificationCrashLogsChanged;
     [super viewWillAppear:animated];
     [CrashLogGroup forgetGroups];
     [self.tableView reloadData];
+}
+
+- (void)viewDidAppear:(BOOL)animated {
+    if (isSafeMode$) {
+        if (!hasShownSafeModeMessage_) {
+            NSString *title = NSLocalizedString(@"SAFE_MODE_TITLE", nil);
+            NSString *message = NSLocalizedString(@"SAFE_MODE_MESSAGE", nil);
+            NSString *okTitle = NSLocalizedString(@"OK", nil);
+            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:title message:message delegate:nil
+                cancelButtonTitle:okTitle otherButtonTitles:nil];
+            [alert show];
+            [alert release];
+
+            hasShownSafeModeMessage_ = YES;
+        }
+    }
 }
 
 - (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation {
@@ -200,5 +224,23 @@ extern NSString * const kNotificationCrashLogsChanged;
 }
 
 @end
+
+__attribute__((constructor)) static void init() {
+    struct stat buf;
+    BOOL failedToShutdown = (stat(kIsRunningFilepath, &buf) == 0);
+    if (failedToShutdown) {
+        // Mark that we are in Safe Mode.
+        // NOTE: Safe Mode itself will have been enabled by the launch script.
+        isSafeMode$ = YES;
+    } else {
+        // Create the "is running" file.
+        FILE *f = fopen(kIsRunningFilepath, "w");
+        if (f != NULL) {
+            fclose(f);
+        } else {
+            fprintf(stderr, "ERROR: Failed to create \"is running\" file, errno = %d.\n", errno);
+        }
+    }
+}
 
 /* vim: set ft=objc ff=unix sw=4 ts=4 tw=80 expandtab: */
