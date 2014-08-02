@@ -180,6 +180,38 @@ static UIButton *logButton() {
 
 #pragma mark - Other
 
+- (NSString *)messageBodyWithPackage:(TSPackage *)package suspect:(NSString *)suspect isForward:(BOOL)isForward {
+    NSMutableString *string = [NSMutableString string];
+
+    if (!isForward) {
+        NSString *author = [package author];
+        if (author != nil) {
+            NSRange range = [author rangeOfString:@"<"];
+            if (range.location != NSNotFound) {
+                author = [author substringToIndex:range.location];
+            }
+            author = [author stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
+        }
+        if ([author length] == 0) {
+            author = @"developer";
+        }
+        [string appendFormat:@"Dear %@,\n\n", author];
+    }
+    if ([package isAppStore]) {
+        [string appendFormat: @"The app \"%@\" has recently crashed.\n\n", [package name]];
+    } else {
+        [string appendFormat:@"The file \"%@\" of the product \"%@\" has possibly caused a crash.\n\n", suspect, [package name]];
+    }
+    [string appendString:
+        @"Relevant files (e.g. crash log and syslog) are attached.\n"
+        "\n"
+        "Thank you for your attention.\n"
+        "\n\n"
+        ];
+
+    return string;
+}
+
 - (void)symbolicate {
 #if !TARGET_IPHONE_SIMULATOR
     [crashLog_ symbolicate];
@@ -292,9 +324,11 @@ static NSString *createIncludeLineForFilepath(NSString *filepath, NSString *name
                 [includeInstructions addObject:[TSIncludeInstruction instructionWithLine:@"include as \"Package List\" command dpkg -l"]];
                 [includeInstructions addObjectsFromArray:[lastSelectedPackage_ supportAttachments]];
 
-                TSContactViewController *viewController = [[TSContactViewController alloc] initWithPackage:lastSelectedPackage_ suspect:lastSelectedPath_
+                TSContactViewController *viewController = [[TSContactViewController alloc] initWithPackage:lastSelectedPackage_
                     linkInstruction:linkInstruction includeInstructions:includeInstructions];
                 viewController.title = [lastSelectedPath_ lastPathComponent];
+                viewController.requiresDetailsFromUser = YES;
+                viewController.messageBody = [self messageBodyWithPackage:lastSelectedPackage_ suspect:lastSelectedPath_ isForward:([linkInstruction recipients] == nil)];
                 [self.navigationController pushViewController:viewController animated:YES];
                 [viewController release];
                 [includeInstructions release];
