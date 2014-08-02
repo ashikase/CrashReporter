@@ -200,17 +200,30 @@ int main(int argc, char **argv, char **envp) {
             }
         }
 
-        // Create notification message.
+        // Create notification message, based on crash type.
         NSMutableString *body = nil;
         if (isSandboxViolation) {
             body = [NSMutableString stringWithFormat:NSLocalizedString(@"NOTIFY_SANDBOX_VIOLATION", nil), bundleName];
         } else {
-            body = [NSMutableString stringWithFormat:NSLocalizedString(@"NOTIFY_CRASHED", nil), bundleName];
-            [body appendString:@"\n"];
-            if ([suspects count] > 0) {
-                [body appendFormat:NSLocalizedString(@"NOTIFY_MAIN_SUSPECT", nil), [[suspects objectAtIndex:0] lastPathComponent]];
+            // Determine exception type.
+            NSString *exceptionType = [processInfo objectForKey:@"Exception Type"];
+            if ([exceptionType isEqualToString:@"EXC_RESOURCE"]) {
+                NSString *exceptionSubtype = [processInfo objectForKey:@"Exception Subtype"];
+                if ([exceptionSubtype isEqualToString:@"CPU"]) {
+                    body = [NSMutableString stringWithFormat:NSLocalizedString(@"NOTIFY_EXCESS_CPU", nil), bundleName];
+                } else if ([exceptionSubtype isEqualToString:@"MEMORY"]) {
+                    body = [NSMutableString stringWithFormat:NSLocalizedString(@"NOTIFY_EXCESS_MEMORY", nil), bundleName];
+                } else if ([exceptionSubtype isEqualToString:@"WAKEUPS"]) {
+                    body = [NSMutableString stringWithFormat:NSLocalizedString(@"NOTIFY_EXCESS_WAKEUPS", nil), bundleName];
+                }
             } else {
-                [body appendString:NSLocalizedString(@"NOTIFY_NO_SUSPECTS", nil)];
+                body = [NSMutableString stringWithFormat:NSLocalizedString(@"NOTIFY_CRASHED", nil), bundleName];
+                [body appendString:@"\n"];
+                if ([suspects count] > 0) {
+                    [body appendFormat:NSLocalizedString(@"NOTIFY_MAIN_SUSPECT", nil), [[suspects objectAtIndex:0] lastPathComponent]];
+                } else {
+                    [body appendString:NSLocalizedString(@"NOTIFY_NO_SUSPECTS", nil)];
+                }
             }
         }
 
