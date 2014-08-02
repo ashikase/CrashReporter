@@ -169,6 +169,26 @@ int main(int argc, char **argv, char **envp) {
     BOOL notifyTimeout = [defaults boolForKey:@kNotifyExecutionTimeouts];
     BOOL shouldNotify = (!isSandboxViolation || notifySandbox) && (!isExecutionTimeout || notifyTimeout);
     if (shouldNotify) {
+        // Make sure that SpringBoard's local notification server is up.
+        // NOTE: If SpringBoard is not running (i.e. it is what crashed), will
+        //       not be able to register a local notification.
+        // FIXME: Even if port is non-zero, it does not mean that SpringBoard is
+        //        ready to handle notifications.
+        BOOL shouldDelay = NO;
+        mach_port_t port;
+        while ((port = SBSSpringBoardServerPort()) == 0) {
+            [NSThread sleepForTimeInterval:1.0];
+            shouldDelay = YES;
+        }
+
+        if (shouldDelay) {
+            // Wait serveral seconds to give time for SpringBoard to finish launching.
+            // FIXME: This is needed due to issue mentioned above. The time
+            //        interval was chosen arbitrarily and may not be long enough
+            //        in some cases.
+            [NSThread sleepForTimeInterval:20.0];
+        }
+
         // Determine the bundle name.
         NSString *bundleName = [properties objectForKey:@"app_name"];
         if (bundleName == nil) {
@@ -192,26 +212,6 @@ int main(int argc, char **argv, char **envp) {
             } else {
                 [body appendString:NSLocalizedString(@"NOTIFY_NO_SUSPECTS", nil)];
             }
-        }
-
-        // Make sure that SpringBoard's local notification server is up.
-        // NOTE: If SpringBoard is not running (i.e. it is what crashed), will
-        //       not be able to register a local notification.
-        // FIXME: Even if port is non-zero, it does not mean that SpringBoard is
-        //        ready to handle notifications.
-        BOOL shouldDelay = NO;
-        mach_port_t port;
-        while ((port = SBSSpringBoardServerPort()) == 0) {
-            [NSThread sleepForTimeInterval:1.0];
-            shouldDelay = YES;
-        }
-
-        if (shouldDelay) {
-            // Wait serveral seconds to give time for SpringBoard to finish launching.
-            // FIXME: This is needed due to issue mentioned above. The time
-            //        interval was chosen arbitrarily and may not be long enough
-            //        in some cases.
-            [NSThread sleepForTimeInterval:20.0];
         }
 
         // Load UIKit framework.
