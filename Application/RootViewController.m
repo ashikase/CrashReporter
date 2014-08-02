@@ -23,7 +23,7 @@ extern NSString * const kNotificationCrashLogsChanged;
 - (id)init {
     self = [super initWithStyle:UITableViewStylePlain];
     if (self != nil) {
-        self.title = NSLocalizedString(@"CRASHREPORTER", nil);
+        self.title = @"CrashReporter";
 
         // Add button for accessing "manual script" view.
         UIBarButtonItem *buttonItem;
