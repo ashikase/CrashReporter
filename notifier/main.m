@@ -176,7 +176,7 @@ int main(int argc, char **argv, char **envp) {
             if (bundleName == nil) {
                 // NOTE: For sandbox violations, at least, bundle info is not
                 //       included in the report.
-                bundleName = [[[report processInfo] objectForKey:@"Path"] lastPathComponent];
+                bundleName = [[processInfo objectForKey:@"Path"] lastPathComponent];
             }
         }
 
