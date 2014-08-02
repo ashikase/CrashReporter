@@ -21,8 +21,11 @@
 #import "crashlog_util.h"
 #include "preferences.h"
 
-#define kNotifySandboxViolations "notifySandboxViolations"
+#define kNotifyExcessiveCPU "notifyExcessiveCPU"
+#define kNotifyExcessiveMemory "notifyExcessiveMemory"
+#define kNotifyExcessiveWakeups "notifyExcessiveWakeups"
 #define kNotifyExecutionTimeouts "notifyExecutionTimeouts"
+#define kNotifySandboxViolations "notifySandboxViolations"
 
 extern mach_port_t SBSSpringBoardServerPort();
 
@@ -163,32 +166,17 @@ int main(int argc, char **argv, char **envp) {
         }
     }
 
+    // Switch effective user to mobile (if not already mobile).
+    // NOTE: Must do this in order to access mobile's preference settings.
+    // TODO: Consider running all of notifier as mobile.
+    seteuid(501);
+
     // Determine if notification should be sent.
     NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
     BOOL notifySandbox = [defaults boolForKey:@kNotifySandboxViolations];
     BOOL notifyTimeout = [defaults boolForKey:@kNotifyExecutionTimeouts];
     BOOL shouldNotify = (!isSandboxViolation || notifySandbox) && (!isExecutionTimeout || notifyTimeout);
     if (shouldNotify) {
-        // Make sure that SpringBoard's local notification server is up.
-        // NOTE: If SpringBoard is not running (i.e. it is what crashed), will
-        //       not be able to register a local notification.
-        // FIXME: Even if port is non-zero, it does not mean that SpringBoard is
-        //        ready to handle notifications.
-        BOOL shouldDelay = NO;
-        mach_port_t port;
-        while ((port = SBSSpringBoardServerPort()) == 0) {
-            [NSThread sleepForTimeInterval:1.0];
-            shouldDelay = YES;
-        }
-
-        if (shouldDelay) {
-            // Wait serveral seconds to give time for SpringBoard to finish launching.
-            // FIXME: This is needed due to issue mentioned above. The time
-            //        interval was chosen arbitrarily and may not be long enough
-            //        in some cases.
-            [NSThread sleepForTimeInterval:20.0];
-        }
-
         // Determine the bundle name.
         NSString *bundleName = [properties objectForKey:@"app_name"];
         if (bundleName == nil) {
@@ -210,11 +198,17 @@ int main(int argc, char **argv, char **envp) {
             if ([exceptionType isEqualToString:@"EXC_RESOURCE"]) {
                 NSString *exceptionSubtype = [processInfo objectForKey:@"Exception Subtype"];
                 if ([exceptionSubtype isEqualToString:@"CPU"]) {
-                    body = [NSMutableString stringWithFormat:NSLocalizedString(@"NOTIFY_EXCESS_CPU", nil), bundleName];
+                    if ([defaults boolForKey:@kNotifyExcessiveCPU]) {
+                        body = [NSMutableString stringWithFormat:NSLocalizedString(@"NOTIFY_EXCESS_CPU", nil), bundleName];
+                    }
                 } else if ([exceptionSubtype isEqualToString:@"MEMORY"]) {
-                    body = [NSMutableString stringWithFormat:NSLocalizedString(@"NOTIFY_EXCESS_MEMORY", nil), bundleName];
+                    if ([defaults boolForKey:@kNotifyExcessiveMemory]) {
+                        body = [NSMutableString stringWithFormat:NSLocalizedString(@"NOTIFY_EXCESS_MEMORY", nil), bundleName];
+                    }
                 } else if ([exceptionSubtype isEqualToString:@"WAKEUPS"]) {
-                    body = [NSMutableString stringWithFormat:NSLocalizedString(@"NOTIFY_EXCESS_WAKEUPS", nil), bundleName];
+                    if ([defaults boolForKey:@kNotifyExcessiveWakeups]) {
+                        body = [NSMutableString stringWithFormat:NSLocalizedString(@"NOTIFY_EXCESS_WAKEUPS", nil), bundleName];
+                    }
                 }
             } else {
                 body = [NSMutableString stringWithFormat:NSLocalizedString(@"NOTIFY_CRASHED", nil), bundleName];
@@ -227,36 +221,55 @@ int main(int argc, char **argv, char **envp) {
             }
         }
 
-        // Load UIKit framework.
-        void *handle = dlopen("/System/Library/Frameworks/UIKit.framework/UIKit", RTLD_LAZY);
+        if (body != nil) {
+            // Make sure that SpringBoard's local notification server is up.
+            // NOTE: If SpringBoard is not running (i.e. it is what crashed), will
+            //       not be able to register a local notification.
+            // FIXME: Even if port is non-zero, it does not mean that SpringBoard is
+            //        ready to handle notifications.
+            BOOL shouldDelay = NO;
+            mach_port_t port;
+            while ((port = SBSSpringBoardServerPort()) == 0) {
+                [NSThread sleepForTimeInterval:1.0];
+                shouldDelay = YES;
+            }
 
-        // Send the notification.
-        UILocalNotification *notification = [objc_getClass("UILocalNotification") new];
-        [notification setAlertBody:body];
-        [notification setUserInfo:[NSDictionary dictionaryWithObjectsAndKeys:filepath, @"filepath", nil]];
+            if (shouldDelay) {
+                // Wait serveral seconds to give time for SpringBoard to finish launching.
+                // FIXME: This is needed due to issue mentioned above. The time
+                //        interval was chosen arbitrarily and may not be long enough
+                //        in some cases.
+                [NSThread sleepForTimeInterval:20.0];
+            }
 
-        // Increment and request update of icon badge number.
-        uid_t user = geteuid();
-        seteuid(501);
-        NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-        NSInteger crashesSinceLastLaunch = 1 + [defaults integerForKey:@kCrashesSinceLastLaunch];
-        [defaults setInteger:crashesSinceLastLaunch forKey:@kCrashesSinceLastLaunch];
-        [defaults synchronize];
-        seteuid(user);
-        [notification setApplicationIconBadgeNumber:crashesSinceLastLaunch];
+            // Load UIKit framework.
+            void *handle = dlopen("/System/Library/Frameworks/UIKit.framework/UIKit", RTLD_LAZY);
 
-        // NOTE: Passing nil as the action will cause iOS to display "View" (localized).
-        [notification setHasAction:YES];
-        [notification setAlertAction:nil];
+            // Send the notification.
+            UILocalNotification *notification = [objc_getClass("UILocalNotification") new];
+            [notification setAlertBody:body];
+            [notification setUserInfo:[NSDictionary dictionaryWithObjectsAndKeys:filepath, @"filepath", nil]];
 
-        // NOTE: Notification will be shown immediately as no fire date was set.
-        [SBSLocalNotificationClient scheduleLocalNotification:notification bundleIdentifier:@"crash-reporter"];
-        [notification release];
+            // Increment and request update of icon badge number.
+            NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+            NSInteger crashesSinceLastLaunch = 1 + [defaults integerForKey:@kCrashesSinceLastLaunch];
+            [defaults setInteger:crashesSinceLastLaunch forKey:@kCrashesSinceLastLaunch];
+            [defaults synchronize];
+            [notification setApplicationIconBadgeNumber:crashesSinceLastLaunch];
 
-        // Also post a Darwin notification.
+            // NOTE: Passing nil as the action will cause iOS to display "View" (localized).
+            [notification setHasAction:YES];
+            [notification setAlertAction:nil];
+
+            // NOTE: Notification will be shown immediately as no fire date was set.
+            [SBSLocalNotificationClient scheduleLocalNotification:notification bundleIdentifier:@"crash-reporter"];
+            [notification release];
+
+            dlclose(handle);
+        }
+
+        // Post a Darwin notification.
         notify_post("jp.ashikase.crashreporter.notifier.crash");
-
-        dlclose(handle);
     }
 
     // Must execute the run loop once so the above is processed.
