@@ -87,7 +87,7 @@
         }
     }
 
-    TSContactViewController *controller = [[TSContactViewController alloc] initWithPackage:nil suspect:nil linkInstruction:linkInstruction includeInstructions:includeInstructions];
+    TSContactViewController *controller = [[TSContactViewController alloc] initWithPackage:nil linkInstruction:linkInstruction includeInstructions:includeInstructions];
     [self.navigationController pushViewController:controller animated:YES];
     [controller release];
 
