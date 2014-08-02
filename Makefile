@@ -1,4 +1,5 @@
 SUBPROJECTS = Application as_root monitor notifier
+PKG_ID = crash-reporter
 
 export ARCHS = armv6 armv7 armv7s
 export TARGET = iphone:clang
@@ -26,5 +27,5 @@ after-install::
 	- ssh idevice killall CrashReporter
 
 distclean: clean
-	- rm -f $(THEOS_PROJECT_DIR)/$(APP_ID)*.deb
+	- rm -f $(THEOS_PROJECT_DIR)/$(PKG_ID)*.deb
 	- rm -f $(THEOS_PROJECT_DIR)/.theos/packages/*
