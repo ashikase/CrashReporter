@@ -151,7 +151,6 @@ int main(int argc, char **argv, char **envp) {
     // Determine the type of crash.
     NSDictionary *processInfo = [report processInfo];
     BOOL isSandboxViolation = ([processInfo objectForKey:@"Sandbox Violation"] != nil);
-    BOOL isExecutionTimeout = [[processInfo objectForKey:@"Exception Codes"] hasSuffix:@"8badf00d"];
 
     // Symbolicate and determine blame.
     NSArray *suspects = nil;
@@ -171,46 +170,45 @@ int main(int argc, char **argv, char **envp) {
     // TODO: Consider running all of notifier as mobile.
     seteuid(501);
 
-    // Determine if notification should be sent.
-    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-    BOOL notifySandbox = [defaults boolForKey:@kNotifySandboxViolations];
-    BOOL notifyTimeout = [defaults boolForKey:@kNotifyExecutionTimeouts];
-    BOOL shouldNotify = (!isSandboxViolation || notifySandbox) && (!isExecutionTimeout || notifyTimeout);
-    if (shouldNotify) {
-        // Determine the bundle name.
-        NSString *bundleName = [properties objectForKey:@"app_name"];
+    // Determine the bundle name.
+    NSString *bundleName = [properties objectForKey:@"app_name"];
+    if (bundleName == nil) {
+        bundleName = [properties objectForKey:@"displayName"];
         if (bundleName == nil) {
-            bundleName = [properties objectForKey:@"displayName"];
-            if (bundleName == nil) {
-                // NOTE: For sandbox violations, at least, bundle info is not
-                //       included in the report.
-                bundleName = [[processInfo objectForKey:@"Path"] lastPathComponent];
-            }
+            // NOTE: For sandbox violations, at least, bundle info is not
+            //       included in the report.
+            bundleName = [[processInfo objectForKey:@"Path"] lastPathComponent];
         }
+    }
 
-        // Create notification message, based on crash type.
-        NSMutableString *body = nil;
-        if (isSandboxViolation) {
+    // Create notification message, based on crash type.
+    NSMutableString *body = nil;
+    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+    if (isSandboxViolation) {
+        if ([defaults boolForKey:@kNotifySandboxViolations]) {
             body = [NSMutableString stringWithFormat:NSLocalizedString(@"NOTIFY_SANDBOX_VIOLATION", nil), bundleName];
-        } else {
-            // Determine exception type.
-            NSString *exceptionType = [processInfo objectForKey:@"Exception Type"];
-            if ([exceptionType isEqualToString:@"EXC_RESOURCE"]) {
-                NSString *exceptionSubtype = [processInfo objectForKey:@"Exception Subtype"];
-                if ([exceptionSubtype isEqualToString:@"CPU"]) {
-                    if ([defaults boolForKey:@kNotifyExcessiveCPU]) {
-                        body = [NSMutableString stringWithFormat:NSLocalizedString(@"NOTIFY_EXCESS_CPU", nil), bundleName];
-                    }
-                } else if ([exceptionSubtype isEqualToString:@"MEMORY"]) {
-                    if ([defaults boolForKey:@kNotifyExcessiveMemory]) {
-                        body = [NSMutableString stringWithFormat:NSLocalizedString(@"NOTIFY_EXCESS_MEMORY", nil), bundleName];
-                    }
-                } else if ([exceptionSubtype isEqualToString:@"WAKEUPS"]) {
-                    if ([defaults boolForKey:@kNotifyExcessiveWakeups]) {
-                        body = [NSMutableString stringWithFormat:NSLocalizedString(@"NOTIFY_EXCESS_WAKEUPS", nil), bundleName];
-                    }
+        }
+    } else {
+        // Determine exception type.
+        NSString *exceptionType = [processInfo objectForKey:@"Exception Type"];
+        if ([exceptionType isEqualToString:@"EXC_RESOURCE"]) {
+            NSString *exceptionSubtype = [processInfo objectForKey:@"Exception Subtype"];
+            if ([exceptionSubtype isEqualToString:@"CPU"]) {
+                if ([defaults boolForKey:@kNotifyExcessiveCPU]) {
+                    body = [NSMutableString stringWithFormat:NSLocalizedString(@"NOTIFY_EXCESS_CPU", nil), bundleName];
                 }
-            } else {
+            } else if ([exceptionSubtype isEqualToString:@"MEMORY"]) {
+                if ([defaults boolForKey:@kNotifyExcessiveMemory]) {
+                    body = [NSMutableString stringWithFormat:NSLocalizedString(@"NOTIFY_EXCESS_MEMORY", nil), bundleName];
+                }
+            } else if ([exceptionSubtype isEqualToString:@"WAKEUPS"]) {
+                if ([defaults boolForKey:@kNotifyExcessiveWakeups]) {
+                    body = [NSMutableString stringWithFormat:NSLocalizedString(@"NOTIFY_EXCESS_WAKEUPS", nil), bundleName];
+                }
+            }
+        } else {
+            BOOL isExecutionTimeout = [[processInfo objectForKey:@"Exception Codes"] hasSuffix:@"8badf00d"];
+            if (!isExecutionTimeout || [defaults boolForKey:@kNotifyExecutionTimeouts]) {
                 body = [NSMutableString stringWithFormat:NSLocalizedString(@"NOTIFY_CRASHED", nil), bundleName];
                 [body appendString:@"\n"];
                 if ([suspects count] > 0) {
@@ -220,57 +218,57 @@ int main(int argc, char **argv, char **envp) {
                 }
             }
         }
+    }
 
-        if (body != nil) {
-            // Make sure that SpringBoard's local notification server is up.
-            // NOTE: If SpringBoard is not running (i.e. it is what crashed), will
-            //       not be able to register a local notification.
-            // FIXME: Even if port is non-zero, it does not mean that SpringBoard is
-            //        ready to handle notifications.
-            BOOL shouldDelay = NO;
-            mach_port_t port;
-            while ((port = SBSSpringBoardServerPort()) == 0) {
-                [NSThread sleepForTimeInterval:1.0];
-                shouldDelay = YES;
-            }
-
-            if (shouldDelay) {
-                // Wait serveral seconds to give time for SpringBoard to finish launching.
-                // FIXME: This is needed due to issue mentioned above. The time
-                //        interval was chosen arbitrarily and may not be long enough
-                //        in some cases.
-                [NSThread sleepForTimeInterval:20.0];
-            }
-
-            // Load UIKit framework.
-            void *handle = dlopen("/System/Library/Frameworks/UIKit.framework/UIKit", RTLD_LAZY);
-
-            // Send the notification.
-            UILocalNotification *notification = [objc_getClass("UILocalNotification") new];
-            [notification setAlertBody:body];
-            [notification setUserInfo:[NSDictionary dictionaryWithObjectsAndKeys:filepath, @"filepath", nil]];
-
-            // Increment and request update of icon badge number.
-            NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-            NSInteger crashesSinceLastLaunch = 1 + [defaults integerForKey:@kCrashesSinceLastLaunch];
-            [defaults setInteger:crashesSinceLastLaunch forKey:@kCrashesSinceLastLaunch];
-            [defaults synchronize];
-            [notification setApplicationIconBadgeNumber:crashesSinceLastLaunch];
-
-            // NOTE: Passing nil as the action will cause iOS to display "View" (localized).
-            [notification setHasAction:YES];
-            [notification setAlertAction:nil];
-
-            // NOTE: Notification will be shown immediately as no fire date was set.
-            [SBSLocalNotificationClient scheduleLocalNotification:notification bundleIdentifier:@"crash-reporter"];
-            [notification release];
-
-            dlclose(handle);
+    if (body != nil) {
+        // Make sure that SpringBoard's local notification server is up.
+        // NOTE: If SpringBoard is not running (i.e. it is what crashed), will
+        //       not be able to register a local notification.
+        // FIXME: Even if port is non-zero, it does not mean that SpringBoard is
+        //        ready to handle notifications.
+        BOOL shouldDelay = NO;
+        mach_port_t port;
+        while ((port = SBSSpringBoardServerPort()) == 0) {
+            [NSThread sleepForTimeInterval:1.0];
+            shouldDelay = YES;
         }
 
-        // Post a Darwin notification.
-        notify_post("jp.ashikase.crashreporter.notifier.crash");
+        if (shouldDelay) {
+            // Wait serveral seconds to give time for SpringBoard to finish launching.
+            // FIXME: This is needed due to issue mentioned above. The time
+            //        interval was chosen arbitrarily and may not be long enough
+            //        in some cases.
+            [NSThread sleepForTimeInterval:20.0];
+        }
+
+        // Load UIKit framework.
+        void *handle = dlopen("/System/Library/Frameworks/UIKit.framework/UIKit", RTLD_LAZY);
+
+        // Send the notification.
+        UILocalNotification *notification = [objc_getClass("UILocalNotification") new];
+        [notification setAlertBody:body];
+        [notification setUserInfo:[NSDictionary dictionaryWithObjectsAndKeys:filepath, @"filepath", nil]];
+
+        // Increment and request update of icon badge number.
+        NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+        NSInteger crashesSinceLastLaunch = 1 + [defaults integerForKey:@kCrashesSinceLastLaunch];
+        [defaults setInteger:crashesSinceLastLaunch forKey:@kCrashesSinceLastLaunch];
+        [defaults synchronize];
+        [notification setApplicationIconBadgeNumber:crashesSinceLastLaunch];
+
+        // NOTE: Passing nil as the action will cause iOS to display "View" (localized).
+        [notification setHasAction:YES];
+        [notification setAlertAction:nil];
+
+        // NOTE: Notification will be shown immediately as no fire date was set.
+        [SBSLocalNotificationClient scheduleLocalNotification:notification bundleIdentifier:@"crash-reporter"];
+        [notification release];
+
+        dlclose(handle);
     }
+
+    // Post a Darwin notification.
+    notify_post("jp.ashikase.crashreporter.notifier.crash");
 
     // Must execute the run loop once so the above is processed.
     CFRunLoopRunInMode(kCFRunLoopDefaultMode, 0, true);
