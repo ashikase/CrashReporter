@@ -35,6 +35,12 @@ static inline NSUInteger indexOf(NSUInteger section, NSUInteger row, BOOL delete
         group_ = [group retain];
         self.title = group_.name;
 
+        // Add button for deleting all logs for this group.
+        UIBarButtonItem *buttonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemTrash
+            target:self action:@selector(trashButtonTapped)];
+        self.navigationItem.rightBarButtonItem = buttonItem;
+        [buttonItem release];
+
         // Listen for changes to crash log files.
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(refresh:) name:kNotificationCrashLogsChanged object:nil];
     }
@@ -48,11 +54,6 @@ static inline NSUInteger indexOf(NSUInteger section, NSUInteger row, BOOL delete
 }
 
 - (void)viewDidLoad {
-    // Localize the edit button.
-    // NOTE: Apparently it does not get localized by default?
-    self.navigationItem.rightBarButtonItem = [self editButtonItem];
-    self.editButtonItem.title = NSLocalizedString(@"EDIT", nil);
-
     // Add a refresh control.
     if (IOS_GTE(6_0)) {
         UITableView *tableView = [self tableView];
@@ -73,6 +74,17 @@ static inline NSUInteger indexOf(NSUInteger section, NSUInteger row, BOOL delete
 }
 
 #pragma mark - Actions
+
+- (void)trashButtonTapped {
+    NSString *message = [[NSString alloc] initWithFormat:NSLocalizedString(@"DELETE_ALL_FOR_MESSAGE", nil), [group_ name]];
+    NSString *deleteTitle = NSLocalizedString(@"DELETE", nil);
+    NSString *cancelTitle = NSLocalizedString(@"CANCEL", nil);
+    UIAlertView *alert = [[UIAlertView alloc] initWithTitle:nil message:message delegate:self
+        cancelButtonTitle:cancelTitle otherButtonTitles:deleteTitle, nil];
+    [alert show];
+    [alert release];
+    [message release];
+}
 
 - (void)refresh:(id)sender {
     [self reloadCrashLogGroup];
@@ -109,6 +121,28 @@ static inline NSUInteger indexOf(NSUInteger section, NSUInteger row, BOOL delete
     SuspectsViewController *controller = [[SuspectsViewController alloc] initWithCrashLog:crashLog];
     [self.navigationController pushViewController:controller animated:YES];
     [controller release];
+}
+
+#pragma mark - Delegate (UIAlertView)
+
+- (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
+    if (buttonIndex == 1) {
+        if ([group_ delete]) {
+            // FIXME: For a better visual effect, refresh the table, detect when
+            //        the reload has finished, and then, after a brief delay, pop.
+            [self.navigationController performSelector:@selector(popViewControllerAnimated:) withObject:[NSNumber numberWithBool:YES] afterDelay:1.0];
+        } else {
+            NSString *title = NSLocalizedString(@"ERROR", nil);
+            NSString *message = NSLocalizedString(@"DELETE_ALL_FAILED", nil);
+            NSString *okMessage = NSLocalizedString(@"OK", nil);
+            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:title message:message delegate:nil
+                cancelButtonTitle:okMessage otherButtonTitles:nil];
+            [alert show];
+            [alert release];
+
+            [self refresh:nil];
+        }
+    }
 }
 
 #pragma mark - UITableViewDataSource

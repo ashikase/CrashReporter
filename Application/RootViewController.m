@@ -25,6 +25,19 @@ extern NSString * const kNotificationCrashLogsChanged;
     if (self != nil) {
         self.title = NSLocalizedString(@"CRASHREPORTER", nil);
 
+        // Add button for accessing "manual script" view.
+        UIBarButtonItem *buttonItem;
+        buttonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemCompose
+            target:self action:@selector(editBlame)];
+        self.navigationItem.leftBarButtonItem = buttonItem;
+        [buttonItem release];
+
+        // Add button for deleting all logs.
+        buttonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemTrash
+            target:self action:@selector(trashButtonTapped)];
+        self.navigationItem.rightBarButtonItem = buttonItem;
+        [buttonItem release];
+
         // Listen for changes to crash log files.
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(refresh:) name:kNotificationCrashLogsChanged object:nil];
     }
@@ -37,12 +50,6 @@ extern NSString * const kNotificationCrashLogsChanged;
 }
 
 - (void)viewDidLoad {
-    // Add button for accessing "manual script" view.
-    UIBarButtonItem *buttonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemCompose
-        target:self action:@selector(editBlame)];
-    self.navigationItem.rightBarButtonItem = buttonItem;
-    [buttonItem release];
-
     // Add a refresh control.
     if (IOS_GTE(6_0)) {
         UITableView *tableView = [self tableView];
@@ -72,12 +79,63 @@ extern NSString * const kNotificationCrashLogsChanged;
     [controller release];
 }
 
+- (void)trashButtonTapped {
+    NSString *message = NSLocalizedString(@"DELETE_ALL_MESSAGE", nil);
+    NSString *deleteTitle = NSLocalizedString(@"DELETE", nil);
+    NSString *cancelTitle = NSLocalizedString(@"CANCEL", nil);
+    UIAlertView *alert = [[UIAlertView alloc] initWithTitle:nil message:message delegate:self
+        cancelButtonTitle:cancelTitle otherButtonTitles:deleteTitle, nil];
+    [alert show];
+    [alert release];
+}
+
 - (void)refresh:(id)sender {
     [CrashLogGroup forgetGroups];
     [self.tableView reloadData];
 
     if ([sender isKindOfClass:NSClassFromString(@"UIRefreshControl")]) {
         [sender endRefreshing];
+    }
+}
+
+#pragma mark - Delegate (UIAlertView)
+
+- (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
+    if (buttonIndex == 1) {
+        BOOL deleted = YES;
+
+        // Delete all root crash logs.
+        // NOTE: Must copy the array of groups as calling 'delete' on a group
+        //       will modify the global storage (fast-enumeration does not allow
+        //       such modifications).
+        NSArray *groups = [[CrashLogGroup groupsForRoot] copy];
+        for (CrashLogGroup *group in groups) {
+            if (![group delete]) {
+                deleted = NO;
+            }
+        }
+        [groups release];
+
+        // Delete all mobile crash logs.
+        groups = [[CrashLogGroup groupsForMobile] copy];
+        for (CrashLogGroup *group in groups) {
+            if (![group delete]) {
+                deleted = NO;
+            }
+        }
+        [groups release];
+
+        if (!deleted) {
+            NSString *title = NSLocalizedString(@"ERROR", nil);
+            NSString *message = NSLocalizedString(@"DELETE_ALL_FAILED", nil);
+            NSString *okMessage = NSLocalizedString(@"OK", nil);
+            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:title message:message delegate:nil
+                cancelButtonTitle:okMessage otherButtonTitles:nil];
+            [alert show];
+            [alert release];
+        }
+
+        [self refresh:nil];
     }
 }
 
