@@ -23,6 +23,10 @@
 #include <vproc.h>
 #include "paths.h"
 
+// NOTE: The following defines, as well as the launch_* related code later on,
+//       comes from Apple's launchd utility (which is licensed under the Apache
+//       License, Version 2.0)
+//       https://www.opensource.apple.com/source/launchd/launchd-842.90.1/
 typedef enum {
     VPROC_GSK_ZERO,
     VPROC_GSK_LAST_EXIT_STATUS,
