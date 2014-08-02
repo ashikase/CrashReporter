@@ -130,7 +130,7 @@ static inline NSUInteger indexOf(NSUInteger section, NSUInteger row, BOOL delete
         if ([group_ delete]) {
             // FIXME: For a better visual effect, refresh the table, detect when
             //        the reload has finished, and then, after a brief delay, pop.
-            [self.navigationController performSelector:@selector(popViewControllerAnimated:) withObject:[NSNumber numberWithBool:YES] afterDelay:1.0];
+            [self.navigationController popViewControllerAnimated:YES];
         } else {
             NSString *title = NSLocalizedString(@"ERROR", nil);
             NSString *message = NSLocalizedString(@"DELETE_ALL_FAILED", nil);
