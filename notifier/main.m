@@ -13,6 +13,7 @@
 #include <asl.h>
 #include <dlfcn.h>
 #include <errno.h>
+#include <notify.h>
 #include <objc/runtime.h>
 #include <time.h>
 #include <unistd.h>
@@ -238,6 +239,9 @@ int main(int argc, char **argv, char **envp) {
         // NOTE: Notification will be shown immediately as no fire date was set.
         [SBSLocalNotificationClient scheduleLocalNotification:notification bundleIdentifier:@"crash-reporter"];
         [notification release];
+
+        // Also post a Darwin notification.
+        notify_post("jp.ashikase.crashreporter.notifier.crash");
 
         dlclose(handle);
     }
