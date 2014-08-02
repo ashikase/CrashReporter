@@ -17,15 +17,39 @@
 #import "ManualScriptViewController.h"
 
 #include <sys/stat.h>
+#include <sys/wait.h>
 #include <errno.h>
+#include <launch.h>
+#include <vproc.h>
 #include "paths.h"
+
+typedef enum {
+    VPROC_GSK_ZERO,
+    VPROC_GSK_LAST_EXIT_STATUS,
+    VPROC_GSK_GLOBAL_ON_DEMAND,
+    VPROC_GSK_MGR_UID,
+    VPROC_GSK_MGR_PID,
+    VPROC_GSK_IS_MANAGED,
+    VPROC_GSK_MGR_NAME,
+    VPROC_GSK_BASIC_KEEPALIVE,
+    VPROC_GSK_START_INTERVAL,
+    VPROC_GSK_IDLE_TIMEOUT,
+    VPROC_GSK_EXIT_TIMEOUT,
+    VPROC_GSK_ENVIRONMENT,
+    VPROC_GSK_ALLJOBS,
+    // ...
+} vproc_gsk_t;
+
+extern vproc_err_t vproc_swap_complex(vproc_t vp, vproc_gsk_t key, launch_data_t inval, launch_data_t *outval);
 
 extern NSString * const kNotificationCrashLogsChanged;
 
 static BOOL isSafeMode$ = NO;
+static BOOL reportCrashIsDisabled$ = YES;
 
 @implementation RootViewController {
     BOOL hasShownSafeModeMessage_;
+    BOOL hasShownReportCrashMessage_;
 }
 
 - (id)init {
@@ -87,6 +111,20 @@ static BOOL isSafeMode$ = NO;
             [alert release];
 
             hasShownSafeModeMessage_ = YES;
+        }
+    }
+
+    if (reportCrashIsDisabled$) {
+        if (!hasShownReportCrashMessage_) {
+            NSString *title = NSLocalizedString(@"REPORTCRASH_DISABLED_TITLE", nil);
+            NSString *message = NSLocalizedString(@"REPORTCRASH_DISABLED_MESSAGE", nil);
+            NSString *okTitle = NSLocalizedString(@"OK", nil);
+            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:title message:message delegate:nil
+                cancelButtonTitle:okTitle otherButtonTitles:nil];
+            [alert show];
+            [alert release];
+
+            hasShownReportCrashMessage_ = YES;
         }
     }
 }
@@ -225,7 +263,20 @@ static BOOL isSafeMode$ = NO;
 
 @end
 
+//==============================================================================
+
+static void checkForDaemon(launch_data_t j, const char *key, void *context) {
+    launch_data_t lo = launch_data_dict_lookup(j, LAUNCH_JOBKEY_LABEL);
+    if (lo != NULL) {
+        const char *label = launch_data_get_string(lo);
+        if (strcmp(label, "com.apple.ReportCrash") == 0) {
+            reportCrashIsDisabled$ = NO;
+        }
+    }
+}
+
 __attribute__((constructor)) static void init() {
+    // Check if we were started in CrashReporter's Safe Mode.
     struct stat buf;
     BOOL failedToShutdown = (stat(kIsRunningFilepath, &buf) == 0);
     if (failedToShutdown) {
@@ -240,6 +291,13 @@ __attribute__((constructor)) static void init() {
         } else {
             fprintf(stderr, "ERROR: Failed to create \"is running\" file, errno = %d.\n", errno);
         }
+    }
+
+    // Check if ReportCrash daemon has been disabled.
+    launch_data_t resp = NULL;
+    if (vproc_swap_complex(NULL, VPROC_GSK_ALLJOBS, NULL, &resp) == NULL) {
+        launch_data_dict_iterate(resp, checkForDaemon, NULL);
+        launch_data_free(resp);
     }
 }
 
