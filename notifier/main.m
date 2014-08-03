@@ -207,14 +207,24 @@ int main(int argc, char **argv, char **envp) {
                 }
             }
         } else {
-            BOOL isExecutionTimeout = [[processInfo objectForKey:@"Exception Codes"] hasSuffix:@"8badf00d"];
-            if (!isExecutionTimeout || [defaults boolForKey:@kNotifyExecutionTimeouts]) {
-                body = [NSMutableString stringWithFormat:NSLocalizedString(@"NOTIFY_CRASHED", nil), bundleName];
-                [body appendString:@"\n"];
-                if ([suspects count] > 0) {
-                    [body appendFormat:NSLocalizedString(@"NOTIFY_MAIN_SUSPECT", nil), [[suspects objectAtIndex:0] lastPathComponent]];
-                } else {
-                    [body appendString:NSLocalizedString(@"NOTIFY_NO_SUSPECTS", nil)];
+            BOOL isLowMemory = ([[properties objectForKey:@"bug_type"] integerValue] == 198);
+            if (isLowMemory) {
+                body = [NSMutableString stringWithString:NSLocalizedString(@"NOTIFY_LOW_MEMORY", nil)];
+                NSString *largestProcess = [processInfo objectForKey:@"Largest process"];
+                if (largestProcess != nil) {
+                    [body appendString:@"\n"];
+                    [body appendFormat:NSLocalizedString(@"NOTIFY_LARGEST_PROCESS", nil), largestProcess];
+                }
+            } else {
+                BOOL isExecutionTimeout = [[processInfo objectForKey:@"Exception Codes"] hasSuffix:@"8badf00d"];
+                if (!isExecutionTimeout || [defaults boolForKey:@kNotifyExecutionTimeouts]) {
+                    body = [NSMutableString stringWithFormat:NSLocalizedString(@"NOTIFY_CRASHED", nil), bundleName];
+                    [body appendString:@"\n"];
+                    if ([suspects count] > 0) {
+                        [body appendFormat:NSLocalizedString(@"NOTIFY_MAIN_SUSPECT", nil), [[suspects objectAtIndex:0] lastPathComponent]];
+                    } else {
+                        [body appendString:NSLocalizedString(@"NOTIFY_NO_SUSPECTS", nil)];
+                    }
                 }
             }
         }
