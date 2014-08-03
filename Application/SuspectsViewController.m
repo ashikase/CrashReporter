@@ -234,8 +234,8 @@ static UIButton *logButton() {
 
 #pragma mark - Button Actions
 
-- (void)presentViewerWithLine:(NSString *)line {
-    TSIncludeInstruction *instruction = (TSIncludeInstruction *)[TSInstruction instructionWithLine:line];
+- (void)presentViewerWithString:(NSString *)string {
+    TSIncludeInstruction *instruction = (TSIncludeInstruction *)[TSInstruction instructionWithString:string];
     if (instruction != nil) {
         NSString *content = [[NSString alloc] initWithData:[instruction content] encoding:NSUTF8StringEncoding];
         if (content != nil) {
@@ -251,26 +251,26 @@ static UIButton *logButton() {
 }
 
 static NSString *createIncludeLineForFilepath(NSString *filepath, NSString *name) {
-    NSString *line = [NSString alloc];
+    NSString *string = [NSString alloc];
     if ([filepath hasPrefix:@kCrashLogDirectoryForRoot]) {
-        line = [line initWithFormat:@"include as \"%@\" command %@ read \"%@\"",
+        string = [string initWithFormat:@"include as \"%@\" command %@ read \"%@\"",
              name, [[NSBundle mainBundle] pathForResource:@"as_root" ofType:nil], filepath];
     } else {
-        line = [line initWithFormat:@"include as \"%@\" file \"%@\"", name, filepath];
+        string = [string initWithFormat:@"include as \"%@\" file \"%@\"", name, filepath];
     }
-    return line;
+    return string;
 }
 
 - (void)crashlogTapped {
-    NSString *line = createIncludeLineForFilepath([crashLog_ filepath], @"Crash log");
-    [self presentViewerWithLine:line];
-    [line release];
+    NSString *string = createIncludeLineForFilepath([crashLog_ filepath], @"Crash log");
+    [self presentViewerWithString:string];
+    [string release];
 }
 
 - (void)syslogTapped {
-    NSString *line = createIncludeLineForFilepath([self syslogPath], @"syslog");
-    [self presentViewerWithLine:line];
-    [line release];
+    NSString *string = createIncludeLineForFilepath([self syslogPath], @"syslog");
+    [self presentViewerWithString:string];
+    [string release];
 }
 
 #pragma mark - MFMailComposeViewControllerDelegate
@@ -315,14 +315,18 @@ static NSString *createIncludeLineForFilepath(NSString *filepath, NSString *name
                 }
 
                 NSMutableArray *includeInstructions = [NSMutableArray new];
-                [includeInstructions addObject:[TSIncludeInstruction instructionWithLine:crashlogLine]];
+                [includeInstructions addObject:[TSIncludeInstruction instructionWithString:crashlogLine]];
                 [crashlogLine release];
                 if (syslogLine != nil) {
-                    [includeInstructions addObject:[TSIncludeInstruction instructionWithLine:syslogLine]];
+                    [includeInstructions addObject:[TSIncludeInstruction instructionWithString:syslogLine]];
                     [syslogLine release];
                 }
-                [includeInstructions addObject:[TSIncludeInstruction instructionWithLine:@"include as \"Package List\" command dpkg -l"]];
-                [includeInstructions addObjectsFromArray:[lastSelectedPackage_ supportAttachments]];
+                [includeInstructions addObject:[TSIncludeInstruction instructionWithString:@"include as \"Package List\" command dpkg -l"]];
+                TSIncludeInstruction *instruction = [lastSelectedPackage_ preferencesAttachment];
+                if (instruction != nil) {
+                    [includeInstructions addObject:instruction];
+                }
+                [includeInstructions addObjectsFromArray:[lastSelectedPackage_ otherAttachments]];
 
                 TSContactViewController *viewController = [[TSContactViewController alloc] initWithPackage:lastSelectedPackage_
                     linkInstruction:linkInstruction includeInstructions:includeInstructions];
@@ -443,8 +447,8 @@ static NSString *createIncludeLineForFilepath(NSString *filepath, NSString *name
     }
 
     // Add an email link to send to an arbitrary address.
-    NSString *line = [NSString stringWithFormat:@"link email \"\" as \"%@\" is_support", NSLocalizedString(@"FORWARD_TO", nil)];
-    instruction = [TSLinkInstruction instructionWithLine:line];
+    NSString *string = [NSString stringWithFormat:@"link email \"\" as \"%@\" is_support", NSLocalizedString(@"FORWARD_TO", nil)];
+    instruction = [TSLinkInstruction instructionWithString:string];
     if (instruction != nil) {
         [linkInstructions addObject:instruction];
     }

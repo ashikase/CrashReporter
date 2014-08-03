@@ -77,10 +77,10 @@
     NSArray *lines = [textView_.text componentsSeparatedByString:@"\n"];
     Class $TSLinkInstruction = [TSLinkInstruction class];
     for (NSString *line in lines) {
-        TSInstruction *instruction = [TSInstruction instructionWithLine:line];
+        TSInstruction *instruction = [TSInstruction instructionWithString:line];
         if (instruction != nil) {
             if ([instruction isKindOfClass:$TSLinkInstruction]) {
-                linkInstruction = [TSLinkInstruction instructionWithLine:line];
+                linkInstruction = [TSLinkInstruction instructionWithString:line];
             } else {
                 [includeInstructions addObject:instruction];
             }
