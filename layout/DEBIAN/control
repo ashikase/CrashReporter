@@ -1,5 +1,5 @@
 Package: crash-reporter
-Version: 1.5.0
+Version: 1.6.0
 Architecture: iphoneos-arm
 Pre-Depends: firmware (>=3.0)
 Depends: coreutils, dpkg, grep, jp.ashikase.libsymbolicate (>= 1.3.0), jp.ashikase.techsupport (>= 1.1.0), mobilesubstrate, preferenceloader
