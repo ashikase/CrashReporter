@@ -43,11 +43,20 @@ int main(int argc, char **argv, char **envp) {
     }
 
     // Get arguments.
-    if (argc != 2) {
+    BOOL isDebugMode = NO;
+    if (argc < 2) {
         fprintf(stderr, "ERROR: Must specify path to crash log.\n");
         return 1;
     }
-    NSString *filepath = [NSString stringWithFormat:@"%s", argv[1]];
+    if ((argc > 2)) {
+        if (strcmp(argv[1], "-d") == 0) {
+            isDebugMode = YES;
+        } else {
+            fprintf(stderr, "ERROR: Unknown parameter.\n");
+            return 1;
+        }
+    }
+    NSString *filepath = [NSString stringWithFormat:@"%s", (isDebugMode ? argv[2] : argv[1])];
 
     // Load and parse the crash log.
     CRCrashReport *report = nil;
@@ -63,29 +72,31 @@ int main(int argc, char **argv, char **envp) {
         return 1;
     }
 
-    // Check freshness of crash log.
-    // NOTE: This tool is only meant to be used with newly created crash log
-    //       files; symbolication of older files should be done with the
-    //       "symbolicate" tool.
-    BOOL isTooOld = fileIsSymbolicated(filepath, report);
-    if (!isTooOld) {
-        // Check the date and time that the crash occurred.
-        NSString *dateTime = [[report processInfo] objectForKey:@"Date/Time"];
-        if (dateTime != nil) {
-            NSDateFormatter *formatter = [NSDateFormatter new];
-            [formatter setDateFormat:@"yyyy-MM-dd HH:mm:ss.SSS Z"];
-            NSDate *date = [formatter dateFromString:dateTime];
-            [formatter release];
-            if ([date timeIntervalSinceNow] < -(2 * 60)) {
-                // Occurred more than two minutes ago.
-                isTooOld = YES;
+    if (!isDebugMode) {
+        // Check freshness of crash log.
+        // NOTE: This tool is only meant to be used with newly created crash log
+        //       files; symbolication of older files should be done with the
+        //       "symbolicate" tool.
+        BOOL isTooOld = fileIsSymbolicated(filepath, report);
+        if (!isTooOld) {
+            // Check the date and time that the crash occurred.
+            NSString *dateTime = [[report processInfo] objectForKey:@"Date/Time"];
+            if (dateTime != nil) {
+                NSDateFormatter *formatter = [NSDateFormatter new];
+                [formatter setDateFormat:@"yyyy-MM-dd HH:mm:ss.SSS Z"];
+                NSDate *date = [formatter dateFromString:dateTime];
+                [formatter release];
+                if ([date timeIntervalSinceNow] < -(2 * 60)) {
+                    // Occurred more than two minutes ago.
+                    isTooOld = YES;
+                }
             }
         }
-    }
-    if (isTooOld) {
-        // Is already symbolicated or occurred too long ago.
-        fprintf(stderr, "ERROR: This tool is only meant for use with recently-created, unsymbolicated crash reports.\n");
-        return 1;
+        if (isTooOld) {
+            // Is already symbolicated or occurred too long ago.
+            fprintf(stderr, "ERROR: This tool is only meant for use with recently-created, unsymbolicated crash reports.\n");
+            return 1;
+        }
     }
 
     // Determine the bundle identifier.
