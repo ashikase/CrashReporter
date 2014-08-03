@@ -79,6 +79,20 @@
                 <key>PostNotification</key>
                 <string>crash-reporter-settingsChanged</string>
             </dict>
+            <dict>
+                <key>cell</key>
+                <string>PSSwitchCell</string>
+                <key>label</key>
+                <string>PREF_NOTIFY_LOW_MEMORY</string>
+                <key>key</key>
+                <string>notifyLowMemory</string>
+                <key>default</key>
+                <false/>
+                <key>defaults</key>
+                <string>crash-reporter</string>
+                <key>PostNotification</key>
+                <string>crash-reporter-settingsChanged</string>
+            </dict>
             <!--
             <dict>
                 <key>cell</key>

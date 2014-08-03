@@ -25,6 +25,7 @@
 #define kNotifyExcessiveMemory "notifyExcessiveMemory"
 #define kNotifyExcessiveWakeups "notifyExcessiveWakeups"
 #define kNotifyExecutionTimeouts "notifyExecutionTimeouts"
+#define kNotifyLowMemory "notifyLowMemory"
 #define kNotifySandboxViolations "notifySandboxViolations"
 
 extern mach_port_t SBSSpringBoardServerPort();
@@ -209,11 +210,13 @@ int main(int argc, char **argv, char **envp) {
         } else {
             BOOL isLowMemory = ([[properties objectForKey:@"bug_type"] integerValue] == 198);
             if (isLowMemory) {
-                body = [NSMutableString stringWithString:NSLocalizedString(@"NOTIFY_LOW_MEMORY", nil)];
-                NSString *largestProcess = [processInfo objectForKey:@"Largest process"];
-                if (largestProcess != nil) {
-                    [body appendString:@"\n"];
-                    [body appendFormat:NSLocalizedString(@"NOTIFY_LARGEST_PROCESS", nil), largestProcess];
+                if ([defaults boolForKey:@kNotifyLowMemory]) {
+                    body = [NSMutableString stringWithString:NSLocalizedString(@"NOTIFY_LOW_MEMORY", nil)];
+                    NSString *largestProcess = [processInfo objectForKey:@"Largest process"];
+                    if (largestProcess != nil) {
+                        [body appendString:@"\n"];
+                        [body appendFormat:NSLocalizedString(@"NOTIFY_LARGEST_PROCESS", nil), largestProcess];
+                    }
                 }
             } else {
                 BOOL isExecutionTimeout = [[processInfo objectForKey:@"Exception Codes"] hasSuffix:@"8badf00d"];
