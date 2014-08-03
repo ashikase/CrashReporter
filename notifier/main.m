@@ -208,19 +208,27 @@ int main(int argc, char **argv, char **envp) {
                 }
             }
         } else {
-            BOOL isLowMemory = ([[properties objectForKey:@"bug_type"] integerValue] == 198);
-            if (isLowMemory) {
-                if ([defaults boolForKey:@kNotifyLowMemory]) {
-                    body = [NSMutableString stringWithString:NSLocalizedString(@"NOTIFY_LOW_MEMORY", nil)];
-                    NSString *largestProcess = [processInfo objectForKey:@"Largest process"];
-                    if (largestProcess != nil) {
-                        [body appendString:@"\n"];
-                        [body appendFormat:NSLocalizedString(@"NOTIFY_LARGEST_PROCESS", nil), largestProcess];
+            NSInteger bugType = [[properties objectForKey:@"bug_type"] integerValue];
+            switch (bugType) {
+                case 198:
+                    // Low memory.
+                    if ([defaults boolForKey:@kNotifyLowMemory]) {
+                        body = [NSMutableString stringWithString:NSLocalizedString(@"NOTIFY_LOW_MEMORY", nil)];
+                        NSString *largestProcess = [processInfo objectForKey:@"Largest process"];
+                        if (largestProcess != nil) {
+                            [body appendString:@"\n"];
+                            [body appendFormat:NSLocalizedString(@"NOTIFY_LARGEST_PROCESS", nil), largestProcess];
+                        }
                     }
-                }
-            } else {
-                BOOL isExecutionTimeout = [[processInfo objectForKey:@"Exception Codes"] hasSuffix:@"8badf00d"];
-                if (!isExecutionTimeout || [defaults boolForKey:@kNotifyExecutionTimeouts]) {
+                    break;
+                case 185:
+                    // Execution timeout (aka. "8badf00d").
+                    if (![defaults boolForKey:@kNotifyExecutionTimeouts]) {
+                        break;
+                    }
+                    // Fall-through.
+                case 109:
+                    // Crash.
                     body = [NSMutableString stringWithFormat:NSLocalizedString(@"NOTIFY_CRASHED", nil), bundleName];
                     [body appendString:@"\n"];
                     if ([suspects count] > 0) {
@@ -228,7 +236,9 @@ int main(int argc, char **argv, char **envp) {
                     } else {
                         [body appendString:NSLocalizedString(@"NOTIFY_NO_SUSPECTS", nil)];
                     }
-                }
+                    break;
+                default:
+                    break;
             }
         }
     }
