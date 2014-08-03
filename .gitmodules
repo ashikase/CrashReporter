@@ -4,3 +4,6 @@
 [submodule "Frameworks/TechSupport"]
 	path = Frameworks/TechSupport
 	url = https://github.com/ashikase/TechSupport.git
+[submodule "Common"]
+	path = Common
+	url = http://github.com/ashikase/Common

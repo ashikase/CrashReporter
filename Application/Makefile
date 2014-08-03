@@ -2,8 +2,8 @@ TECHSUPPORT_FRAMEWORK = $(THEOS_PROJECT_DIR)/Frameworks/TechSupport/_/Library/Fr
 
 APPLICATION_NAME = CrashReporter
 CrashReporter_FILES = \
-    ../Common/crashlog_util.m \
-    ../Common/exec_as_root.m \
+    ../common/crashlog_util.m \
+    ../common/exec_as_root.m \
     ApplicationDelegate.m \
     CrashLog.m \
     CrashLogGroup.m \
