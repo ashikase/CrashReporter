@@ -13,3 +13,4 @@ include $(THEOS_MAKE_PATH)/tool.mk
 
 after-clean::
 	- rm -rf $(THEOS_PROJECT_DIR)/notifier/Common
+	- rm -rf $(THEOS_PROJECT_DIR)/notifier/common

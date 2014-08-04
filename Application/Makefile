@@ -25,3 +25,4 @@ include $(THEOS_MAKE_PATH)/application.mk
 
 after-clean::
 	- rm -rf $(THEOS_PROJECT_DIR)/Application/Common
+	- rm -rf $(THEOS_PROJECT_DIR)/Application/common
