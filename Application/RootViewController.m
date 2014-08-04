@@ -56,6 +56,8 @@ static BOOL reportCrashIsDisabled$ = YES;
     BOOL hasShownReportCrashMessage_;
 }
 
+#pragma mark - Creation & Destruction
+
 - (id)init {
     self = [super initWithStyle:UITableViewStylePlain];
     if (self != nil) {
@@ -84,6 +86,8 @@ static BOOL reportCrashIsDisabled$ = YES;
     [[NSNotificationCenter defaultCenter] removeObserver:self];
     [super dealloc];
 }
+
+#pragma mark - View (Setup)
 
 - (void)viewDidLoad {
     // Add a refresh control.
@@ -205,7 +209,7 @@ static BOOL reportCrashIsDisabled$ = YES;
     }
 }
 
-#pragma mark - UITableViewDataSource
+#pragma mark - Delegate (UITableViewDataSource)
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
     return 2;
@@ -244,7 +248,7 @@ static BOOL reportCrashIsDisabled$ = YES;
     return cell;
 }
 
-#pragma mark - UITableViewDelegate
+#pragma mark - Delegate (UITableViewDelegate)
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     NSArray *crashLogGroups = (indexPath.section == 0) ?  [CrashLogGroup groupsForMobile] : [CrashLogGroup groupsForRoot];
