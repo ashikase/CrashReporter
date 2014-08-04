@@ -62,7 +62,7 @@ int main(int argc, char **argv, char **envp) {
     CRCrashReport *report = nil;
     NSData *data = dataForFile(filepath);
     if (data != nil) {
-        report = [[CRCrashReport alloc] initWithData:data];
+        report = [[CRCrashReport alloc] initWithData:data filterType:CRCrashReportFilterTypePackage];
         if (report == nil) {
             fprintf(stderr, "ERROR: Could not parse crash log file \"%s\".\n", [filepath UTF8String]);
             return 1;

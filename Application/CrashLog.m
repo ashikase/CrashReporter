@@ -105,7 +105,7 @@ static void saveViewedState(NSString *filepath) {
     if (processPath_ == nil) {
         NSData *data = dataForFile([self filepath]);
         if (data != nil) {
-            CRCrashReport *report = [[CRCrashReport alloc] initWithData:data];
+            CRCrashReport *report = [[CRCrashReport alloc] initWithData:data filterType:CRCrashReportFilterTypePackage];
             processPath_ = [[[report processInfo] objectForKey:@"Path"] retain];
             [report release];
         }
@@ -118,7 +118,7 @@ static void saveViewedState(NSString *filepath) {
         if ([self isSymbolicated]) {
             NSData *data = dataForFile([self filepath]);
             if (data != nil) {
-                CRCrashReport *report = [[CRCrashReport alloc] initWithData:data];
+                CRCrashReport *report = [[CRCrashReport alloc] initWithData:data filterType:CRCrashReportFilterTypePackage];
                 if (report != nil) {
                     suspects_ = [[[report properties] objectForKey:@"blame"] retain];
                     [report release];

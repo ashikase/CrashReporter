@@ -49,7 +49,7 @@ BOOL fileIsSymbolicated(NSString *filepath, CRCrashReport *report) {
             NSData *data = dataForFile(filepath);
             if (data != nil) {
                 // Load crash report.
-                report = [[CRCrashReport alloc] initWithData:data];
+                report = [[CRCrashReport alloc] initWithData:data filterType:CRCrashReportFilterTypePackage];
                 if (report != nil) {
                     needsRelease = YES;
                 }
@@ -198,7 +198,7 @@ NSString *symbolicateFile(NSString *filepath, CRCrashReport *report) {
         NSData *data = dataForFile(filepath);
         if (data != nil) {
             // Load crash report.
-            report = [[CRCrashReport alloc] initWithData:data];
+            report = [[CRCrashReport alloc] initWithData:data filterType:CRCrashReportFilterTypePackage];
             if (report != nil) {
                 needsRelease = YES;
             }
