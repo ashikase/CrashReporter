@@ -13,6 +13,7 @@
 
 #import <RegexKitLite/RegexKitLite.h>
 #import <libsymbolicate/CRCrashReport.h>
+#import <libsymbolicate/CRBinaryImage.h>
 #import "crashlog_util.h"
 
 NSString * const kViewedCrashLogs = @"viewedCrashLogs";
@@ -54,6 +55,7 @@ static void saveViewedState(NSString *filepath) {
 @synthesize filepath = filepath_;
 @synthesize processName = processName_;
 @synthesize processPath = processPath_;
+@synthesize blamableBinaries = blamableBinaries_;
 @synthesize suspects = suspects_;
 @synthesize date = date_;
 @synthesize viewed = viewed_;
@@ -94,12 +96,46 @@ static void saveViewedState(NSString *filepath) {
     [filepath_ release];
     [processName_ release];
     [processPath_ release];
+    [blamableBinaries_ release];
     [suspects_ release];
     [date_ release];
     [super dealloc];
 }
 
 #pragma mark - Properties
+
+static NSInteger compareBinaryImagePaths(CRBinaryImage *binaryImage1, CRBinaryImage *binaryImage2, void *context) {
+    NSString *name1 = [[binaryImage1 path] lastPathComponent];
+    NSString *name2 = [[binaryImage2 path] lastPathComponent];
+    return [name1 compare:name2];
+}
+
+- (NSArray *)blamableBinaries {
+    if (blamableBinaries_ == nil) {
+        if ([self isSymbolicated]) {
+            NSData *data = dataForFile([self filepath]);
+            if (data != nil) {
+                CRCrashReport *report = [[CRCrashReport alloc] initWithData:data filterType:CRCrashReportFilterTypePackage];
+                if (report != nil) {
+                    // Process blame to mark which binary images are blamable.
+                    [report blame];
+
+                    // Collect blamable images.
+                    NSMutableArray *blamableBinaries = [NSMutableArray new];
+                    for (CRBinaryImage *binaryImage in [[report binaryImages] allValues]) {
+                        if ([binaryImage isBlamable]) {
+                            [blamableBinaries addObject:binaryImage];
+                        }
+                    }
+                    [blamableBinaries sortUsingFunction:compareBinaryImagePaths context:NULL];
+                    blamableBinaries_ = blamableBinaries;
+                    [report release];
+                }
+            }
+        }
+    }
+    return blamableBinaries_;
+}
 
 - (NSString *)processPath {
     if (processPath_ == nil) {

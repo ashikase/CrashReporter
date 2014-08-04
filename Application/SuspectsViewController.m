@@ -371,12 +371,14 @@ static NSString *createIncludeLineForFilepath(NSString *filepath, NSString *name
 #pragma mark - UITableViewDataSource
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
-    return 3;
+    return 4;
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
     if (section == 0) {
         return 1;
+    } else if (section == 3) {
+        return [[crashLog_ blamableBinaries] count];
     } else {
         NSUInteger count = [[crashLog_ suspects] count];
         if (count > 0) {
@@ -393,6 +395,7 @@ static NSString *createIncludeLineForFilepath(NSString *filepath, NSString *name
         case 0: key = NSLocalizedString(@"CRASHED_PROCESS", nil); break;
         case 1: key = NSLocalizedString(@"MAIN_SUSPECT", nil); break;
         case 2: key = NSLocalizedString(@"OTHER_SUSPECTS", nil); break;
+        case 3: key = NSLocalizedString(@"LOADED_BINARIES", nil); break;
         default: break;
 
     }
@@ -406,13 +409,17 @@ static NSString *createIncludeLineForFilepath(NSString *filepath, NSString *name
         cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
     }
 
+    NSString *text = nil;
     NSUInteger section = indexPath.section;
     if (section == 0) {
-        cell.textLabel.text = [crashLog_ processName];
+        text = [crashLog_ processName];
+    } else if (section == 3) {
+        text = [[[[crashLog_ blamableBinaries] objectAtIndex:indexPath.row] path] lastPathComponent];
     } else {
         NSUInteger index = (section == 1) ? 0 : (indexPath.row + 1);
-        cell.textLabel.text = [[[crashLog_ suspects] objectAtIndex:index] lastPathComponent];
+        text = [[[crashLog_ suspects] objectAtIndex:index] lastPathComponent];
     }
+    [[cell textLabel] setText:text];
 
     return cell;
 }
@@ -425,6 +432,8 @@ static NSString *createIncludeLineForFilepath(NSString *filepath, NSString *name
     NSUInteger section = indexPath.section;
     if (section == 0) {
         path = [crashLog_ processPath];
+    } else if (section == 3) {
+        path = [[[crashLog_ blamableBinaries] objectAtIndex:indexPath.row] path];
     } else {
         NSUInteger index = (section == 1) ? 0 : (indexPath.row + 1);
         path = [[crashLog_ suspects] objectAtIndex:index];
