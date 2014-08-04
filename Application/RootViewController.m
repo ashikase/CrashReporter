@@ -265,6 +265,11 @@ static BOOL reportCrashIsDisabled$ = YES;
     }
 }
 
+- (void)tableView:(UITableView *)tableView willDisplayHeaderView:(UIView *)view forSection:(NSInteger)section {
+    // Change background color of header to improve visibility.
+    [view setTintColor:[UIColor colorWithRed:0.85 green:0.85 blue:0.85 alpha:1.0]];
+}
+
 @end
 
 //==============================================================================
