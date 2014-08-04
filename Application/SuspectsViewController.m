@@ -16,6 +16,7 @@
 #import <TechSupport/TechSupport.h>
 #import "CrashLog.h"
 #import "ModalActionSheet.h"
+#import "UIImage+Pixel.h"
 
 #include "paths.h"
 
@@ -96,8 +97,14 @@ static UIButton *logButton() {
             [label setShadowOffset:CGSizeMake(0.0, -1.0)];
         }
     } else {
-        button.backgroundColor = [UIColor colorWithRed:(36.0 / 255.0) green:(132.0 / 255.0) blue:(232.0 / 255.0) alpha:1.0];
+        UIColor *buttonColor = [UIColor colorWithRed:(36.0 / 255.0) green:(132.0 / 255.0) blue:(232.0 / 255.0) alpha:1.0];
+        UIImage *image = [[UIImage imageWithColor:buttonColor] stretchableImageWithLeftCapWidth:0.0 topCapHeight:0.0];
+        [button setBackgroundImage:image forState:UIControlStateNormal];
         [button setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+
+        buttonColor = [UIColor colorWithRed:0.85 green:0.85 blue:0.85 alpha:1.0];
+        image = [[UIImage imageWithColor:buttonColor] stretchableImageWithLeftCapWidth:0.0 topCapHeight:0.0];
+        [button setBackgroundImage:image forState:UIControlStateDisabled];
         [button setTitleColor:[UIColor grayColor] forState:UIControlStateDisabled];
 
         layer.borderColor = [[UIColor blackColor] CGColor];
@@ -143,9 +150,6 @@ static UIButton *logButton() {
         [button addTarget:self action:@selector(syslogTapped) forControlEvents:UIControlEventTouchUpInside];
     } else {
         [button setEnabled:NO];
-        if (IOS_GTE(7_0)) {
-            button.backgroundColor = [UIColor lightGrayColor];
-        }
     }
     [buttonView addSubview:button];
 

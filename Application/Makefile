@@ -11,12 +11,13 @@ CrashReporter_FILES = \
     ModalActionSheet.m \
     RootViewController.m \
     SuspectsViewController.m \
+    UIImage+Pixel.m \
     VictimViewController.m \
     main.m \
     pastie.m
 CrashReporter_CFLAGS = -F$(TECHSUPPORT_FRAMEWORK) -I$(THEOS_PROJECT_DIR)/Libraries
 CrashReporter_LDFLAGS = -llockdown -lsymbolicate -F$(TECHSUPPORT_FRAMEWORK) -framework TechSupport
-CrashReporter_FRAMEWORKS = MessageUI SystemConfiguration UIKit
+CrashReporter_FRAMEWORKS = CoreGraphics MessageUI SystemConfiguration UIKit
 CrashReporter_PRIVATE_FRAMEWORKS = Symbolication
 
 include $(THEOS_MAKE_PATH)/common.mk
