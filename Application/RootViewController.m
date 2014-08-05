@@ -11,17 +11,37 @@
 
 #import "RootViewController.h"
 
+#import <Social/Social.h>
+
 #import "CrashLog.h"
 #import "CrashLogGroup.h"
-#import "VictimViewController.h"
 #import "ManualScriptViewController.h"
+#import "UIImage+Pixel.h"
+#import "VictimViewController.h"
 
 #include <sys/stat.h>
 #include <sys/wait.h>
+#include <dlfcn.h>
 #include <errno.h>
 #include <launch.h>
 #include <vproc.h>
 #include "paths.h"
+
+@interface UIAlertView ()
+- (void)setNumberOfRows:(int)rows;
+@end
+
+NSString * const SLServiceTypeFacebook = @"com.apple.social.facebook";
+NSString * const SLServiceTypeSinaWeibo = @"com.apple.social.sinaweibo";
+NSString * const SLServiceTypeTencentWeibo = @"com.apple.social.tencentweibo";
+NSString * const SLServiceTypeTwitter = @"com.apple.social.twitter";
+
+typedef enum {
+    AlertViewTypeCollaborate = 101,
+    AlertViewTypeContribute = 102,
+    AlertViewTypeSocial = 103,
+    AlertViewTypeTrash = 104
+} AlertViewType;
 
 // NOTE: The following defines, as well as the launch_* related code later on,
 //       comes from Apple's launchd utility (which is licensed under the Apache
@@ -51,10 +71,22 @@ extern NSString * const kNotificationCrashLogsChanged;
 static BOOL isSafeMode$ = NO;
 static BOOL reportCrashIsDisabled$ = YES;
 
+@interface RootViewController ()
+@property(nonatomic, readonly) UIView *menuContainerView;
+@property(nonatomic, readonly) UIView *menuTintView;
+@property(nonatomic, readonly) UIView *menuView;
+@end
+
 @implementation RootViewController {
     BOOL hasShownSafeModeMessage_;
     BOOL hasShownReportCrashMessage_;
+
+    NSArray *availableSocialServices_;
 }
+
+@synthesize menuContainerView = menuContainerView_;
+@synthesize menuTintView = menuTintView_;
+@synthesize menuView = menuView_;
 
 #pragma mark - Creation & Destruction
 
@@ -63,17 +95,19 @@ static BOOL reportCrashIsDisabled$ = YES;
     if (self != nil) {
         self.title = @"CrashReporter";
 
-        // Add button for accessing "manual script" view.
+        UINavigationItem *navigationItem = [self navigationItem];
+
+        // Add button for accessing menu.
         UIBarButtonItem *buttonItem;
-        buttonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemCompose
-            target:self action:@selector(editBlame)];
-        self.navigationItem.leftBarButtonItem = buttonItem;
+        buttonItem = [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:@"navicon"]
+            style:UIBarButtonItemStylePlain target:self action:@selector(menuButtonTapped)];
+        [navigationItem setLeftBarButtonItem:buttonItem];
         [buttonItem release];
 
         // Add button for deleting all logs.
         buttonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemTrash
             target:self action:@selector(trashButtonTapped)];
-        self.navigationItem.rightBarButtonItem = buttonItem;
+        [navigationItem setRightBarButtonItem:buttonItem];
         [buttonItem release];
 
         // Listen for changes to crash log files.
@@ -84,12 +118,18 @@ static BOOL reportCrashIsDisabled$ = YES;
 
 - (void)dealloc {
     [[NSNotificationCenter defaultCenter] removeObserver:self];
+    [availableSocialServices_ release];
+    [menuContainerView_ release];
+    [menuTintView_ release];
+    [menuView_ release];
     [super dealloc];
 }
 
 #pragma mark - View (Setup)
 
 - (void)viewDidLoad {
+    [super viewDidLoad];
+
     // Add a refresh control.
     if (IOS_GTE(6_0)) {
         UITableView *tableView = [self tableView];
@@ -103,11 +143,14 @@ static BOOL reportCrashIsDisabled$ = YES;
 
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
+
     [CrashLogGroup forgetGroups];
     [self.tableView reloadData];
 }
 
 - (void)viewDidAppear:(BOOL)animated {
+    [super viewDidAppear:animated];
+
     if (isSafeMode$) {
         if (!hasShownSafeModeMessage_) {
             NSString *title = NSLocalizedString(@"SAFE_MODE_TITLE", nil);
@@ -137,16 +180,265 @@ static BOOL reportCrashIsDisabled$ = YES;
     }
 }
 
+- (void)viewDidDisappear:(BOOL)animated {
+    [super viewDidDisappear:animated];
+
+    // NOTE: Destroy the menu, if it exists.
+    if (menuContainerView_ != nil) {
+        [menuContainerView_ removeFromSuperview];
+        [menuContainerView_ release];
+        menuContainerView_ = nil;
+        [menuTintView_ release];
+        menuTintView_ = nil;
+        [menuView_ release];
+        menuView_ = nil;
+    }
+}
+
 - (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation {
     return interfaceOrientation != UIInterfaceOrientationPortraitUpsideDown;
 }
 
+- (void)willAnimateRotationToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation duration:(NSTimeInterval)duration {
+    [self layoutMenuContainerView];
+}
+
+#pragma mark - View (Menu)
+
+static UIButton *menuButton(NSUInteger position, CGRect frame, UIImage *backgroundImage, NSString *titleKey, id target, SEL action) {
+    frame.origin.y = position * (1.0 + frame.size.height);
+
+    UIButton *button = [UIButton buttonWithType:UIButtonTypeCustom];
+    [button setAutoresizingMask:UIViewAutoresizingFlexibleWidth];
+    [button setBackgroundImage:backgroundImage forState:UIControlStateNormal];
+    [button setFrame:frame];
+    [button addTarget:target action:action forControlEvents:UIControlEventTouchUpInside];
+    [button setTitle:NSLocalizedString(titleKey, nil) forState:UIControlStateNormal];
+    return button;
+}
+
+- (UIView *)menuView {
+    if (menuView_ == nil) {
+        // Create menu.
+        const CGFloat buttonHeight = 54.0;
+        const CGFloat menuHeight = 4.0 * (1.0 + buttonHeight);
+        CGRect menuFrame = CGRectMake(0.0, -menuHeight, 0.0, menuHeight);
+        UIView *menuView = [[UIView alloc] initWithFrame:menuFrame];
+        [menuView setAutoresizingMask:UIViewAutoresizingFlexibleWidth];
+        [menuView setBackgroundColor:[UIColor colorWithRed:0.85 green:0.85 blue:0.85 alpha:1.0]];
+
+        // Add buttons.
+        UIColor *buttonColor = [UIColor colorWithRed:(36.0 / 255.0) green:(132.0 / 255.0) blue:(232.0 / 255.0) alpha:1.0];
+        UIImage *image = [[UIImage imageWithColor:buttonColor] stretchableImageWithLeftCapWidth:0.0 topCapHeight:0.0];
+
+        CGRect buttonFrame = CGRectMake(0.0, 0.0, menuFrame.size.width, buttonHeight);
+        [menuView addSubview:menuButton(0, buttonFrame, image, @"SCRIPT_INPUT_TITLE", self, @selector(scriptInputButtonTapped))];
+        [menuView addSubview:menuButton(1, buttonFrame, image, @"SOCIAL_SHARE_TITLE", self, @selector(socialButtonTapped))];
+        [menuView addSubview:menuButton(2, buttonFrame, image, @"CONTRIBUTE_MONEY_TITLE", self, @selector(contributeButtonTapped))];
+        [menuView addSubview:menuButton(3, buttonFrame, image, @"COLLABORATE_TITLE", self, @selector(collaborateButtonTapped))];
+
+        menuView_ = menuView;
+    }
+    return menuView_;
+}
+- (UIView *)menuTintView {
+    if (menuTintView_ == nil) {
+        // Create view to tint other views when menu is visible.
+        UIView *menuTintView = [[UIView alloc] initWithFrame:CGRectZero];
+        [menuTintView setAlpha:0.0];
+        [menuTintView setAutoresizingMask:(UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight)];
+        [menuTintView setBackgroundColor:[UIColor blackColor]];
+
+        // Add tap recognizer to dismiss menu when tapping outside its bounds.
+        UITapGestureRecognizer *recognizer = [UITapGestureRecognizer new];
+        [recognizer addTarget:self action:@selector(handleTap:)];
+        [menuTintView addGestureRecognizer:recognizer];
+        [recognizer release];
+
+        menuTintView_ = menuTintView;
+    }
+    return menuTintView_;
+}
+
+- (UIView *)menuContainerView {
+    if (menuContainerView_ == nil) {
+        // Create view to contain menu and tint views.
+        UIView *menuContainerView = [[UIView alloc] initWithFrame:CGRectZero];
+        [menuContainerView setAutoresizingMask:(UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight)];
+        [menuContainerView setClipsToBounds:YES];
+
+        UIView *menuTintView = [self menuTintView];
+        UIView *menuView = [self menuView];
+        NSAssert([menuTintView bounds].size.width == 0.0, @"ERROR: Menu tint view should not have a width at this point.");
+        NSAssert([menuView bounds].size.width == 0.0, @"ERROR: Menu view should not have a width at this point.");
+        [menuContainerView addSubview:menuTintView];
+        [menuContainerView addSubview:menuView];
+
+        menuContainerView_ = menuContainerView;
+    }
+    return menuContainerView_;
+}
+
+- (void)layoutMenuContainerView {
+    // NOTE: Access menu container directly (instead of via property) to prevent
+    //       creation if it does not exist.
+    if ([menuContainerView_ superview] != nil) {
+        // Get root view's bounds.
+        UIView *view = [self view];
+        CGRect viewBounds = [view bounds];
+
+        // Get statusbar height.
+        CGFloat statusBarHeight;
+        if (viewBounds.size.width > viewBounds.size.height) {
+            // Landscape.
+            statusBarHeight = [[UIApplication sharedApplication] statusBarFrame].size.width;
+        } else {
+            // Portrait.
+            statusBarHeight = [[UIApplication sharedApplication] statusBarFrame].size.height;
+        }
+
+        // Get height of navigation bar.
+        CGFloat navBarHeight = [[[self navigationController] navigationBar] bounds].size.height;
+
+        // Set size and position of menu container.
+        CGRect frame = menuContainerView_.frame;
+        frame.origin.x = 0.0;
+        frame.origin.y = statusBarHeight + navBarHeight;
+        frame.size.width = viewBounds.size.width;
+        frame.size.height = viewBounds.size.height - statusBarHeight - navBarHeight;
+        [menuContainerView_ setFrame:frame];
+    }
+}
+
+
 #pragma mark - Actions
 
-- (void)editBlame {
+- (void)handleTap:(UITapGestureRecognizer *)recognizer {
+    if ([recognizer state] == UIGestureRecognizerStateRecognized) {
+        [self menuButtonTapped];
+    }
+}
+
+- (void)collaborateButtonTapped {
+    NSString *title = NSLocalizedString(@"COLLABORATE_TITLE", nil);
+    NSString *message = NSLocalizedString(@"COLLABORATE_MESSAGE", nil);
+    NSString *cancelTitle = NSLocalizedString(@"CANCEL", nil);
+    UIAlertView *alert = [[UIAlertView alloc] initWithTitle:title message:message delegate:self
+        cancelButtonTitle:cancelTitle otherButtonTitles:@"CrashReporter", @"TechSupport", @"Localization", @"libsymbolicate", nil];
+    [alert setTag:AlertViewTypeCollaborate];
+    [alert show];
+    [alert release];
+}
+
+- (void)contributeButtonTapped {
+    NSString *title = NSLocalizedString(@"CONTRIBUTE_MONEY_TITLE", nil);
+    NSString *message = NSLocalizedString(@"CONTRIBUTE_MONEY_MESSAGE", nil);
+    NSString *cancelTitle = NSLocalizedString(@"CANCEL", nil);
+    NSString *flattrTitle = NSLocalizedString(@"CONTRIBUTE_MONEY_FLATTR", nil);
+    NSString *paypalTitle = NSLocalizedString(@"CONTRIBUTE_MONEY_PAYPAL", nil);
+    UIAlertView *alert = [[UIAlertView alloc] initWithTitle:title message:message delegate:self
+        cancelButtonTitle:cancelTitle otherButtonTitles:paypalTitle, flattrTitle, nil];
+    [alert setTag:AlertViewTypeContribute];
+    [alert show];
+    [alert release];
+}
+
+- (void)menuButtonTapped {
+    // Get and setup menu container.
+    UIView *menuContainerView = [self menuContainerView];
+    BOOL willAppear = ([menuContainerView superview] == nil);
+    if (willAppear) {
+        // Add the menu container to the screen.
+        // NOTE: Controller's view is a scroll view; add to its parent.
+        [[[self view] superview] addSubview:menuContainerView];
+        [self layoutMenuContainerView];
+    }
+
+    // Determine new origin for menu view and alpha for tint view.
+    CGRect menuFrame = [[self menuView] frame];
+    CGFloat menuTintAlpha;
+    if (willAppear) {
+        menuFrame.origin.y = 0.0;
+        menuTintAlpha = 0.7;
+    } else {
+        menuFrame.origin.y = -menuFrame.size.height;
+        menuTintAlpha = 0.0;
+    }
+
+    void (^animations)(void) = ^ {
+        [[self menuView] setFrame:menuFrame];
+        [[self menuTintView] setAlpha:menuTintAlpha];
+    };
+
+    void (^completion)(BOOL) = ^(BOOL finished) {
+        if (!willAppear) {
+            [[self menuContainerView] removeFromSuperview];
+        }
+    };
+
+    if (IOS_LT(7_0)) {
+        [UIView animateWithDuration:0.4 delay:0.0 options:UIViewAnimationOptionCurveEaseInOut
+            animations:animations completion:completion];
+    } else {
+        [UIView animateWithDuration:0.4 delay:0.0 usingSpringWithDamping:1.0
+            initialSpringVelocity:4.0 options:UIViewAnimationOptionCurveEaseInOut
+            animations:animations completion:completion];
+    }
+}
+
+- (void)scriptInputButtonTapped {
     ManualScriptViewController *controller = [ManualScriptViewController new];
     [self.navigationController pushViewController:controller animated:YES];
     [controller release];
+}
+
+- (void)socialButtonTapped {
+    if (IOS_GTE(6_0)) {
+        NSMutableArray *services = [NSMutableArray new];
+        NSMutableArray *serviceTitles = [NSMutableArray new];
+
+        void *handle = dlopen("/System/Library/Frameworks/Social.framework/Social", RTLD_LAZY);
+        Class $SLComposeViewController = NSClassFromString(@"SLComposeViewController");
+        if ([$SLComposeViewController isAvailableForServiceType:SLServiceTypeFacebook]) {
+            [services addObject:SLServiceTypeFacebook];
+            [serviceTitles addObject:@"SOCIAL_FACEBOOK"];
+        }
+        if ([$SLComposeViewController isAvailableForServiceType:SLServiceTypeSinaWeibo]) {
+            [services addObject:SLServiceTypeSinaWeibo];
+            [serviceTitles addObject:@"SOCIAL_SINA_WEIBO"];
+        }
+        if ([$SLComposeViewController isAvailableForServiceType:SLServiceTypeTencentWeibo]) {
+            [services addObject:SLServiceTypeTencentWeibo];
+            [serviceTitles addObject:@"SOCIAL_TENCENT_WEIBO"];
+        }
+        if ([$SLComposeViewController isAvailableForServiceType:SLServiceTypeTwitter]) {
+            [services addObject:SLServiceTypeTwitter];
+            [serviceTitles addObject:@"SOCIAL_TWITTER"];
+        }
+        dlclose(handle);
+
+        NSString *title = NSLocalizedString(@"SOCIAL_SHARE_TITLE", nil);
+        NSString *cancelTitle = NSLocalizedString(@"CANCEL", nil);
+        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:title message:nil delegate:self
+            cancelButtonTitle:cancelTitle otherButtonTitles:nil];
+        NSUInteger count = [services count];
+        if (count > 0) {
+            [alert setMessage:NSLocalizedString(@"SOCIAL_SHARE_MESSAGE", nil)];
+            for (NSString *serviceTitle in serviceTitles) {
+                [alert addButtonWithTitle:NSLocalizedString(serviceTitle, nil)];
+            }
+            [alert setNumberOfRows:(1 + count)];
+        } else {
+            [alert setMessage:NSLocalizedString(@"SOCIAL_SHARE_UNAVAIL", nil)];
+        }
+        [availableSocialServices_ release];
+        availableSocialServices_ = services;
+        [serviceTitles release];
+
+        [alert setTag:AlertViewTypeSocial];
+        [alert show];
+        [alert release];
+    }
 }
 
 - (void)trashButtonTapped {
@@ -155,6 +447,7 @@ static BOOL reportCrashIsDisabled$ = YES;
     NSString *cancelTitle = NSLocalizedString(@"CANCEL", nil);
     UIAlertView *alert = [[UIAlertView alloc] initWithTitle:nil message:message delegate:self
         cancelButtonTitle:cancelTitle otherButtonTitles:deleteTitle, nil];
+    [alert setTag:AlertViewTypeTrash];
     [alert show];
     [alert release];
 }
@@ -168,44 +461,96 @@ static BOOL reportCrashIsDisabled$ = YES;
     }
 }
 
+#pragma mark - Social
+
+- (void)shareViaSocialNetwork:(NSString *)socialNetwork {
+    if (IOS_GTE(6_0)) {
+        void *handle = dlopen("/System/Library/Frameworks/Social.framework/Social", RTLD_LAZY);
+        Class $SLComposeViewController = NSClassFromString(@"SLComposeViewController");
+        if ([$SLComposeViewController isAvailableForServiceType:socialNetwork]) {
+            SLComposeViewController *controller = [$SLComposeViewController composeViewControllerForServiceType:socialNetwork];
+            [controller setInitialText:NSLocalizedString(@"SOCIAL_SHARE_CONTENT", nil)];
+            [self presentViewController:controller animated:YES completion:nil];
+        }
+        dlclose(handle);
+    }
+}
+
 #pragma mark - Delegate (UIAlertView)
 
 - (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
-    if (buttonIndex == 1) {
-        BOOL deleted = YES;
+    NSInteger tag = [alertView tag];
+    if (tag == AlertViewTypeCollaborate) {
+        NSURL *url = nil;
+        switch (buttonIndex) {
+            case 1: url = [NSURL URLWithString:@"http://ashikase.com/r/github/CrashReporter"]; break;
+            case 2: url = [NSURL URLWithString:@"http://ashikase.com/r/github/TechSupport"]; break;
+            case 3: url = [NSURL URLWithString:@"http://ashikase.com/r/github/Localization"]; break;
+            case 4: url = [NSURL URLWithString:@"http://ashikase.com/r/github/libsymbolicate"]; break;
+            default: break;
+        }
+        if (url != nil) {
+            [[UIApplication sharedApplication] openURL:url];
+            [self menuButtonTapped];
+        }
+    } else if (tag == AlertViewTypeContribute) {
+        NSURL *url = nil;
+        switch (buttonIndex) {
+            case 1: url = [NSURL URLWithString:@"http://ashikase.com/r/contribute/paypal"]; break;
+            case 2: url = [NSURL URLWithString:@"http://ashikase.com/r/contribute/flattr"]; break;
+        }
+        if (url != nil) {
+            [[UIApplication sharedApplication] openURL:url];
+            [self menuButtonTapped];
+        }
+    } else if (tag == AlertViewTypeSocial) {
+        // Social.
+        if (buttonIndex > 0) {
+            NSString *service = [availableSocialServices_ objectAtIndex:(buttonIndex - 1)];
+            [self shareViaSocialNetwork:service];
+            [availableSocialServices_ release];
+            availableSocialServices_ = 0;
 
-        // Delete all root crash logs.
-        // NOTE: Must copy the array of groups as calling 'delete' on a group
-        //       will modify the global storage (fast-enumeration does not allow
-        //       such modifications).
-        NSArray *groups = [[CrashLogGroup groupsForRoot] copy];
-        for (CrashLogGroup *group in groups) {
-            if (![group delete]) {
-                deleted = NO;
+            [self menuButtonTapped];
+        }
+    } else if (tag == AlertViewTypeTrash) {
+        // Trash.
+        if (buttonIndex == 1) {
+            BOOL deleted = YES;
+
+            // Delete all root crash logs.
+            // NOTE: Must copy the array of groups as calling 'delete' on a group
+            //       will modify the global storage (fast-enumeration does not allow
+            //       such modifications).
+            NSArray *groups = [[CrashLogGroup groupsForRoot] copy];
+            for (CrashLogGroup *group in groups) {
+                if (![group delete]) {
+                    deleted = NO;
+                }
             }
-        }
-        [groups release];
+            [groups release];
 
-        // Delete all mobile crash logs.
-        groups = [[CrashLogGroup groupsForMobile] copy];
-        for (CrashLogGroup *group in groups) {
-            if (![group delete]) {
-                deleted = NO;
+            // Delete all mobile crash logs.
+            groups = [[CrashLogGroup groupsForMobile] copy];
+            for (CrashLogGroup *group in groups) {
+                if (![group delete]) {
+                    deleted = NO;
+                }
             }
-        }
-        [groups release];
+            [groups release];
 
-        if (!deleted) {
-            NSString *title = NSLocalizedString(@"ERROR", nil);
-            NSString *message = NSLocalizedString(@"DELETE_ALL_FAILED", nil);
-            NSString *okMessage = NSLocalizedString(@"OK", nil);
-            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:title message:message delegate:nil
-                cancelButtonTitle:okMessage otherButtonTitles:nil];
-            [alert show];
-            [alert release];
-        }
+            if (!deleted) {
+                NSString *title = NSLocalizedString(@"ERROR", nil);
+                NSString *message = NSLocalizedString(@"DELETE_ALL_FAILED", nil);
+                NSString *okMessage = NSLocalizedString(@"OK", nil);
+                UIAlertView *alert = [[UIAlertView alloc] initWithTitle:title message:message delegate:nil
+                    cancelButtonTitle:okMessage otherButtonTitles:nil];
+                [alert show];
+                [alert release];
+            }
 
-        [self refresh:nil];
+            [self refresh:nil];
+        }
     }
 }
 
