@@ -27,6 +27,10 @@
 #include <vproc.h>
 #include "paths.h"
 
+#include "font-awesome.h"
+
+static const CGSize kMenuButtonImageSize = (CGSize){22.0, 22.0};
+
 @interface UIAlertView ()
 - (void)setNumberOfRows:(int)rows;
 @end
@@ -205,15 +209,38 @@ static BOOL reportCrashIsDisabled$ = YES;
 
 #pragma mark - View (Menu)
 
-static UIButton *menuButton(NSUInteger position, CGRect frame, UIImage *backgroundImage, NSString *titleKey, id target, SEL action) {
+static UIImage *imageWithText(NSString *text, UIFont *font, CGSize imageSize) {
+    UIImage *image = nil;
+
+    CGSize textSize = [text sizeWithFont:font constrainedToSize:imageSize];
+    UIGraphicsBeginImageContextWithOptions(imageSize, NO, 0.0);
+    [[UIColor colorWithWhite:1.0 alpha:1.0] setFill];
+    CGPoint point = CGPointMake(0.5 * (imageSize.width - textSize.width), 0.5 * (imageSize.height - textSize.height));
+    [text drawAtPoint:point withFont:font];
+    image = UIGraphicsGetImageFromCurrentImageContext();
+    UIGraphicsEndImageContext();
+
+    return image;
+}
+
+static UIButton *menuButton(NSUInteger position, CGRect frame, UIImage *backgroundImage, NSString *iconFontKey, NSString *titleKey, id target, SEL action) {
+    // Adjust frame for position.
     frame.origin.y = position * (1.0 + frame.size.height);
 
+    // Get font to use for generating icon font image.
+    UIFont *imageFont = [UIFont fontWithName:@"FontAwesome" size:18.0];
+
+    // Create button.
     UIButton *button = [UIButton buttonWithType:UIButtonTypeCustom];
     [button setAutoresizingMask:UIViewAutoresizingFlexibleWidth];
     [button setBackgroundImage:backgroundImage forState:UIControlStateNormal];
     [button setFrame:frame];
+    [button setImage:imageWithText(iconFontKey, imageFont, kMenuButtonImageSize) forState:UIControlStateNormal];
     [button addTarget:target action:action forControlEvents:UIControlEventTouchUpInside];
     [button setTitle:NSLocalizedString(titleKey, nil) forState:UIControlStateNormal];
+    [button setTitleEdgeInsets:UIEdgeInsetsMake(0, 10.0, 0, 0)];
+    [button setImageEdgeInsets:UIEdgeInsetsMake(-2.0, 0.0, 0, 0)];
+    [button setContentHorizontalAlignment:UIControlContentHorizontalAlignmentLeft];
     return button;
 }
 
@@ -228,14 +255,13 @@ static UIButton *menuButton(NSUInteger position, CGRect frame, UIImage *backgrou
         [menuView setBackgroundColor:[UIColor colorWithRed:0.85 green:0.85 blue:0.85 alpha:1.0]];
 
         // Add buttons.
+        CGRect buttonFrame = CGRectMake(0.0, 0.0, menuFrame.size.width, buttonHeight);
         UIColor *buttonColor = [UIColor colorWithRed:(36.0 / 255.0) green:(132.0 / 255.0) blue:(232.0 / 255.0) alpha:1.0];
         UIImage *image = [[UIImage imageWithColor:buttonColor] stretchableImageWithLeftCapWidth:0.0 topCapHeight:0.0];
-
-        CGRect buttonFrame = CGRectMake(0.0, 0.0, menuFrame.size.width, buttonHeight);
-        [menuView addSubview:menuButton(0, buttonFrame, image, @"SCRIPT_INPUT_TITLE", self, @selector(scriptInputButtonTapped))];
-        [menuView addSubview:menuButton(1, buttonFrame, image, @"SOCIAL_SHARE_TITLE", self, @selector(socialButtonTapped))];
-        [menuView addSubview:menuButton(2, buttonFrame, image, @"CONTRIBUTE_MONEY_TITLE", self, @selector(contributeButtonTapped))];
-        [menuView addSubview:menuButton(3, buttonFrame, image, @"COLLABORATE_TITLE", self, @selector(collaborateButtonTapped))];
+        [menuView addSubview:menuButton(0, buttonFrame, image, @kFontAwesomeCode, @"SCRIPT_INPUT_TITLE", self, @selector(scriptInputButtonTapped))];
+        [menuView addSubview:menuButton(1, buttonFrame, image, @kFontAwesomeHeart, @"SOCIAL_SHARE_TITLE", self, @selector(socialButtonTapped))];
+        [menuView addSubview:menuButton(2, buttonFrame, image, @kFontAwesomeUsd, @"CONTRIBUTE_MONEY_TITLE", self, @selector(contributeButtonTapped))];
+        [menuView addSubview:menuButton(3, buttonFrame, image, @kFontAwesomeGavel, @"COLLABORATE_TITLE", self, @selector(collaborateButtonTapped))];
 
         menuView_ = menuView;
     }
@@ -307,6 +333,36 @@ static UIButton *menuButton(NSUInteger position, CGRect frame, UIImage *backgrou
         frame.size.width = viewBounds.size.width;
         frame.size.height = viewBounds.size.height - statusBarHeight - navBarHeight;
         [menuContainerView_ setFrame:frame];
+
+        // Determine button with narrowest and widest content.
+        CGFloat smallestWidth = frame.size.width;
+        CGFloat largestWidth = 0.0;
+        Class $UIButton = [UIButton class];
+        for (UIView *view in [[self menuView] subviews]) {
+            if ([view isKindOfClass:$UIButton]) {
+                UIButton *button = (UIButton *)view;
+                CGRect imageRect = [button imageRectForContentRect:[button bounds]];
+                CGRect titleRect = [button titleRectForContentRect:[button bounds]];
+                CGFloat width = (imageRect.size.width + titleRect.size.width);
+                if (smallestWidth > width) {
+                    smallestWidth = width;
+                }
+                if (largestWidth < width) {
+                    largestWidth = width;
+                }
+            }
+        }
+
+        // Set content inset needed to "center left-aligned" image and title.
+        CGFloat middleWidth = 0.5 * (smallestWidth + largestWidth);
+        CGFloat leftInset = 0.5 * (frame.size.width - middleWidth);
+        UIEdgeInsets insets = UIEdgeInsetsMake(0, leftInset - (0.5 * kMenuButtonImageSize.width), 0, 0);
+        for (UIView *view in [[self menuView] subviews]) {
+            if ([view isKindOfClass:$UIButton]) {
+                UIButton *button = (UIButton *)view;
+                [button setContentEdgeInsets:insets];
+            }
+        }
     }
 }
 

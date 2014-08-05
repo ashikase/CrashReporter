@@ -81,6 +81,11 @@
         <key>SBAppUsesLocalNotifications</key>
         <true/>
 
+        <key>UIAppFonts</key>
+        <array>
+            <string>FontAwesome.otf</string>
+        </array>
+
         <key>UIDeviceFamily</key>
         <array>
             <integer>1</integer>
