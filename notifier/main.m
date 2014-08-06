@@ -222,7 +222,7 @@ int main(int argc, char **argv, char **envp) {
                     body = [NSMutableString stringWithFormat:NSLocalizedString(@"NOTIFY_EXCESS_WAKEUPS", nil), bundleName];
                 }
             }
-        } else if ([exceptionCode rangeOfString:@"8badf00d"].location != NSNotFound) {
+        } else if ((exceptionCode != nil) && [exceptionCode rangeOfString:@"8badf00d"].location != NSNotFound) {
             // Execution timeout.
             if ([defaults boolForKey:@kNotifyExecutionTimeouts]) {
                 body = [NSMutableString stringWithFormat:NSLocalizedString(@"NOTIFY_EXECUTION_TIMEOUT_TASK", nil), bundleName];
