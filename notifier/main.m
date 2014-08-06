@@ -203,6 +203,10 @@ int main(int argc, char **argv, char **envp) {
     } else {
         // Determine exception type.
         NSString *exceptionType = [processInfo objectForKey:@"Exception Type"];
+        NSString *exceptionCode = [processInfo objectForKey:@"Exception Code"];
+        if (exceptionCode == nil) {
+            exceptionCode = [processInfo objectForKey:@"Exception Codes"];
+        }
         if ([exceptionType isEqualToString:@"EXC_RESOURCE"]) {
             NSString *exceptionSubtype = [processInfo objectForKey:@"Exception Subtype"];
             if ([exceptionSubtype isEqualToString:@"CPU"]) {
@@ -218,6 +222,11 @@ int main(int argc, char **argv, char **envp) {
                     body = [NSMutableString stringWithFormat:NSLocalizedString(@"NOTIFY_EXCESS_WAKEUPS", nil), bundleName];
                 }
             }
+        } else if ([exceptionCode rangeOfString:@"8badf00d"].location != NSNotFound) {
+            // Execution timeout.
+            if ([defaults boolForKey:@kNotifyExecutionTimeouts]) {
+                body = [NSMutableString stringWithFormat:NSLocalizedString(@"NOTIFY_EXECUTION_TIMEOUT_TASK", nil), bundleName];
+            }
         } else {
             NSInteger bugType = [[properties objectForKey:@"bug_type"] integerValue];
             switch (bugType) {
@@ -232,12 +241,6 @@ int main(int argc, char **argv, char **envp) {
                         }
                     }
                     break;
-                case 185:
-                    // Execution timeout (aka. "8badf00d").
-                    if (![defaults boolForKey:@kNotifyExecutionTimeouts]) {
-                        break;
-                    }
-                    // Fall-through.
                 case 109:
                     // Crash.
                     body = [NSMutableString stringWithFormat:NSLocalizedString(@"NOTIFY_CRASHED", nil), bundleName];
