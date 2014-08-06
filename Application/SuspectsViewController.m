@@ -410,21 +410,26 @@ static NSString *createIncludeLineForFilepath(NSString *filepath, NSString *name
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
     UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"."];
     if (cell == nil) {
-        cell = [[[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"."] autorelease];
+        cell = [[[UITableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:@"."] autorelease];
         cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
     }
 
+    NSString *path = nil;
     NSString *text = nil;
     NSUInteger section = indexPath.section;
     if (section == 0) {
+        path = [crashLog_ processPath];
         text = [crashLog_ processName];
     } else if (section == 3) {
-        text = [[[[crashLog_ blamableBinaries] objectAtIndex:indexPath.row] path] lastPathComponent];
+        path = [[[crashLog_ blamableBinaries] objectAtIndex:indexPath.row] path];
+        text = [path lastPathComponent];
     } else {
         NSUInteger index = (section == 1) ? 0 : (indexPath.row + 1);
-        text = [[[crashLog_ suspects] objectAtIndex:index] lastPathComponent];
+        path = [[crashLog_ suspects] objectAtIndex:index];
+        text = [path lastPathComponent];
     }
     [[cell textLabel] setText:text];
+    [[cell detailTextLabel] setText:[[[PackageCache sharedInstance] packageForFile:path] name]];
 
     return cell;
 }
