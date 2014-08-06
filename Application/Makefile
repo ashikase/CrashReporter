@@ -9,6 +9,7 @@ CrashReporter_FILES = \
     CrashLogGroup.m \
     ManualScriptViewController.m \
     ModalActionSheet.m \
+    PackageCache.m \
     RootViewController.m \
     SuspectsViewController.m \
     UIImage+Pixel.m \

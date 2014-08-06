@@ -16,6 +16,7 @@
 #import <TechSupport/TechSupport.h>
 #import "CrashLog.h"
 #import "ModalActionSheet.h"
+#import "PackageCache.h"
 #import "UIImage+Pixel.h"
 
 #include "paths.h"
@@ -442,7 +443,7 @@ static NSString *createIncludeLineForFilepath(NSString *filepath, NSString *name
         NSUInteger index = (section == 1) ? 0 : (indexPath.row + 1);
         path = [[crashLog_ suspects] objectAtIndex:index];
     }
-    TSPackage *package = [TSPackage packageForFile:path];
+    TSPackage *package = [[PackageCache sharedInstance] packageForFile:path];
 
     // Determine for the given package.
     NSMutableArray *linkInstructions = [NSMutableArray new];
