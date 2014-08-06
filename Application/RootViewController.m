@@ -43,8 +43,9 @@ NSString * const SLServiceTypeTwitter = @"com.apple.social.twitter";
 typedef enum {
     AlertViewTypeCollaborate = 101,
     AlertViewTypeContribute = 102,
-    AlertViewTypeSocial = 103,
-    AlertViewTypeTrash = 104
+    AlertViewTypeContributePayPal = 103,
+    AlertViewTypeSocial = 104,
+    AlertViewTypeTrash = 105
 } AlertViewType;
 
 // NOTE: The following defines, as well as the launch_* related code later on,
@@ -550,10 +551,34 @@ static UIButton *menuButton(NSUInteger position, CGRect frame, UIImage *backgrou
             [self menuButtonTapped];
         }
     } else if (tag == AlertViewTypeContribute) {
+        if (buttonIndex == 1) {
+            NSString *title = NSLocalizedString(@"CONTRIBUTE_MONEY_PAYPAL", nil);
+            NSString *cancelTitle = NSLocalizedString(@"CANCEL", nil);
+            NSString *contributeTitle = NSLocalizedString(@"CONTRIBUTE_MONEY", nil);
+            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:title message:nil delegate:self
+                cancelButtonTitle:cancelTitle otherButtonTitles:
+                [NSString stringWithFormat:@"%@ USD $2.00", contributeTitle],
+                [NSString stringWithFormat:@"%@ USD $4.00", contributeTitle],
+                [NSString stringWithFormat:@"%@ USD $8.00", contributeTitle],
+                [NSString stringWithFormat:@"%@ USD $16.00", contributeTitle],
+                [NSString stringWithFormat:@"%@ USD $32.00", contributeTitle],
+                nil];
+            [alert setTag:AlertViewTypeContributePayPal];
+            [alert show];
+            [alert release];
+        } else if (buttonIndex == 2) {
+            NSURL *url = [NSURL URLWithString:@"http://ashikase.com/r/contribute/flattr"];
+            [[UIApplication sharedApplication] openURL:url];
+            [self menuButtonTapped];
+        }
+    } else if (tag == AlertViewTypeContributePayPal) {
         NSURL *url = nil;
         switch (buttonIndex) {
-            case 1: url = [NSURL URLWithString:@"http://ashikase.com/r/contribute/paypal"]; break;
-            case 2: url = [NSURL URLWithString:@"http://ashikase.com/r/contribute/flattr"]; break;
+            case 1: url = [NSURL URLWithString:@"http://ashikase.com/r/contribute/paypal_option1"]; break;
+            case 2: url = [NSURL URLWithString:@"http://ashikase.com/r/contribute/paypal_option2"]; break;
+            case 3: url = [NSURL URLWithString:@"http://ashikase.com/r/contribute/paypal_option3"]; break;
+            case 4: url = [NSURL URLWithString:@"http://ashikase.com/r/contribute/paypal_option4"]; break;
+            case 5: url = [NSURL URLWithString:@"http://ashikase.com/r/contribute/paypal_option5"]; break;
         }
         if (url != nil) {
             [[UIApplication sharedApplication] openURL:url];
