@@ -278,7 +278,7 @@ static NSString *createIncludeLineForFilepath(NSString *filepath, NSString *name
     [string release];
 }
 
-#pragma mark - MFMailComposeViewControllerDelegate
+#pragma mark - Delegate (MFMailComposeViewControllerDelegate)
 
 - (void)mailComposeController:(MFMailComposeViewController *)controller didFinishWithResult:(MFMailComposeResult)result error:(NSError *)error {
     [self dismissModalViewControllerAnimated:YES];
@@ -294,7 +294,7 @@ static NSString *createIncludeLineForFilepath(NSString *filepath, NSString *name
     }
 }
 
-#pragma mark - UIAlertViewDelegate
+#pragma mark - Delegate (UIAlertViewDelegate)
 
 - (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
     if (buttonIndex > 0) {
@@ -373,7 +373,7 @@ static NSString *createIncludeLineForFilepath(NSString *filepath, NSString *name
     lastSelectedPath_ = nil;
 }
 
-#pragma mark - UITableViewDataSource
+#pragma mark - Delegate (UITableViewDataSource)
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
     return 4;
@@ -434,7 +434,7 @@ static NSString *createIncludeLineForFilepath(NSString *filepath, NSString *name
     return cell;
 }
 
-#pragma mark - UITableViewDelegate
+#pragma mark - Delegate (UITableViewDelegate)
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     // Get package for selected row.
