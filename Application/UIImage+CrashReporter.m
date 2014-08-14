@@ -9,7 +9,7 @@
  * License: GPL v3 (See LICENSE file for details)
  */
 
-@implementation UIImage (Pixel)
+@implementation UIImage (CrashReporter)
 
 + (instancetype)imageWithColor:(UIColor *)color {
     // Determine if color is opaque.
@@ -24,6 +24,20 @@
     CGContextFillRect(context, rect);
     UIImage *image = UIGraphicsGetImageFromCurrentImageContext();
     UIGraphicsEndImageContext();
+    return image;
+}
+
++ (instancetype)imageWithText:(NSString *)text font:(UIFont *)font color:(UIColor *)color imageSize:(CGSize)imageSize {
+    UIImage *image = nil;
+
+    CGSize textSize = [text sizeWithFont:font constrainedToSize:imageSize];
+    UIGraphicsBeginImageContextWithOptions(imageSize, NO, 0.0);
+    [color setFill];
+    CGPoint point = CGPointMake(0.5 * (imageSize.width - textSize.width), 0.5 * (imageSize.height - textSize.height));
+    [text drawAtPoint:point withFont:font];
+    image = UIGraphicsGetImageFromCurrentImageContext();
+    UIGraphicsEndImageContext();
+
     return image;
 }
 
