@@ -8,7 +8,7 @@
 
 #import "crashlog_util.h"
 
-#import <libsymbolicate/CRCrashReport.h>
+#import <libcrashreport/libcrashreport.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include "exec_as_root.h"

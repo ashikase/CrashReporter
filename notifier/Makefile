@@ -4,7 +4,7 @@ notifier_FILES = \
     ../common/crashlog_util.m \
     ../common/exec_as_root.m \
     main.m
-notifier_LDFLAGS = -lsymbolicate
+notifier_LDFLAGS = -lcrashreport
 notifier_PRIVATE_FRAMEWORKS = SpringBoardServices
 notifier_CODESIGN_FLAGS="-SEntitlements.plist"
 

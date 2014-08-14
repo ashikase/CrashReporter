@@ -7,3 +7,6 @@
 [submodule "Common"]
 	path = Common
 	url = http://github.com/ashikase/Common
+[submodule "Libraries/libcrashreport"]
+	path = Libraries/libcrashreport
+	url = http://github.com/ashikase/libcrashreport

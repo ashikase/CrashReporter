@@ -17,9 +17,8 @@ CrashReporter_FILES = \
     main.m \
     pastie.m
 CrashReporter_CFLAGS = -F$(TECHSUPPORT_FRAMEWORK) -I$(THEOS_PROJECT_DIR)/Libraries
-CrashReporter_LDFLAGS = -llockdown -lsymbolicate -F$(TECHSUPPORT_FRAMEWORK) -framework TechSupport
+CrashReporter_LDFLAGS = -lcrashreport -F$(TECHSUPPORT_FRAMEWORK) -framework TechSupport
 CrashReporter_FRAMEWORKS = CoreGraphics MessageUI SystemConfiguration UIKit
-CrashReporter_PRIVATE_FRAMEWORKS = Symbolication
 
 include $(THEOS_MAKE_PATH)/common.mk
 include $(THEOS_MAKE_PATH)/application.mk

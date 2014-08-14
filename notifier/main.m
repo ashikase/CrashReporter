@@ -8,7 +8,7 @@
  * License: GPL v3 (See LICENSE file for details)
  */
 
-#import <libsymbolicate/CRCrashReport.h>
+#import <libcrashreport/libcrashreport.h>
 
 #include <asl.h>
 #include <dlfcn.h>

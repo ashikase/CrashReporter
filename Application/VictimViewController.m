@@ -11,7 +11,7 @@
 
 #import "VictimViewController.h"
 
-#import <libsymbolicate/CRCrashReport.h>
+#import <libcrashreport/libcrashreport.h>
 #import "CrashLog.h"
 #import "CrashLogGroup.h"
 #import "SuspectsViewController.h"

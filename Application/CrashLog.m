@@ -12,8 +12,7 @@
 #import "CrashLog.h"
 
 #import <RegexKitLite/RegexKitLite.h>
-#import <libsymbolicate/CRCrashReport.h>
-#import <libsymbolicate/CRBinaryImage.h>
+#import <libcrashreport/libcrashreport.h>
 #import "crashlog_util.h"
 
 NSString * const kViewedCrashLogs = @"viewedCrashLogs";
