@@ -168,9 +168,12 @@ int main(int argc, char **argv, char **envp) {
     NSArray *suspects = nil;
     if (!isSandboxViolation) {
         NSString *outputFilepath = symbolicateFile(filepath, report);
-        if  (outputFilepath != nil) {
+        if (outputFilepath != nil) {
             // Update path for this crash log instance.
             filepath = outputFilepath;
+
+            // Retrieve updated properties.
+            properties = [report properties];
 
             // Retrieve list of suspects.
             suspects = [properties objectForKey:@"blame"];
