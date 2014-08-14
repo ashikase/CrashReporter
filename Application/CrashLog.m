@@ -120,10 +120,13 @@ static NSInteger compareBinaryImagePaths(CRBinaryImage *binaryImage1, CRBinaryIm
                     [report blame];
 
                     // Collect blamable images.
+                    NSString *processPath = [self processPath];
                     NSMutableArray *blamableBinaries = [NSMutableArray new];
                     for (CRBinaryImage *binaryImage in [[report binaryImages] allValues]) {
                         if ([binaryImage isBlamable]) {
-                            [blamableBinaries addObject:binaryImage];
+                            if (![[binaryImage path] isEqualToString:processPath]) {
+                                [blamableBinaries addObject:binaryImage];
+                            }
                         }
                     }
                     [blamableBinaries sortUsingFunction:compareBinaryImagePaths context:NULL];
