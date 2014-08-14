@@ -16,7 +16,7 @@
 #import "CrashLog.h"
 #import "CrashLogGroup.h"
 #import "ManualScriptViewController.h"
-#import "UIImage+Pixel.h"
+#import "UIImage+CrashReporter.h"
 #import "VictimViewController.h"
 
 #include <sys/stat.h>
@@ -210,33 +210,20 @@ static BOOL reportCrashIsDisabled$ = YES;
 
 #pragma mark - View (Menu)
 
-static UIImage *imageWithText(NSString *text, UIFont *font, CGSize imageSize) {
-    UIImage *image = nil;
-
-    CGSize textSize = [text sizeWithFont:font constrainedToSize:imageSize];
-    UIGraphicsBeginImageContextWithOptions(imageSize, NO, 0.0);
-    [[UIColor colorWithWhite:1.0 alpha:1.0] setFill];
-    CGPoint point = CGPointMake(0.5 * (imageSize.width - textSize.width), 0.5 * (imageSize.height - textSize.height));
-    [text drawAtPoint:point withFont:font];
-    image = UIGraphicsGetImageFromCurrentImageContext();
-    UIGraphicsEndImageContext();
-
-    return image;
-}
-
 static UIButton *menuButton(NSUInteger position, CGRect frame, UIImage *backgroundImage, NSString *iconFontKey, NSString *titleKey, id target, SEL action) {
     // Adjust frame for position.
     frame.origin.y = position * (1.0 + frame.size.height);
 
     // Get font to use for generating icon font image.
     UIFont *imageFont = [UIFont fontWithName:@"FontAwesome" size:18.0];
+    UIColor *imageColor = [UIColor whiteColor];
 
     // Create button.
     UIButton *button = [UIButton buttonWithType:UIButtonTypeCustom];
     [button setAutoresizingMask:UIViewAutoresizingFlexibleWidth];
     [button setBackgroundImage:backgroundImage forState:UIControlStateNormal];
     [button setFrame:frame];
-    [button setImage:imageWithText(iconFontKey, imageFont, kMenuButtonImageSize) forState:UIControlStateNormal];
+    [button setImage:[UIImage imageWithText:iconFontKey font:imageFont color:imageColor imageSize:kMenuButtonImageSize] forState:UIControlStateNormal];
     [button addTarget:target action:action forControlEvents:UIControlEventTouchUpInside];
     [button setTitle:NSLocalizedString(titleKey, nil) forState:UIControlStateNormal];
     [button setTitleEdgeInsets:UIEdgeInsetsMake(0, 10.0, 0, 0)];

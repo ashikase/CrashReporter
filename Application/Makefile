@@ -12,7 +12,7 @@ CrashReporter_FILES = \
     PackageCache.m \
     RootViewController.m \
     SuspectsViewController.m \
-    UIImage+Pixel.m \
+    UIImage+CrashReporter.m \
     VictimViewController.m \
     main.m \
     pastie.m
