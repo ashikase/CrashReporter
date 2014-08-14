@@ -421,13 +421,19 @@ static NSString *createIncludeLineForFilepath(NSString *filepath, NSString *name
 
 - (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section {
     NSString *key = nil;
-    switch (section) {
-        case 0: key = @"CRASHED_PROCESS"; break;
-        case 1: key = @"MAIN_SUSPECT"; break;
-        case 2: key = @"OTHER_SUSPECTS"; break;
-        case 3: key = @"LOADED_BINARIES"; break;
-        default: break;
-
+    if (section == 0) {
+        key = @"CRASHED_PROCESS";
+    } else if (section == 3) {
+        key = @"LOADED_BINARIES";
+    } else {
+        NSUInteger count = [[crashLog_ suspects] count];
+        if (count > 0) {
+            if (section == 1) {
+                key = @"MAIN_SUSPECT";
+            } else if (count > 1) {
+                key = @"OTHER_SUSPECTS";
+            }
+        }
     }
     return NSLocalizedString(key, nil);
 }
