@@ -36,7 +36,6 @@ static UIImage *installDateImage$ = nil;
     UILabel *packageNameLabel_;
     UILabel *packageIdentifierLabel_;
     UILabel *packageInstallDateLabel_;
-    UIImageView *packageNameImageView_;
     UIImageView *packageIdentifierImageView_;
     UIImageView *packageInstallDateImageView_;
 }
@@ -108,9 +107,6 @@ static UIImage *installDateImage$ = nil;
 
         UIImageView *imageView;
         imageView = [[UIImageView alloc] initWithFrame:CGRectZero];
-        packageNameImageView_ = imageView;
-
-        imageView = [[UIImageView alloc] initWithFrame:CGRectZero];
         [contentView addSubview:imageView];
         packageIdentifierImageView_ = imageView;
 
@@ -127,7 +123,6 @@ static UIImage *installDateImage$ = nil;
     [packageNameLabel_ release];
     [packageIdentifierLabel_ release];
     [packageInstallDateLabel_ release];
-    [packageNameImageView_ release];
     [packageIdentifierImageView_ release];
     [packageInstallDateImageView_ release];
     [super dealloc];
