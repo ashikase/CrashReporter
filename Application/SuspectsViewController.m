@@ -17,7 +17,7 @@
 #import "CrashLog.h"
 #import "ModalActionSheet.h"
 #import "PackageCache.h"
-#import "UIImage+Pixel.h"
+#import "UIImage+CrashReporter.h"
 
 #include "paths.h"
 
