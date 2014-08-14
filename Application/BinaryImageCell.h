@@ -11,10 +11,17 @@
 
 #import <UIKit/UIKit.h>
 
+typedef enum : NSUInteger {
+    BinaryImageCellPackageTypeUnknown,
+    BinaryImageCellPackageTypeApple,
+    BinaryImageCellPackageTypeDebian
+} BinaryImageCellPackageType;
+
 @interface BinaryImageCell : UITableViewCell
 @property(nonatomic, assign, getter = isNewer) BOOL newer;
 @property(nonatomic, assign, getter = isRecent) BOOL recent;
 @property(nonatomic, assign, getter = isFromUnofficialSource) BOOL fromUnofficialSource;
+@property(nonatomic, assign) BinaryImageCellPackageType packageType;
 + (CGFloat)heightForPackageRowCount:(NSUInteger)rowCount;
 - (id)initWithReuseIdentifier:(NSString *)reuseIdentifier;
 - (void)setName:(NSString *)name;

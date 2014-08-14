@@ -27,8 +27,8 @@ static const CGFloat kFontSizeName = 18.0;
 static const CGFloat kFontSizePackage = 12.0;
 static const CGSize kMenuButtonImageSize = (CGSize){11.0, 15.0};
 
-static UIImage *appStoreImage$ = nil;
-static UIImage *dpkgImage$ = nil;
+static UIImage *appleImage$ = nil;
+static UIImage *debianImage$ = nil;
 static UIImage *installDateImage$ = nil;
 
 @implementation BinaryImageCell {
@@ -44,6 +44,7 @@ static UIImage *installDateImage$ = nil;
 @synthesize newer = newer_;
 @synthesize recent = recent_;
 @synthesize fromUnofficialSource = fromUnofficialSource_;
+@synthesize packageType = packageType_;
 
 #pragma mark - Creation & Destruction
 
@@ -55,8 +56,8 @@ static UIImage *installDateImage$ = nil;
         UIFont *imageFont = [UIFont fontWithName:@"FontAwesome" size:11.0];
         UIColor *imageColor = [UIColor blackColor];
 
-        appStoreImage$ = [[UIImage imageWithText:@kFontAwesomeApple font:imageFont color:imageColor imageSize:kMenuButtonImageSize] retain];
-        dpkgImage$ = [[UIImage imageWithText:@kFontAwesomeDropbox font:imageFont color:imageColor imageSize:kMenuButtonImageSize] retain];
+        appleImage$ = [[UIImage imageWithText:@kFontAwesomeApple font:imageFont color:imageColor imageSize:kMenuButtonImageSize] retain];
+        debianImage$ = [[UIImage imageWithText:@kFontAwesomeDropbox font:imageFont color:imageColor imageSize:kMenuButtonImageSize] retain];
         installDateImage$ = [[UIImage imageWithText:@kFontAwesomeClockO font:imageFont color:imageColor imageSize:kMenuButtonImageSize] retain];
     }
 }
@@ -110,7 +111,6 @@ static UIImage *installDateImage$ = nil;
         packageNameImageView_ = imageView;
 
         imageView = [[UIImageView alloc] initWithFrame:CGRectZero];
-        [imageView setImage:dpkgImage$];
         [contentView addSubview:imageView];
         packageIdentifierImageView_ = imageView;
 
@@ -247,6 +247,21 @@ static UIImage *installDateImage$ = nil;
     }
     [packageInstallDateLabel_ setText:packageInstallDate];
     if (((oldLength == 0) && (newLength != 0)) || ((oldLength != 0) && (newLength == 0))) {
+        [self setNeedsLayout];
+    }
+}
+
+- (void)setPackageType:(BinaryImageCellPackageType)packageType {
+    if (packageType_ != packageType) {
+        packageType_ = packageType;
+
+        UIImage *image = nil;
+        switch (packageType_) {
+            case BinaryImageCellPackageTypeApple: image = appleImage$; break;
+            case BinaryImageCellPackageTypeDebian: image = debianImage$; break;
+            default: break;
+        }
+        [packageIdentifierImageView_ setImage:image];
         [self setNeedsLayout];
     }
 }

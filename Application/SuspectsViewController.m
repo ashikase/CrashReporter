@@ -450,10 +450,12 @@ static NSString *createIncludeLineForFilepath(NSString *filepath, NSString *name
         [cell setPackageName:[NSString stringWithFormat:@"%@ (v%@)", [package name] , [package version]]];
         [cell setPackageIdentifier:[package identifier]];
         [cell setPackageInstallDate:[dateFormatter_ stringFromDate:[package installDate]]];
+        [cell setPackageType:([package isAppStore] ? BinaryImageCellPackageTypeApple : BinaryImageCellPackageTypeDebian)];
     } else {
         [cell setPackageName:nil];
         [cell setPackageIdentifier:nil];
         [cell setPackageInstallDate:nil];
+        [cell setPackageType:BinaryImageCellPackageTypeUnknown];
     }
 
     return cell;
