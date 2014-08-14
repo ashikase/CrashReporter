@@ -5,6 +5,7 @@ CrashReporter_FILES = \
     ../common/crashlog_util.m \
     ../common/exec_as_root.m \
     ApplicationDelegate.m \
+    BinaryImageCell.m \
     CrashLog.m \
     CrashLogGroup.m \
     ManualScriptViewController.m \

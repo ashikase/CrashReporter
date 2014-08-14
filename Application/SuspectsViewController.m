@@ -17,8 +17,10 @@
 #import "CrashLog.h"
 #import "ModalActionSheet.h"
 #import "PackageCache.h"
+#import "BinaryImageCell.h"
 #import "UIImage+CrashReporter.h"
 
+#include "font-awesome.h"
 #include "paths.h"
 
 @interface UIAlertView ()
@@ -40,6 +42,8 @@
     NSArray *lastSelectedLinkInstructions_;
     TSPackage *lastSelectedPackage_;
     NSString *lastSelectedPath_;
+
+    NSDateFormatter *dateFormatter_;
 }
 
 - (id)initWithCrashLog:(CrashLog *)crashLog {
@@ -49,10 +53,14 @@
 
         // Set title using date.
         NSDate *date = [crashLog date];
-        NSDateFormatter *formatter = [NSDateFormatter new];
-        [formatter setDateFormat:@"HH:mm:ss"];
-        self.title = [formatter stringFromDate:date];
-        [formatter release];
+        NSDateFormatter *dateFormatter = [NSDateFormatter new];
+        [dateFormatter setDateFormat:@"HH:mm:ss (yyyy MMM d)"];
+        self.title = [dateFormatter stringFromDate:date];
+
+        // Save formatter for use with cells.
+        [dateFormatter setTimeStyle:NSDateFormatterMediumStyle];
+        [dateFormatter setDateStyle:NSDateFormatterShortStyle];
+        dateFormatter_ = dateFormatter;
     }
     return self;
 }
@@ -64,6 +72,7 @@
     [lastSelectedLinkInstructions_ release];
     [lastSelectedPackage_ release];
     [lastSelectedPath_ release];
+    [dateFormatter_ release];
     [super dealloc];
 }
 
@@ -184,6 +193,22 @@ static UIButton *logButton() {
 }
 
 #pragma mark - Other
+
+- (NSString *)filepathForIndexPath:(NSIndexPath *)indexPath {
+    NSString *filepath = nil;
+
+    NSUInteger section = [indexPath section];
+    if (section == 0) {
+        filepath = [crashLog_ processPath];
+    } else if (section == 3) {
+        filepath = [[[crashLog_ blamableBinaries] objectAtIndex:indexPath.row] path];
+    } else {
+        NSUInteger index = (section == 1) ? 0 : (indexPath.row + 1);
+        filepath = [[crashLog_ suspects] objectAtIndex:index];
+    }
+
+    return filepath;
+}
 
 - (NSString *)messageBodyWithPackage:(TSPackage *)package suspect:(NSString *)suspect isForward:(BOOL)isForward {
     NSMutableString *string = [NSMutableString string];
@@ -408,28 +433,28 @@ static NSString *createIncludeLineForFilepath(NSString *filepath, NSString *name
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
-    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"."];
+    NSString * const reuseIdentifier = @"BinaryImageCell";
+
+    BinaryImageCell *cell = [tableView dequeueReusableCellWithIdentifier:reuseIdentifier];
     if (cell == nil) {
-        cell = [[[UITableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:@"."] autorelease];
-        cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
+        cell = [[[BinaryImageCell alloc] initWithReuseIdentifier:reuseIdentifier] autorelease];
     }
 
-    NSString *path = nil;
-    NSString *text = nil;
-    NSUInteger section = indexPath.section;
-    if (section == 0) {
-        path = [crashLog_ processPath];
-        text = [crashLog_ processName];
-    } else if (section == 3) {
-        path = [[[crashLog_ blamableBinaries] objectAtIndex:indexPath.row] path];
-        text = [path lastPathComponent];
+    NSString *filepath = [self filepathForIndexPath:indexPath];
+    NSString *text = (indexPath.section == 0) ?
+        [crashLog_ processName] : [filepath lastPathComponent];
+    [cell setName:text];
+
+    TSPackage *package = [[PackageCache sharedInstance] packageForFile:filepath];
+    if (package != nil) {
+        [cell setPackageName:[NSString stringWithFormat:@"%@ (v%@)", [package name] , [package version]]];
+        [cell setPackageIdentifier:[package identifier]];
+        [cell setPackageInstallDate:[dateFormatter_ stringFromDate:[package installDate]]];
     } else {
-        NSUInteger index = (section == 1) ? 0 : (indexPath.row + 1);
-        path = [[crashLog_ suspects] objectAtIndex:index];
-        text = [path lastPathComponent];
+        [cell setPackageName:nil];
+        [cell setPackageIdentifier:nil];
+        [cell setPackageInstallDate:nil];
     }
-    [[cell textLabel] setText:text];
-    [[cell detailTextLabel] setText:[[[PackageCache sharedInstance] packageForFile:path] name]];
 
     return cell;
 }
@@ -493,6 +518,12 @@ static NSString *createIncludeLineForFilepath(NSString *filepath, NSString *name
     lastSelectedPath_ = [path retain];
 
     [tableView deselectRowAtIndexPath:[tableView indexPathForSelectedRow] animated:YES];
+}
+
+- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
+    NSString *filepath = [self filepathForIndexPath:indexPath];
+    TSPackage *package = [[PackageCache sharedInstance] packageForFile:filepath];
+    return [BinaryImageCell heightForPackageRowCount:((package != nil) ? 3 : 0)];
 }
 
 - (void)tableView:(UITableView *)tableView willDisplayHeaderView:(UIView *)view forSection:(NSInteger)section {
