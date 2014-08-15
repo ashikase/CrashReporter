@@ -188,6 +188,9 @@ static void replaceSymbolicLink(NSString *linkPath, NSString *oldDestPath, NSStr
     }
 }
 
+// NOTE: This functions expects any passed report object to have been loaded
+//       with filter type CRCrashReportFilterTypePackage.
+// FIXME: Ensure that this is the case.
 NSString *symbolicateFile(NSString *filepath, CRCrashReport *report) {
     NSString *outputFilepath = nil;
 
@@ -209,14 +212,7 @@ NSString *symbolicateFile(NSString *filepath, CRCrashReport *report) {
     if (!fileIsSymbolicated(filepath, report)) {
         if ([report symbolicate]) {
             // Process blame.
-            // NOTE: The below plist is included in the "symbolicate" package.
-            NSString *filtersFilepath = @"/etc/symbolicate/blame_filters.plist";
-            if (![[NSFileManager defaultManager] isReadableFileAtPath:filtersFilepath]) {
-                // Use bundled list of filters.
-                filtersFilepath = [[NSBundle mainBundle] pathForResource:@"blame_filters" ofType:@"plist"];
-            }
-            NSDictionary *filters = [[NSDictionary alloc] initWithContentsOfFile:filtersFilepath];
-            if ([report blameUsingFilters:filters]) {
+            if ([report blame]) {
                 // Write output to file.
                 NSString *pathExtension = [filepath pathExtension];
                 NSString *path = [NSString stringWithFormat:@"%@.symbolicated.%@",
@@ -249,7 +245,6 @@ NSString *symbolicateFile(NSString *filepath, CRCrashReport *report) {
             } else {
                 fprintf(stderr, "ERROR: Failed to process blame.\n");
             }
-            [filters release];
         } else {
             fprintf(stderr, "ERROR: Unable to symbolicate file \"%s\"\n.", [filepath UTF8String]);
         }
