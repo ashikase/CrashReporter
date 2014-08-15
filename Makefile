@@ -5,8 +5,7 @@ export ARCHS = armv6 armv7 armv7s
 export TARGET = iphone:clang
 export TARGET_IPHONEOS_DEPLOYMENT_VERSION = 3.0
 
-export ADDITIONAL_CFLAGS += -I$(THEOS_PROJECT_DIR)/common -I$(THEOS_PROJECT_DIR)/include -I$(THEOS_PROJECT_DIR)/Common -include firmware.h
-export ADDITIONAL_LDFLAGS += -L$(THEOS_PROJECT_DIR)/lib
+export ADDITIONAL_CFLAGS += -I$(THEOS_PROJECT_DIR)/common  -I$(THEOS_PROJECT_DIR)/Common -include firmware.h
 
 include theos/makefiles/common.mk
 include theos/makefiles/aggregate.mk
