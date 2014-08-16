@@ -54,12 +54,15 @@ static void saveViewedState(NSString *filepath) {
 @synthesize filepath = filepath_;
 @synthesize logName = logName_;
 @synthesize logDate = logDate_;
-@synthesize processPath = processPath_;
-@synthesize blamableBinaries = blamableBinaries_;
+@synthesize victim = victim_;
 @synthesize suspects = suspects_;
+@synthesize potentialSuspects = potentialSuspects_;
+@synthesize loaded = loaded_;
 @synthesize viewed = viewed_;
 
 @dynamic symbolicated;
+
+#pragma mark - Creation & Destruction
 
 // NOTE: Filename part of path must be of the form [app_name]_date_device-name.
 //       The device-name cannot contain underscores.
@@ -95,13 +98,13 @@ static void saveViewedState(NSString *filepath) {
     [filepath_ release];
     [logName_ release];
     [logDate_ release];
-    [processPath_ release];
-    [blamableBinaries_ release];
+    [victim_ release];
     [suspects_ release];
+    [potentialSuspects_ release];
     [super dealloc];
 }
 
-#pragma mark - Properties
+#pragma mark - Loading
 
 static NSInteger compareBinaryImagePaths(CRBinaryImage *binaryImage1, CRBinaryImage *binaryImage2, void *context) {
     NSString *name1 = [[binaryImage1 path] lastPathComponent];
@@ -109,63 +112,76 @@ static NSInteger compareBinaryImagePaths(CRBinaryImage *binaryImage1, CRBinaryIm
     return [name1 compare:name2];
 }
 
-- (NSArray *)blamableBinaries {
-    if (blamableBinaries_ == nil) {
-        if ([self isSymbolicated]) {
-            NSData *data = dataForFile([self filepath]);
-            if (data != nil) {
-                CRCrashReport *report = [[CRCrashReport alloc] initWithData:data filterType:CRCrashReportFilterTypePackage];
-                if (report != nil) {
-                    // Process blame to mark which binary images are blamable.
-                    [report blame];
-
-                    // Collect blamable images.
-                    NSString *processPath = [self processPath];
-                    NSMutableArray *blamableBinaries = [NSMutableArray new];
-                    for (CRBinaryImage *binaryImage in [[report binaryImages] allValues]) {
-                        if ([binaryImage isBlamable]) {
-                            if (![[binaryImage path] isEqualToString:processPath]) {
-                                [blamableBinaries addObject:binaryImage];
-                            }
-                        }
-                    }
-                    [blamableBinaries sortUsingFunction:compareBinaryImagePaths context:NULL];
-                    blamableBinaries_ = blamableBinaries;
-                    [report release];
-                }
-            }
-        }
-    }
-    return blamableBinaries_;
-}
-
-- (NSString *)processPath {
-    if (processPath_ == nil) {
-        NSData *data = dataForFile([self filepath]);
+- (BOOL)load {
+    if (!loaded_) {
+        NSString *filepath = [self filepath];
+        NSData *data = dataForFile(filepath);
         if (data != nil) {
             CRCrashReport *report = [[CRCrashReport alloc] initWithData:data filterType:CRCrashReportFilterTypePackage];
-            processPath_ = [[[report processInfo] objectForKey:@"Path"] retain];
-            [report release];
-        }
-    }
-    return processPath_;
-}
+            if (report != nil) {
+                // Symbolicate (and blame) if necessary.
+                if (!fileIsSymbolicated(filepath, report)) {
+                    // Symbolicate.
+                    NSString *outputFilepath = symbolicateFile(filepath, report);
+                    if (outputFilepath != nil) {
+                        // Update name used for determining viewed state.
+                        if ([self isViewed]) {
+                            deleteViewedState(filepath);
+                            saveViewedState(outputFilepath);
+                        }
 
-- (NSArray *)suspects {
-    if (suspects_ == nil) {
-        if ([self isSymbolicated]) {
-            NSData *data = dataForFile([self filepath]);
-            if (data != nil) {
-                CRCrashReport *report = [[CRCrashReport alloc] initWithData:data filterType:CRCrashReportFilterTypePackage];
-                if (report != nil) {
-                    suspects_ = [[[report properties] objectForKey:@"blame"] retain];
-                    [report release];
+                        // Update path for this crash log instance.
+                        [filepath_ release];
+                        filepath_ = [outputFilepath retain];
+                    } else {
+                        [report release];
+                        return NO;
+                    }
                 }
+
+                // Determine path for victim.
+                NSString *victimPath = [[report processInfo] objectForKey:@"Path"];
+
+                // Collect victim and potential suspects.
+                NSMutableDictionary *blamableBinaries = [[NSMutableDictionary alloc] init];
+                for (CRBinaryImage *binaryImage in [[report binaryImages] allValues]) {
+                    NSString *path = [binaryImage path];
+                    if ([path isEqualToString:victimPath]) {
+                        NSAssert(victim_ == nil, @"ERROR: Two binary images have the exact same path.");
+                        victim_ = [binaryImage retain];
+                    } else if ([binaryImage isBlamable]) {
+                        [blamableBinaries setObject:binaryImage forKey:path];
+                    }
+                }
+
+                // Collect suspects.
+                NSMutableArray *suspects = [[NSMutableArray alloc] init];
+                NSArray *suspectPaths = [[report properties] objectForKey:kCrashReportBlame];
+                for (NSString *suspectPath in suspectPaths) {
+                    CRBinaryImage *binaryImage = [blamableBinaries objectForKey:suspectPath];
+                    if (binaryImage != nil) {
+                        [suspects addObject:binaryImage];
+                        [blamableBinaries removeObjectForKey:suspectPath];
+                    }
+                }
+                suspects_ = suspects;
+
+                // Collect potential suspects.
+                potentialSuspects_ = [[[blamableBinaries allValues] sortedArrayUsingFunction:compareBinaryImagePaths context:NULL] retain];
+                [blamableBinaries release];
+
+                // Clean-up.
+                [report release];
+
+                loaded_ = YES;
             }
         }
     }
-    return suspects_;
+
+    return loaded_;
 }
+
+#pragma mark - Properties
 
 - (BOOL)isSymbolicated {
     return fileIsSymbolicated([self filepath], nil);
@@ -210,31 +226,6 @@ static NSInteger compareBinaryImagePaths(CRBinaryImage *binaryImage1, CRBinaryIm
         }
     }
     return didDelete;
-}
-
-- (BOOL)symbolicate {
-    BOOL didSymbolicate = NO;
-
-    if (![self isSymbolicated]) {
-        // Symbolicate.
-        NSString *inputFilepath = [self filepath];
-        NSString *outputFilepath = symbolicateFile(inputFilepath, nil);
-        if (outputFilepath != nil) {
-            // Update name used for determining viewed state.
-            if ([self isViewed]) {
-                deleteViewedState(inputFilepath);
-                saveViewedState(outputFilepath);
-            }
-
-            // Update path for this crash log instance.
-            filepath_ = [outputFilepath retain];
-
-            // Note that symbolication succeeded.
-            didSymbolicate = YES;
-        }
-    }
-
-    return didSymbolicate;
 }
 
 @end

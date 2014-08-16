@@ -9,22 +9,25 @@
  * License: GPL v3 (See LICENSE file for details)
  */
 
+#import <Foundation/Foundation.h>
+
 extern NSString * const kViewedCrashLogs;
 
-#import <Foundation/Foundation.h>
+@class CRBinaryImage;
 
 @interface CrashLog : NSObject
 @property(nonatomic, readonly) NSString *filepath;
 @property(nonatomic, readonly) NSString *logName;
 @property(nonatomic, readonly) NSDate *logDate;
-@property(nonatomic, readonly) NSString *processPath;
-@property(nonatomic, readonly) NSArray *blamableBinaries;
+@property(nonatomic, readonly) CRBinaryImage *victim;
 @property(nonatomic, readonly) NSArray *suspects;
+@property(nonatomic, readonly) NSArray *potentialSuspects;
+@property(nonatomic, readonly, getter = isLoaded) BOOL loaded;
 @property(nonatomic, readonly, getter = isSymbolicated) BOOL symbolicated;
 @property(nonatomic, assign, getter = isViewed) BOOL viewed;
 - (instancetype)initWithFilepath:(NSString *)filepath;
 - (BOOL)delete;
-- (BOOL)symbolicate;
+- (BOOL)load;
 @end
 
 /* vim: set ft=objc ff=unix sw=4 ts=4 tw=80 expandtab: */

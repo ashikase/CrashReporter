@@ -14,6 +14,8 @@
 #import <Foundation/Foundation.h>
 #import <MessageUI/MessageUI.h>
 #import <TechSupport/TechSupport.h>
+#import <libcrashreport/libcrashreport.h>
+#import <libpackageinfo/libpackageinfo.h>
 #import "CrashLog.h"
 #import "ModalActionSheet.h"
 #import "PackageCache.h"
@@ -175,13 +177,13 @@ static UIButton *logButton() {
 }
 
 - (void)viewDidAppear:(BOOL)animated {
-    if (![crashLog_ isSymbolicated]) {
-        // Symbolicate.
+    if (![crashLog_ isLoaded]) {
+        // Load.
         // NOTE: Done via performSelector:... so that popup is shown.
         statusPopup_ = [ModalActionSheet new];
         [statusPopup_ updateText:NSLocalizedString(@"SYMBOLICATING_MODAL", nil)];
         [statusPopup_ show];
-        [self performSelector:@selector(symbolicate) withObject:nil afterDelay:0];
+        [self performSelector:@selector(load) withObject:nil afterDelay:0];
     }
 
     // Mark log as viewed.
@@ -194,20 +196,20 @@ static UIButton *logButton() {
 
 #pragma mark - Other
 
-- (NSString *)filepathForIndexPath:(NSIndexPath *)indexPath {
-    NSString *filepath = nil;
+- (CRBinaryImage *)binaryImageForIndexPath:(NSIndexPath *)indexPath {
+    CRBinaryImage *binaryImage = nil;
 
     NSUInteger section = [indexPath section];
     if (section == 0) {
-        filepath = [crashLog_ processPath];
+        binaryImage = [crashLog_ victim];
     } else if (section == 3) {
-        filepath = [[[crashLog_ blamableBinaries] objectAtIndex:indexPath.row] path];
+        binaryImage = [[crashLog_ potentialSuspects] objectAtIndex:indexPath.row];
     } else {
         NSUInteger index = (section == 1) ? 0 : (indexPath.row + 1);
-        filepath = [[crashLog_ suspects] objectAtIndex:index];
+        binaryImage = [[crashLog_ suspects] objectAtIndex:index];
     }
 
-    return filepath;
+    return binaryImage;
 }
 
 - (NSString *)messageBodyWithPackage:(TSPackage *)package suspect:(NSString *)suspect isForward:(BOOL)isForward {
@@ -227,7 +229,7 @@ static UIButton *logButton() {
         }
         [string appendFormat:@"Dear %@,\n\n", author];
     }
-    if ([package isAppStore]) {
+    if ([package isKindOfClass:[PIApplePackage class]]) {
         [string appendFormat: @"The app \"%@\" has recently crashed.\n\n", [package name]];
     } else {
         [string appendFormat:@"The file \"%@\" of the product \"%@\" has possibly caused a crash.\n\n", suspect, [package name]];
@@ -242,9 +244,9 @@ static UIButton *logButton() {
     return string;
 }
 
-- (void)symbolicate {
+- (void)load {
 #if !TARGET_IPHONE_SIMULATOR
-    [crashLog_ symbolicate];
+    [crashLog_ load];
 #endif
 
     [statusPopup_ hide];
@@ -408,7 +410,7 @@ static NSString *createIncludeLineForFilepath(NSString *filepath, NSString *name
     if (section == 0) {
         return 1;
     } else if (section == 3) {
-        return [[crashLog_ blamableBinaries] count];
+        return [[crashLog_ potentialSuspects] count];
     } else {
         NSUInteger count = [[crashLog_ suspects] count];
         if (count > 0) {
@@ -446,17 +448,17 @@ static NSString *createIncludeLineForFilepath(NSString *filepath, NSString *name
         cell = [[[BinaryImageCell alloc] initWithReuseIdentifier:reuseIdentifier] autorelease];
     }
 
-    NSString *filepath = [self filepathForIndexPath:indexPath];
-    NSString *text = (indexPath.section == 0) ?
-        [crashLog_ logName] : [filepath lastPathComponent];
+    CRBinaryImage *binaryImage = [self binaryImageForIndexPath:indexPath];
+    NSString *text = [[binaryImage path] lastPathComponent];
     [cell setName:text];
 
-    TSPackage *package = [[PackageCache sharedInstance] packageForFile:filepath];
+    PIPackage *package = [binaryImage package];
     if (package != nil) {
         [cell setPackageName:[NSString stringWithFormat:@"%@ (v%@)", [package name] , [package version]]];
         [cell setPackageIdentifier:[package identifier]];
         [cell setPackageInstallDate:[dateFormatter_ stringFromDate:[package installDate]]];
-        [cell setPackageType:([package isAppStore] ? BinaryImageCellPackageTypeApple : BinaryImageCellPackageTypeDebian)];
+        [cell setPackageType:([package isKindOfClass:[PIApplePackage class]] ?
+                BinaryImageCellPackageTypeApple : BinaryImageCellPackageTypeDebian)];
     } else {
         [cell setPackageName:nil];
         [cell setPackageIdentifier:nil];
@@ -471,19 +473,11 @@ static NSString *createIncludeLineForFilepath(NSString *filepath, NSString *name
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     // Get package for selected row.
-    NSString *path = nil;
-    NSUInteger section = indexPath.section;
-    if (section == 0) {
-        path = [crashLog_ processPath];
-    } else if (section == 3) {
-        path = [[[crashLog_ blamableBinaries] objectAtIndex:indexPath.row] path];
-    } else {
-        NSUInteger index = (section == 1) ? 0 : (indexPath.row + 1);
-        path = [[crashLog_ suspects] objectAtIndex:index];
-    }
-    TSPackage *package = [[PackageCache sharedInstance] packageForFile:path];
+    CRBinaryImage *binaryImage = [self binaryImageForIndexPath:indexPath];
+    NSString *filepath = [binaryImage path];
+    TSPackage *package = [[PackageCache sharedInstance] packageForFile:filepath];
 
-    // Determine for the given package.
+    // Determine links for the given package.
     NSMutableArray *linkInstructions = [NSMutableArray new];
 
     // Add a link to contact the author of the package.
@@ -523,14 +517,14 @@ static NSString *createIncludeLineForFilepath(NSString *filepath, NSString *name
 
     lastSelectedLinkInstructions_ = [linkInstructions retain];
     lastSelectedPackage_ = [package retain];
-    lastSelectedPath_ = [path retain];
+    lastSelectedPath_ = [filepath retain];
 
     [tableView deselectRowAtIndexPath:[tableView indexPathForSelectedRow] animated:YES];
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
-    NSString *filepath = [self filepathForIndexPath:indexPath];
-    TSPackage *package = [[PackageCache sharedInstance] packageForFile:filepath];
+    CRBinaryImage *binaryImage = [self binaryImageForIndexPath:indexPath];
+    PIPackage *package = [binaryImage package];
     return [BinaryImageCell heightForPackageRowCount:((package != nil) ? 3 : 0)];
 }
 
