@@ -457,9 +457,25 @@ static NSString *createIncludeLineForFilepath(NSString *filepath, NSString *name
 
     PIPackage *package = [binaryImage package];
     if (package != nil) {
+        NSString *string = nil;
+        BOOL isRecent = NO;
+        NSDate *installDate = [package installDate];
+        NSTimeInterval interval = [[crashLog_ logDate] timeIntervalSinceDate:installDate];
+        if (interval < 86400.0) {
+            if (interval < 3600.0) {
+                string = NSLocalizedString(@"LESS_THAN_HOUR", nil);
+            } else {
+                string = [NSString stringWithFormat:NSLocalizedString(@"LESS_THAN_HOURS", nil), (unsigned)ceil(interval / 60.0)];
+            }
+            isRecent = YES;
+        } else {
+            string = [dateFormatter_ stringFromDate:installDate];
+        }
+        [cell setPackageInstallDate:string];
+        [cell setRecent:isRecent];
+
         [cell setPackageName:[NSString stringWithFormat:@"%@ (v%@)", [package name] , [package version]]];
         [cell setPackageIdentifier:[package identifier]];
-        [cell setPackageInstallDate:[dateFormatter_ stringFromDate:[package installDate]]];
         [cell setPackageType:([package isKindOfClass:[PIApplePackage class]] ?
                 BinaryImageCellPackageTypeApple : BinaryImageCellPackageTypeDebian)];
     } else {
