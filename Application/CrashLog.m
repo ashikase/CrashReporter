@@ -137,6 +137,18 @@ static NSInteger compareBinaryImagePaths(CRBinaryImage *binaryImage1, CRBinaryIm
                         [report release];
                         return NO;
                     }
+                } else {
+                    // Reprocess blame for log files that were symbolicated with
+                    // older versions of CrashReporter.
+                    // NOTE: The output format changed with the release of
+                    //       v1.8.0 (libcrashreport v1.0.0). Must reprocess
+                    //       blame in order to retrieve blamable binary images.
+                    // NOTE: Give users a two-week window to upgrade.
+                    // TODO: Consider removing this at some point in the future.
+                    const NSTimeInterval intervalAsOf20140901 = 431222400.0;
+                    if ([[self logDate] timeIntervalSinceReferenceDate] < intervalAsOf20140901) {
+                        [report blame];
+                    }
                 }
 
                 // Determine path for victim.
