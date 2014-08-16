@@ -182,7 +182,7 @@ static inline NSUInteger indexOf(NSUInteger section, NSUInteger row, BOOL delete
     NSDateFormatter *formatter = [NSDateFormatter new];
     [formatter setDateFormat:@"HH:mm:ss (yyyy MMM d)"];
     UILabel *label = cell.textLabel;
-    label.text = [formatter stringFromDate:[crashLog date]];
+    label.text = [formatter stringFromDate:[crashLog logDate]];
     label.textColor = [crashLog isViewed] ? [UIColor grayColor] : [UIColor blackColor];
     [formatter release];
 

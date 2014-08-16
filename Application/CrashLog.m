@@ -52,11 +52,11 @@ static void saveViewedState(NSString *filepath) {
 @implementation CrashLog
 
 @synthesize filepath = filepath_;
-@synthesize processName = processName_;
+@synthesize logName = logName_;
+@synthesize logDate = logDate_;
 @synthesize processPath = processPath_;
 @synthesize blamableBinaries = blamableBinaries_;
 @synthesize suspects = suspects_;
-@synthesize date = date_;
 @synthesize viewed = viewed_;
 
 @dynamic symbolicated;
@@ -70,7 +70,7 @@ static void saveViewedState(NSString *filepath) {
         NSArray *matches = [basename captureComponentsMatchedByRegex:@"(.+)_(\\d{4})-(\\d{2})-(\\d{2})-(\\d{2})(\\d{2})(\\d{2})_[^_]+"];
         if ([matches count] == 8) {
             filepath_ = [filepath copy];
-            processName_ = [[matches objectAtIndex:1] copy];
+            logName_ = [[matches objectAtIndex:1] copy];
 
             // Parse the date.
             NSDateComponents *components = [NSDateComponents new];
@@ -80,7 +80,7 @@ static void saveViewedState(NSString *filepath) {
             [components setHour:[[matches objectAtIndex:5] integerValue]];
             [components setMinute:[[matches objectAtIndex:6] integerValue]];
             [components setSecond:[[matches objectAtIndex:7] integerValue]];
-            date_ = [[calendar() dateFromComponents:components] retain];
+            logDate_ = [[calendar() dateFromComponents:components] retain];
             [components release];
         } else {
             // Filename is invalid.
@@ -93,11 +93,11 @@ static void saveViewedState(NSString *filepath) {
 
 - (void)dealloc {
     [filepath_ release];
-    [processName_ release];
+    [logName_ release];
+    [logDate_ release];
     [processPath_ release];
     [blamableBinaries_ release];
     [suspects_ release];
-    [date_ release];
     [super dealloc];
 }
 

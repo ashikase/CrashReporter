@@ -52,7 +52,7 @@
         crashLog_ = [crashLog retain];
 
         // Set title using date.
-        NSDate *date = [crashLog date];
+        NSDate *date = [crashLog logDate];
         NSDateFormatter *dateFormatter = [NSDateFormatter new];
         [dateFormatter setDateFormat:@"HH:mm:ss (yyyy MMM d)"];
         self.title = [dateFormatter stringFromDate:date];
@@ -448,7 +448,7 @@ static NSString *createIncludeLineForFilepath(NSString *filepath, NSString *name
 
     NSString *filepath = [self filepathForIndexPath:indexPath];
     NSString *text = (indexPath.section == 0) ?
-        [crashLog_ processName] : [filepath lastPathComponent];
+        [crashLog_ logName] : [filepath lastPathComponent];
     [cell setName:text];
 
     TSPackage *package = [[PackageCache sharedInstance] packageForFile:filepath];

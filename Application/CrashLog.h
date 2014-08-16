@@ -15,11 +15,11 @@ extern NSString * const kViewedCrashLogs;
 
 @interface CrashLog : NSObject
 @property(nonatomic, readonly) NSString *filepath;
-@property(nonatomic, readonly) NSString *processName;
+@property(nonatomic, readonly) NSString *logName;
+@property(nonatomic, readonly) NSDate *logDate;
 @property(nonatomic, readonly) NSString *processPath;
 @property(nonatomic, readonly) NSArray *blamableBinaries;
 @property(nonatomic, readonly) NSArray *suspects;
-@property(nonatomic, readonly) NSDate *date;
 @property(nonatomic, readonly, getter = isSymbolicated) BOOL symbolicated;
 @property(nonatomic, assign, getter = isViewed) BOOL viewed;
 - (instancetype)initWithFilepath:(NSString *)filepath;

@@ -35,7 +35,7 @@ static NSArray *crashLogGroupsForDirectory(NSString *directory) {
                     [existentFilepaths addObject:filepath];
 
                     // Store crash log object in group.
-                    NSString *name = [crashLog processName];
+                    NSString *name = [crashLog logName];
                     CrashLogGroup *group = [groups objectForKey:name];
                     if (group == nil) {
                         group = [[CrashLogGroup alloc] initWithName:name logDirectory:directory];
