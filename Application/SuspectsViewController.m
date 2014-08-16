@@ -176,14 +176,17 @@ static UIButton *logButton() {
     [buttonView release];
 }
 
+- (void)viewWillAppear:(BOOL)animated {
+    if (![crashLog_ isLoaded]) {
+        statusPopup_ = [ModalActionSheet new];
+        [statusPopup_ updateText:NSLocalizedString(@"PROCESSING", nil)];
+        [statusPopup_ show];
+    }
+}
+
 - (void)viewDidAppear:(BOOL)animated {
     if (![crashLog_ isLoaded]) {
-        // Load.
-        // NOTE: Done via performSelector:... so that popup is shown.
-        statusPopup_ = [ModalActionSheet new];
-        [statusPopup_ updateText:NSLocalizedString(@"SYMBOLICATING_MODAL", nil)];
-        [statusPopup_ show];
-        [self performSelector:@selector(load) withObject:nil afterDelay:0];
+        [self load];
     }
 
     // Mark log as viewed.
