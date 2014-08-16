@@ -451,9 +451,11 @@ static UIButton *menuButton(NSUInteger position, CGRect frame, UIImage *backgrou
             [services addObject:SLServiceTypeSinaWeibo];
             [serviceTitles addObject:@"SOCIAL_SINA_WEIBO"];
         }
-        if ([$SLComposeViewController isAvailableForServiceType:SLServiceTypeTencentWeibo]) {
-            [services addObject:SLServiceTypeTencentWeibo];
-            [serviceTitles addObject:@"SOCIAL_TENCENT_WEIBO"];
+        if (IOS_GTE(7_0)) {
+            if ([$SLComposeViewController isAvailableForServiceType:SLServiceTypeTencentWeibo]) {
+                [services addObject:SLServiceTypeTencentWeibo];
+                [serviceTitles addObject:@"SOCIAL_TENCENT_WEIBO"];
+            }
         }
         if ([$SLComposeViewController isAvailableForServiceType:SLServiceTypeTwitter]) {
             [services addObject:SLServiceTypeTwitter];
