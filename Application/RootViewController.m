@@ -301,25 +301,30 @@ static UIButton *menuButton(NSUInteger position, CGRect frame, UIImage *backgrou
         UIView *view = [self view];
         CGRect viewBounds = [view bounds];
 
-        // Get statusbar height.
-        CGFloat statusBarHeight;
-        if (viewBounds.size.width > viewBounds.size.height) {
-            // Landscape.
-            statusBarHeight = [[UIApplication sharedApplication] statusBarFrame].size.width;
-        } else {
-            // Portrait.
-            statusBarHeight = [[UIApplication sharedApplication] statusBarFrame].size.height;
-        }
-
-        // Get height of navigation bar.
-        CGFloat navBarHeight = [[[self navigationController] navigationBar] bounds].size.height;
-
         // Set size and position of menu container.
         CGRect frame = menuContainerView_.frame;
+        if (IOS_LT(7_0)) {
+            frame.origin.y = 0.0;
+            frame.size.height = viewBounds.size.height;
+        } else {
+            // Get statusbar height.
+            CGFloat statusBarHeight;
+            if (viewBounds.size.width > viewBounds.size.height) {
+                // Landscape.
+                statusBarHeight = [[UIApplication sharedApplication] statusBarFrame].size.width;
+            } else {
+                // Portrait.
+                statusBarHeight = [[UIApplication sharedApplication] statusBarFrame].size.height;
+            }
+
+            // Get height of navigation bar.
+            CGFloat navBarHeight = [[[self navigationController] navigationBar] bounds].size.height;
+
+            frame.origin.y = statusBarHeight + navBarHeight;
+            frame.size.height = viewBounds.size.height - statusBarHeight - navBarHeight;
+        }
         frame.origin.x = 0.0;
-        frame.origin.y = statusBarHeight + navBarHeight;
         frame.size.width = viewBounds.size.width;
-        frame.size.height = viewBounds.size.height - statusBarHeight - navBarHeight;
         [menuContainerView_ setFrame:frame];
 
         // Determine button with narrowest and widest content.
