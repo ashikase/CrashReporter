@@ -1,5 +1,3 @@
-TECHSUPPORT_FRAMEWORK = $(THEOS_PROJECT_DIR)/Frameworks/TechSupport/_/Library/Frameworks
-
 APPLICATION_NAME = CrashReporter
 CrashReporter_FILES = \
     ../common/crashlog_util.m \
@@ -17,8 +15,8 @@ CrashReporter_FILES = \
     VictimViewController.m \
     main.m \
     pastie.m
-CrashReporter_CFLAGS = -F$(TECHSUPPORT_FRAMEWORK) -I$(THEOS_PROJECT_DIR)/Libraries
-CrashReporter_LDFLAGS = -F$(TECHSUPPORT_FRAMEWORK)
+CrashReporter_CFLAGS = -F$(THEOS)/Frameworks -I$(THEOS_PROJECT_DIR)/Libraries
+CrashReporter_LDFLAGS = -F$(THEOS)/Frameworks
 CrashReporter_LIBRARIES = crashreport packageinfo
 CrashReporter_FRAMEWORKS = CoreGraphics MessageUI SystemConfiguration TechSupport UIKit
 
