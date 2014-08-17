@@ -5,5 +5,5 @@
 	path = Frameworks/TechSupport
 	url = https://github.com/ashikase/TechSupport.git
 [submodule "Common"]
-	path = Common
+	path = Libraries/Common
 	url = http://github.com/ashikase/Common
