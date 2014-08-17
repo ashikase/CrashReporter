@@ -238,7 +238,7 @@ static UIImage *installDateImage$ = nil;
     NSUInteger oldLength = [[packageInstallDateLabel_ text] length];
     NSUInteger newLength = [packageInstallDate length];
     if (newLength != 0) {
-        packageInstallDate = [@"Installed: " stringByAppendingString:packageInstallDate];
+        packageInstallDate = [NSString stringWithFormat:@"%@: %@", NSLocalizedString(@"PACKAGE_INSTALL_DATE_PREFIX", nil), packageInstallDate];
     }
     [packageInstallDateLabel_ setText:packageInstallDate];
     if (((oldLength == 0) && (newLength != 0)) || ((oldLength != 0) && (newLength == 0))) {
