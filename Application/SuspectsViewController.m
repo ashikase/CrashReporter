@@ -465,7 +465,7 @@ static NSString *createIncludeLineForFilepath(NSString *filepath, NSString *name
             if (interval < 3600.0) {
                 string = NSLocalizedString(@"LESS_THAN_HOUR", nil);
             } else {
-                string = [NSString stringWithFormat:NSLocalizedString(@"LESS_THAN_HOURS", nil), (unsigned)ceil(interval / 60.0)];
+                string = [NSString stringWithFormat:NSLocalizedString(@"LESS_THAN_HOURS", nil), (unsigned)ceil(interval / 3600.0)];
             }
             isRecent = YES;
         } else {
