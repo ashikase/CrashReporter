@@ -182,6 +182,12 @@ static NSInteger compareBinaryImagePaths(CRBinaryImage *binaryImage1, CRBinaryIm
                 potentialSuspects_ = [[[blamableBinaries allValues] sortedArrayUsingFunction:compareBinaryImagePaths context:NULL] retain];
                 [blamableBinaries release];
 
+                // Ensure that we at least have information for the victim.
+                // NOTE: Some reports do not contain binary image information.
+                if (victim_ == nil) {
+                    victim_ = [[CRBinaryImage alloc] initWithPath:victimPath address:0 size:0 architecture:nil uuid:nil];
+                }
+
                 // Clean-up.
                 [report release];
 
