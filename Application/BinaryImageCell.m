@@ -131,6 +131,8 @@ static UIImage *installDateImage$ = nil;
 #pragma mark - View (Layout)
 
 - (void)layoutSubviews {
+    [super layoutSubviews];
+
     CGSize contentSize = [[self contentView] bounds].size;
     CGSize maxSize = CGSizeMake(contentSize.width - kContentInset.left - kContentInset.right, 10000.0);
 
