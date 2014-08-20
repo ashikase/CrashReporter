@@ -44,6 +44,7 @@
     NSArray *lastSelectedLinkInstructions_;
     TSPackage *lastSelectedPackage_;
     NSString *lastSelectedPath_;
+    NSIndexPath *lastSelectedIndexPath_;
 
     NSDateFormatter *dateFormatter_;
 }
@@ -74,6 +75,7 @@
     [lastSelectedLinkInstructions_ release];
     [lastSelectedPackage_ release];
     [lastSelectedPath_ release];
+    [lastSelectedIndexPath_ release];
     [dateFormatter_ release];
     [super dealloc];
 }
@@ -215,38 +217,6 @@ static UIButton *logButton() {
     return binaryImage;
 }
 
-- (NSString *)messageBodyWithPackage:(TSPackage *)package suspect:(NSString *)suspect isForward:(BOOL)isForward {
-    NSMutableString *string = [NSMutableString string];
-
-    if (!isForward) {
-        NSString *author = [package author];
-        if (author != nil) {
-            NSRange range = [author rangeOfString:@"<"];
-            if (range.location != NSNotFound) {
-                author = [author substringToIndex:range.location];
-            }
-            author = [author stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
-        }
-        if ([author length] == 0) {
-            author = @"developer";
-        }
-        [string appendFormat:@"Dear %@,\n\n", author];
-    }
-    if ([package isKindOfClass:[PIApplePackage class]]) {
-        [string appendFormat: @"The app \"%@\" has recently crashed.\n\n", [package name]];
-    } else {
-        [string appendFormat:@"The file \"%@\" of the product \"%@\" has possibly caused a crash.\n\n", suspect, [package name]];
-    }
-    [string appendString:
-        @"Relevant files (e.g. crash log and syslog) are attached.\n"
-        "\n"
-        "Thank you for your attention.\n"
-        "\n\n"
-        ];
-
-    return string;
-}
-
 - (void)load {
 #if !TARGET_IPHONE_SIMULATOR
     [crashLog_ load];
@@ -341,7 +311,7 @@ static NSString *createIncludeLineForFilepath(NSString *filepath, NSString *name
         } else {
             TSLinkInstruction *linkInstruction = [lastSelectedLinkInstructions_ objectAtIndex:(buttonIndex - 1)];
             if (linkInstruction.isSupport) {
-                // Report issue.
+                // Determine attachments.
                 NSString *crashlogLine = createIncludeLineForFilepath([crashLog_ filepath], @"Crash log");
                 NSString *syslogLine = nil;
                 NSString *syslogPath = [self syslogPath];
@@ -363,14 +333,49 @@ static NSString *createIncludeLineForFilepath(NSString *filepath, NSString *name
                 }
                 [includeInstructions addObjectsFromArray:[lastSelectedPackage_ otherAttachments]];
 
+                // Prepare subject and message.
+                NSMutableString *subject = [NSMutableString stringWithFormat:@"Crash Report: %@ (%@)",
+                    ([lastSelectedPackage_ name] ?: @"(unknown product)"),
+                    ([lastSelectedPackage_ version] ?: @"unknown version")
+                        ];
+
+                NSMutableString *messageBody = [[NSMutableString alloc] init];
+                [messageBody appendString:@"The following process has crashed:\n\n"];
+                [messageBody appendFormat:@"    %@\n\n", [[crashLog_ victim] path]];
+
+                if ([lastSelectedIndexPath_ section] != 0) {
+                    if ([[crashLog_ suspects] count] > 0) {
+                        if ([lastSelectedIndexPath_ section] == 1) {
+                            [subject appendString:@" [Main Suspect]"];
+                            [messageBody appendString:@"Your product was determined to be the most likely cause:\n\n"];
+                        } else if ([lastSelectedIndexPath_ section] == 2) {
+                            [subject appendString:@" [Possible Suspect]"];
+                            [messageBody appendString:@"Your product was determined to be a possible cause:\n\n"];
+                        } else {
+                            [subject appendString:@" [Not a Suspect]"];
+                            [messageBody appendString:@"Your product was not marked as a possible cause:\n\n"];
+                        }
+                    } else {
+                        [subject appendString:@" [No Suspects]"];
+                        [messageBody appendString:@"The cause of this crash could not be determined.\nYour product was loaded in the process, and may have been involved:\n\n"];
+                    }
+                    [messageBody appendFormat:@"    %@\n    (%@)\n\n", [lastSelectedPackage_ name], lastSelectedPath_];
+                }
+
+                [messageBody appendString:@"Relevant files (e.g. crash log and syslog) are attached.\n\n"];
+
+                // Present mail controller.
                 TSContactViewController *viewController = [[TSContactViewController alloc] initWithPackage:lastSelectedPackage_
                     linkInstruction:linkInstruction includeInstructions:includeInstructions];
-                viewController.title = [lastSelectedPath_ lastPathComponent];
-                viewController.requiresDetailsFromUser = YES;
-                viewController.messageBody = [self messageBodyWithPackage:lastSelectedPackage_ suspect:lastSelectedPath_ isForward:([linkInstruction recipients] == nil)];
+                [viewController setByline:@"/* Generated by CrashReporter - cydia://package/crash-reporter */"];
+                [viewController setMessageBody:messageBody];
+                [viewController setRequiresDetailsFromUser:YES];
+                [viewController setSubject:subject];
+                [viewController setTitle:[lastSelectedPath_ lastPathComponent]];
                 [self.navigationController pushViewController:viewController animated:YES];
                 [viewController release];
                 [includeInstructions release];
+                [messageBody release];
             } else {
                 if (linkInstruction.isEmail) {
                     // Present mail controller.
@@ -395,6 +400,8 @@ static NSString *createIncludeLineForFilepath(NSString *filepath, NSString *name
         }
     }
 
+    [lastSelectedIndexPath_ release];
+    lastSelectedIndexPath_ = nil;
     [lastSelectedLinkInstructions_ release];
     lastSelectedLinkInstructions_ = nil;
     [lastSelectedPackage_ release];
@@ -534,6 +541,7 @@ static NSString *createIncludeLineForFilepath(NSString *filepath, NSString *name
     [alert show];
     [alert release];
 
+    lastSelectedIndexPath_ = [indexPath retain];
     lastSelectedLinkInstructions_ = [linkInstructions retain];
     lastSelectedPackage_ = [package retain];
     lastSelectedPath_ = [filepath retain];
