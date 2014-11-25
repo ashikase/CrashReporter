@@ -170,17 +170,22 @@ static BOOL reportCrashIsDisabled$ = YES;
         }
     }
 
-    if (reportCrashIsDisabled$) {
-        if (!hasShownReportCrashMessage_) {
-            NSString *title = NSLocalizedString(@"REPORTCRASH_DISABLED_TITLE", nil);
-            NSString *message = NSLocalizedString(@"REPORTCRASH_DISABLED_MESSAGE", nil);
-            NSString *okTitle = NSLocalizedString(@"OK", nil);
-            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:title message:message delegate:nil
-                cancelButtonTitle:okTitle otherButtonTitles:nil];
-            [alert show];
-            [alert release];
+    if (IOS_LT(8_0)) {
+        // FIXME: The code responsible for setting this variable does not appear
+        //        to work on iOS 8. API may have changed, or new entitlements
+        //        may be required.
+        if (reportCrashIsDisabled$) {
+            if (!hasShownReportCrashMessage_) {
+                NSString *title = NSLocalizedString(@"REPORTCRASH_DISABLED_TITLE", nil);
+                NSString *message = NSLocalizedString(@"REPORTCRASH_DISABLED_MESSAGE", nil);
+                NSString *okTitle = NSLocalizedString(@"OK", nil);
+                UIAlertView *alert = [[UIAlertView alloc] initWithTitle:title message:message delegate:nil
+                    cancelButtonTitle:okTitle otherButtonTitles:nil];
+                [alert show];
+                [alert release];
 
-            hasShownReportCrashMessage_ = YES;
+                hasShownReportCrashMessage_ = YES;
+            }
         }
     }
 }
