@@ -95,24 +95,54 @@
         <key>UILaunchImages</key>
         <array>
             <dict>
-                <key>UILaunchImageName</key>
-                <string>iOS7-Default</string>
                 <key>UILaunchImageMinimumOSVersion</key>
                 <string>7.0</string>
+                <key>UILaunchImageName</key>
+                <string>Default-700</string>
                 <key>UILaunchImageOrientation</key>
                 <string>Portrait</string>
                 <key>UILaunchImageSize</key>
                 <string>{320, 480}</string>
             </dict>
             <dict>
-                <key>UILaunchImageName</key>
-                <string>iOS7-Default</string>
                 <key>UILaunchImageMinimumOSVersion</key>
                 <string>7.0</string>
+                <key>UILaunchImageName</key>
+                <string>Default-700-568h</string>
                 <key>UILaunchImageOrientation</key>
                 <string>Portrait</string>
                 <key>UILaunchImageSize</key>
                 <string>{320, 568}</string>
+            </dict>
+            <dict>
+                <key>UILaunchImageMinimumOSVersion</key>
+                <string>8.0</string>
+                <key>UILaunchImageName</key>
+                <string>Default-800-667h</string>
+                <key>UILaunchImageOrientation</key>
+                <string>Portrait</string>
+                <key>UILaunchImageSize</key>
+                <string>{375, 667}</string>
+            </dict>
+            <dict>
+                <key>UILaunchImageMinimumOSVersion</key>
+                <string>8.0</string>
+                <key>UILaunchImageName</key>
+                <string>Default-800-Portrait-736h</string>
+                <key>UILaunchImageOrientation</key>
+                <string>Portrait</string>
+                <key>UILaunchImageSize</key>
+                <string>{414, 736}</string>
+            </dict>
+            <dict>
+                <key>UILaunchImageMinimumOSVersion</key>
+                <string>8.0</string>
+                <key>UILaunchImageName</key>
+                <string>Default-800-Landscape-736h</string>
+                <key>UILaunchImageOrientation</key>
+                <string>Landscape</string>
+                <key>UILaunchImageSize</key>
+                <string>{414, 736}</string>
             </dict>
         </array>
 
@@ -120,7 +150,7 @@
         <array>
             <dict>
                 <key>UILaunchImageName</key>
-                <string>iOS7-Default-Portrait</string>
+                <string>Default-700-Portrait</string>
                 <key>UILaunchImageMinimumOSVersion</key>
                 <string>7.0</string>
                 <key>UILaunchImageOrientation</key>
@@ -130,7 +160,7 @@
             </dict>
             <dict>
                 <key>UILaunchImageName</key>
-                <string>iOS7-Default-Landscape</string>
+                <string>Default-700-Landscape</string>
                 <key>UILaunchImageMinimumOSVersion</key>
                 <string>7.0</string>
                 <key>UILaunchImageOrientation</key>
