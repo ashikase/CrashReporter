@@ -81,7 +81,7 @@ int $close(int fildes) {
                 // Launch notifier.
                 // NOTE: Must be done via a separate binary as a certain entitlement
                 //       is required for sending local notifications by proxy.
-                NSString *launchPath = @"/Applications/CrashReporter.app/notifier";
+                NSString *launchPath = @"/Applications/CrashReporter.app/notifier_";
                 if ([[NSFileManager defaultManager] isExecutableFileAtPath:launchPath]) {
                     NSArray *arguments = [NSArray arrayWithObject:filepath$];
                     if ([NSTask launchedTaskWithLaunchPath:launchPath arguments:arguments] == nil) {

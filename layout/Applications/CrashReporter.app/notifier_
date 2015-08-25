@@ -1,0 +1,10 @@
+#!/bin/bash
+
+# Prevent loading of Substrate tweaks into the launched process.
+unset DYLD_INSERT_LIBRARIES
+
+# Get the absolute path to this script.
+CURRENT_DIR=$(cd $(dirname "$0") && pwd)
+
+# Execute the actual tool.
+exec "${CURRENT_DIR}"/notifier $*
