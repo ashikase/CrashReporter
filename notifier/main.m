@@ -129,9 +129,8 @@ int main(int argc, char **argv, char **envp) {
             const char *bundleIDStr = (bundleID != nil) ? [bundleID UTF8String] : "";
             const char *processNameStr = (processName != nil) ? [processName UTF8String] : "";
             if (
-                (strcmp(facility, "Crash Reporter") == 0) ||
-                (strcmp(facility, bundleIDStr) == 0) ||
-                (strcmp(sender, processNameStr) == 0)
+                ((facility != NULL) && ((strcmp(facility, "Crash Reporter") == 0) || (strcmp(facility, bundleIDStr) == 0))) ||
+                ((sender != NULL) && (strcmp(sender, processNameStr) == 0))
             ) {
                 char time[25];
                 time_t clock = atol(asl_get(msg, ASL_KEY_TIME));
