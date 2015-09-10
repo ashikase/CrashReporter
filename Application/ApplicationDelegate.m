@@ -86,6 +86,68 @@ static void resetIconBadgeNumber() {
     [super dealloc];
 }
 
+// FIXME: Attempt to call Base64 method will cause a crash on iOS < 4.0.
+- (BOOL)application:(UIApplication *)application handleOpenURL:(NSURL *)url {
+    BOOL didOpenURL = NO;
+
+    NSString *command = [url host];
+    if ([command isEqualToString:@"script"]) {
+        UIViewController *viewController = nil;
+
+        // NOTE: Script command must include either a "data" or "url" parameter.
+        //       The "data" parameter takes precedence.
+        for (NSString *param in [[url query] componentsSeparatedByString:@"&"]) {
+            if ([param hasPrefix:@"data="]) {
+                NSString *value = [param substringFromIndex:5];
+                NSData *data = nil;
+                if (IOS_LT(7_0)) {
+                    data = [[NSData alloc] initWithBase64Encoding:value];
+                } else {
+                    data = [[NSData alloc] initWithBase64EncodedString:value options:0];
+                }
+                if (data != nil) {
+                    NSString *string = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
+                    if (string != nil) {
+                        // initWithString:
+                        NSLog(@"String: %@", string);
+                        [string release];
+                    } else {
+                        NSLog(@"ERROR: Failed to interpret decoded data as UTF8 string.");
+                    }
+                    [data release];
+                } else {
+                    NSLog(@"ERROR: Failed to decode provided data.");
+                }
+                break;
+            } else if ([param hasPrefix:@"url="]) {
+                NSString *urlString = [[param substringFromIndex:4] stringByReplacingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
+                NSURL *url = [[NSURL alloc] initWithString:urlString];
+                if (url != nil) {
+                    // initWithURL:url
+                    NSLog(@"URL: %@", url);
+                    [url release];
+                } else {
+                    NSLog(@"ERROR: Provided url string is invalid: %@", urlString);
+                }
+                break;
+            }
+        }
+
+        if (viewController != nil) {
+            [navigationController_ pushViewController:viewController animated:YES];
+            [viewController release];
+
+            didOpenURL = YES;
+        } else {
+            NSLog(@"ERROR: Command \"script\" requires a valid \"data\" or \"url\" parameter.");
+        }
+    } else {
+        NSLog(@"ERROR: URL did not contain a supported command.");
+    }
+
+    return didOpenURL;
+}
+
 - (void)application:(UIApplication *)application didReceiveLocalNotification:(UILocalNotification *)notification {
     NSString *filepath = [[notification userInfo] objectForKey:@"filepath"];
 
