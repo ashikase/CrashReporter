@@ -12,6 +12,7 @@ CrashReporter_FILES = \
     ModalActionSheet.m \
     PackageCache.m \
     RootViewController.m \
+    ScriptViewController.m \
     SuspectsViewController.m \
     UIImage+CrashReporter.m \
     VictimViewController.m \

@@ -14,6 +14,7 @@
 #import <TechSupport/TechSupport.h>
 #import "CrashLog.h"
 #import "RootViewController.h"
+#import "ScriptViewController.h"
 #import "SuspectsViewController.h"
 
 #include <errno.h>
@@ -92,7 +93,7 @@ static void resetIconBadgeNumber() {
 
     NSString *command = [url host];
     if ([command isEqualToString:@"script"]) {
-        UIViewController *viewController = nil;
+        ScriptViewController *viewController = nil;
 
         // NOTE: Script command must include either a "data" or "url" parameter.
         //       The "data" parameter takes precedence.
@@ -108,8 +109,7 @@ static void resetIconBadgeNumber() {
                 if (data != nil) {
                     NSString *string = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
                     if (string != nil) {
-                        // initWithString:
-                        NSLog(@"String: %@", string);
+                        viewController = [[ScriptViewController alloc] initWithString:string];
                         [string release];
                     } else {
                         NSLog(@"ERROR: Failed to interpret decoded data as UTF8 string.");
@@ -123,8 +123,7 @@ static void resetIconBadgeNumber() {
                 NSString *urlString = [[param substringFromIndex:4] stringByReplacingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
                 NSURL *url = [[NSURL alloc] initWithString:urlString];
                 if (url != nil) {
-                    // initWithURL:url
-                    NSLog(@"URL: %@", url);
+                    viewController = [[ScriptViewController alloc] initWithURL:url];
                     [url release];
                 } else {
                     NSLog(@"ERROR: Provided url string is invalid: %@", urlString);
