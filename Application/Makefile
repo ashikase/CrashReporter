@@ -5,6 +5,7 @@ CrashReporter_FILES = \
     $(THEOS_PROJECT_DIR)/common/exec_as_root.m \
     ApplicationDelegate.m \
     BinaryImageCell.m \
+	Button.m \
     CrashLog.m \
     CrashLogGroup.m \
     ManualScriptViewController.m \

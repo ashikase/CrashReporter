@@ -19,6 +19,7 @@
 #import "CrashLog.h"
 #import "ModalActionSheet.h"
 #import "PackageCache.h"
+#import "Button.h"
 #import "BinaryImageCell.h"
 #import "UIImage+CrashReporter.h"
 
@@ -80,53 +81,6 @@
     [super dealloc];
 }
 
-static UIButton *logButton() {
-    UIButton *button = [UIButton buttonWithType:UIButtonTypeCustom];
-    [button setAutoresizingMask:UIViewAutoresizingFlexibleWidth];
-
-    CALayer *layer = button.layer;
-    [layer setBorderWidth:1.0];
-
-    if (IOS_LT(7_0)) {
-        [button setAdjustsImageWhenHighlighted:YES];
-
-        [layer setBorderColor:[[UIColor colorWithRed:(171.0 / 255.0) green:(171.0 / 255.0) blue:(171.0 / 255.0) alpha:1.0] CGColor]];
-        [layer setCornerRadius:8.0];
-        [layer setMasksToBounds:YES];
-
-        UILabel *label = [button titleLabel];
-        [label setFont:[UIFont boldSystemFontOfSize:18.0]];
-
-        if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad) {
-            UIImage *image = [UIImage kitImageNamed:@"UINavigationBarSilverTallBackground.png"];
-            [button setBackgroundImage:[image stretchableImageWithLeftCapWidth:0.0 topCapHeight:0.0] forState:UIControlStateNormal];
-            [button setTitleColor:[UIColor colorWithRed:(114.0 / 255.0) green:(121.0 / 255.0) blue:(130.0 / 255.0) alpha:1.0] forState:UIControlStateNormal];
-            [button setTitleColor:[UIColor whiteColor] forState:UIControlStateHighlighted];
-            [button setTitleShadowColor:[UIColor colorWithRed:(230.0 / 255.0) green:(230.0 / 255.0) blue:(230.0 / 255.0) alpha:1.0] forState:UIControlStateNormal];
-            [button setTitleShadowColor:[UIColor blackColor] forState:UIControlStateHighlighted];
-            [label setShadowOffset:CGSizeMake(0.0, 1.0)];
-        } else {
-            UIImage *image = [UIImage kitImageNamed:@"UINavigationBarDefaultBackground.png"];
-            [button setBackgroundImage:[image stretchableImageWithLeftCapWidth:0.0 topCapHeight:0.0] forState:UIControlStateNormal];
-            [label setShadowOffset:CGSizeMake(0.0, -1.0)];
-        }
-    } else {
-        UIColor *buttonColor = [UIColor colorWithRed:(36.0 / 255.0) green:(132.0 / 255.0) blue:(232.0 / 255.0) alpha:1.0];
-        UIImage *image = [[UIImage imageWithColor:buttonColor] stretchableImageWithLeftCapWidth:0.0 topCapHeight:0.0];
-        [button setBackgroundImage:image forState:UIControlStateNormal];
-        [button setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
-
-        buttonColor = [UIColor colorWithRed:0.85 green:0.85 blue:0.85 alpha:1.0];
-        image = [[UIImage imageWithColor:buttonColor] stretchableImageWithLeftCapWidth:0.0 topCapHeight:0.0];
-        [button setBackgroundImage:image forState:UIControlStateDisabled];
-        [button setTitleColor:[UIColor grayColor] forState:UIControlStateDisabled];
-
-        layer.borderColor = [[UIColor blackColor] CGColor];
-    }
-
-    return button;
-}
-
 - (void)loadView {
     UIScreen *mainScreen = [UIScreen mainScreen];
     CGRect screenBounds = [mainScreen bounds];
@@ -151,13 +105,13 @@ static UIButton *logButton() {
     [borderView release];
 
     UIButton *button;
-    button = logButton();
+    button = [Button button];
     [button setFrame:CGRectMake(10.0, 10.0, screenBounds.size.width - 20.0, 44.0)];
     [button setTitle:NSLocalizedString(@"VIEW_CRASH_LOG", nil) forState:UIControlStateNormal];
     [button addTarget:self action:@selector(crashlogTapped) forControlEvents:UIControlEventTouchUpInside];
     [buttonView addSubview:button];
 
-    button = logButton();
+    button = [Button button];
     [button setFrame:CGRectMake(10.0, 10.0 + 44.0 + 10.0, screenBounds.size.width - 20.0, 44.0)];
     [button setTitle:NSLocalizedString(@"VIEW_SYSLOG", nil) forState:UIControlStateNormal];
     if ([[NSFileManager defaultManager] fileExistsAtPath:[self syslogPath]]) {
