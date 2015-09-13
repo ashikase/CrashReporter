@@ -117,8 +117,9 @@
 
 
     //NSString *message = NSLocalizedString(@"CUSTOM_BLAME_WARNING", nil);
-    NSString *message = @"Please review the content of this script, then press 'execute' to prepare the results.";
-    UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:nil message:message delegate:self
+    NSString *title = @"Explanation";
+    NSString *message = @"This script will be used to gather information from your device. It may also be used to perform maintenance.\n\nThe gathered information and maintenance results will then be used to generate a report.\n\nPlease review the script, then tap 'execute' to begin processing.\n\nTo cancel, tap the cancel button at the top.";
+    UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:title message:message delegate:self
         cancelButtonTitle:nil
         otherButtonTitles:NSLocalizedString(@"OK", nil), nil];
     [alertView show];
