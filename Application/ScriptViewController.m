@@ -25,6 +25,8 @@
     NSURL *scriptURL_;
     NSURLConnection *connection_;
     NSMutableData *data_;
+
+    NSArray *instructions_;
 }
 
 - (instancetype)initWithString:(NSString *)string {
@@ -32,6 +34,7 @@
     if (self != nil) {
         self.title = NSLocalizedString(@"SCRIPT", nil);
         script_ = [string copy];
+        instructions_ = [[TSInstruction instructionsWithString:script_] retain];
     }
     return self;
 }
@@ -90,6 +93,7 @@
 - (void)dealloc {
     [connection_ release];
     [data_ release];
+    [instructions_ release];
     [script_ release];
     [scriptURL_ release];
     [textView_ release];
@@ -123,15 +127,14 @@
 #pragma mark - Actions
 
 - (void)executeButtonTapped {
-    NSArray *instructions = [TSInstruction instructionsWithString:[textView_ text]];
-    if (instructions != nil) {
+    if (instructions_ != nil) {
         NSString *detailFormat =
             @"Additional information from the user:\n"
             "-------------------------------------------\n"
             "%@\n"
             "-------------------------------------------";
 
-        TSContactViewController *controller = [[TSContactViewController alloc] initWithPackage:nil instructions:instructions];
+        TSContactViewController *controller = [[TSContactViewController alloc] initWithPackage:nil instructions:instructions_];
         [controller setTitle:@"Results Form"];
         [controller setSubject:@"CrashReporter: Script Results"];
         [controller setDetailEntryPlaceholderText:@"Enter any additional information here."];
@@ -182,9 +185,11 @@
     if (data_ != nil) {
         NSString *content = [[NSString alloc] initWithData:data_ encoding:NSUTF8StringEncoding];
         if (content != nil) {
-            textView_.text = content;
             [script_ release];
             script_ = content;
+            [instructions_ release];
+            instructions_ = [[TSInstruction instructionsWithString:script_] retain];
+            [textView_ setText:script_];
             [self showExplanation];
         } else {
             NSLog(@"ERROR: Unable to interpret downloaded content as a UTF8 string.");
@@ -205,6 +210,30 @@
     data_ = nil;
     [connection_ release];
     connection_ = nil;
+}
+
+#pragma mark - UIAlertViewDelegate
+
+- (void)alertView:(UIAlertView *)alertView didDismissWithButtonIndex:(NSInteger)buttonIndex {
+    BOOL containsCommand = NO;
+    Class $TSIncludeInstruction = [TSIncludeInstruction class];
+    for (TSInstruction *instruction in instructions_) {
+        if ([instruction isKindOfClass:$TSIncludeInstruction]) {
+            if ([(TSIncludeInstruction *)instruction includeType] == TSIncludeInstructionTypeCommand) {
+                containsCommand = YES;
+                break;
+            }
+        }
+    }
+    if (containsCommand) {
+        NSString *title = @"\u26A0 WARNING \u26A0";
+        NSString *message = @"This script contains shell commands.\n\nIf used improperly, such commands could destroy data on your device.\n\nDo not execute this script if you do not trust its source.";
+        UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:title message:message delegate:nil
+            cancelButtonTitle:nil
+            otherButtonTitles:NSLocalizedString(@"OK", nil), nil];
+        [alertView show];
+        [alertView release];
+    }
 }
 
 @end
