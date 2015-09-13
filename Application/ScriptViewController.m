@@ -18,7 +18,6 @@
 @end
 
 @implementation ScriptViewController {
-    UITextView *textView_;
     Button *executeButton_;
     BOOL hasShownExplanation_;
 
@@ -39,7 +38,7 @@ static void init(ScriptViewController *self) {
 }
 
 - (instancetype)initWithString:(NSString *)string {
-    self = [super init];
+    self = [super initWithHTMLContent:string];
     if (self != nil) {
         init(self);
         script_ = [string copy];
@@ -49,7 +48,7 @@ static void init(ScriptViewController *self) {
 }
 
 - (instancetype)initWithURL:(NSURL *)url {
-    self = [super init];
+    self = [super initWithHTMLContent:@""];
     if (self != nil) {
         init(self);
         scriptURL_ = [url copy];
@@ -58,22 +57,17 @@ static void init(ScriptViewController *self) {
 }
 
 - (void)loadView {
+    [super loadView];
+
     UIScreen *mainScreen = [UIScreen mainScreen];
     CGRect screenBounds = [mainScreen bounds];
     CGFloat scale = [mainScreen scale];
     CGFloat buttonViewHeight = 44.0 + 20.0;
-    CGFloat textViewHeight = (screenBounds.size.height - buttonViewHeight);
+    CGFloat webViewHeight = (screenBounds.size.height - buttonViewHeight);
 
-    UITextView *textView = [[UITextView alloc] initWithFrame:CGRectMake(0.0, 0.0, screenBounds.size.width, screenBounds.size.height)];
-    textView.autocapitalizationType = UITextAutocapitalizationTypeNone;
-    textView.autocorrectionType = UITextAutocorrectionTypeNo;
-    textView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;;
-    textView.editable = NO;
-    textView.font = [UIFont fontWithName:@"Courier" size:[UIFont systemFontSize]];
-    textView.text = script_;
-    textView_ = textView;
+    [self.webView setFrame:CGRectMake(0.0, 0.0, screenBounds.size.width, webViewHeight)];
 
-    UIView *buttonView = [[UIView alloc] initWithFrame:CGRectMake(0.0, textViewHeight, screenBounds.size.width, buttonViewHeight)];
+    UIView *buttonView = [[UIView alloc] initWithFrame:CGRectMake(0.0, webViewHeight, screenBounds.size.width, buttonViewHeight)];
     buttonView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleTopMargin;
     buttonView.backgroundColor = [UIColor colorWithRed:(247.0 / 255.0) green:(247.0 / 255.0) blue:(247.0 / 255.0) alpha:1.0];
 
@@ -91,14 +85,7 @@ static void init(ScriptViewController *self) {
     [buttonView addSubview:button];
     executeButton_ = [button retain];
 
-    UIView *view = [[UIView alloc] initWithFrame:CGRectMake(0.0, 0.0, screenBounds.size.width, screenBounds.size.height)];
-    view.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
-    view.backgroundColor = [UIColor whiteColor];
-    [view addSubview:textView];
-    [view addSubview:buttonView];
-    self.view = view;
-
-    [view release];
+    [self.view addSubview:buttonView];
     [buttonView release];
 }
 
@@ -109,7 +96,6 @@ static void init(ScriptViewController *self) {
     [script_ release];
     [scriptURL_ release];
     [executeButton_ release];
-    [textView_ release];
     [super dealloc];
 }
 
@@ -234,7 +220,7 @@ static void init(ScriptViewController *self) {
             if (instructions_ != nil) {
                 [executeButton_ setEnabled:YES];
             }
-            [textView_ setText:script_];
+            [self setContent:script_];
             [self showExplanation];
         } else {
             NSLog(@"ERROR: Unable to interpret downloaded content as a UTF8 string.");

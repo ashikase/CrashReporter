@@ -9,9 +9,9 @@
  * License: GPL v3 (See LICENSE file for details)
  */
 
-#import <UIKit/UIKit.h>
+#import <TechSupport/TechSupport.h>
 
-@interface ScriptViewController : UIViewController
+@interface ScriptViewController : TSHTMLViewController
 - (instancetype)initWithString:(NSString *)string;
 - (instancetype)initWithURL:(NSURL *)url;
 @end
