@@ -141,6 +141,15 @@ static void init(ScriptViewController *self) {
 
 - (void)executeButtonTapped {
     if (instructions_ != nil) {
+        // Process include commands.
+        Class $TSIncludeInstruction = [TSIncludeInstruction class];
+        for (TSInstruction *instruction in instructions_) {
+            if ([instruction isKindOfClass:$TSIncludeInstruction]) {
+                (void)[(TSIncludeInstruction *)instruction content];
+            }
+        }
+
+        // Present results in contact form.
         NSString *detailFormat =
             @"Additional information from the user:\n"
             "-------------------------------------------\n"
