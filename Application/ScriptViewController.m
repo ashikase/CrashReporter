@@ -108,7 +108,7 @@ static void init(ScriptViewController *self) {
         if (scriptURL_ != nil) {
             // NOTE: Performing synchronously for simplicity; should perform async in
             //       real application.
-            NSURLRequest *request = [[NSURLRequest alloc] initWithURL:scriptURL_];
+            NSURLRequest *request = [[NSURLRequest alloc] initWithURL:scriptURL_ cachePolicy:NSURLRequestReloadIgnoringLocalCacheData timeoutInterval:60.0];
             connection_ = [[NSURLConnection alloc] initWithRequest:request delegate:self startImmediately:YES];
             [request release];
 
