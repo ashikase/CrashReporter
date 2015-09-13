@@ -62,6 +62,7 @@
     textView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;;
     textView.editable = NO;
     textView.font = [UIFont fontWithName:@"Courier" size:[UIFont systemFontSize]];
+    textView.text = script_;
     textView_ = textView;
 
     UIView *buttonView = [[UIView alloc] initWithFrame:CGRectMake(0.0, textViewHeight, screenBounds.size.width, buttonViewHeight)];
@@ -75,6 +76,7 @@
 
     Button *button;
     button = [Button button];
+    [button setEnabled:(instructions_ != nil)];
     [button setFrame:CGRectMake(10.0, 10.0, screenBounds.size.width - 20.0, 44.0)];
     [button setTitle:NSLocalizedString(@"SCRIPT_EXECUTE", nil) forState:UIControlStateNormal];
     [button addTarget:self action:@selector(executeButtonTapped) forControlEvents:UIControlEventTouchUpInside];
@@ -105,12 +107,6 @@
 
 - (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation {
     return interfaceOrientation != UIInterfaceOrientationPortraitUpsideDown;
-}
-
-- (void)viewWillAppear:(BOOL)animated {
-    if (script_ != nil) {
-        textView_.text = script_;
-    }
 }
 
 - (void)viewDidAppear:(BOOL)animated {
@@ -212,6 +208,9 @@
             script_ = content;
             [instructions_ release];
             instructions_ = [[TSInstruction instructionsWithString:script_] retain];
+            if (instructions_ != nil) {
+                [executeButton_ setEnabled:YES];
+            }
             [textView_ setText:script_];
             [self showExplanation];
         } else {
@@ -239,7 +238,6 @@
 
 - (void)alertView:(UIAlertView *)alertView didDismissWithButtonIndex:(NSInteger)buttonIndex {
     if (instructions_ == nil) {
-        [executeButton_ setEnabled:NO];
         [self showInvalid];
     } else {
         BOOL containsCommand = NO;
