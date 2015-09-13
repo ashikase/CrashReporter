@@ -128,39 +128,24 @@
 #pragma mark - Actions
 
 - (void)executeButtonTapped {
-    TSLinkInstruction *linkInstruction = nil;
-    NSMutableArray *includeInstructions = [NSMutableArray new];
+    NSArray *instructions = [TSInstruction instructionsWithString:[textView_ text]];
+    if (instructions != nil) {
+        NSString *detailFormat =
+            @"Additional information from the user:\n"
+            "-------------------------------------------\n"
+            "%@\n"
+            "-------------------------------------------";
 
-    NSArray *lines = [textView_.text componentsSeparatedByString:@"\n"];
-    Class $TSLinkInstruction = [TSLinkInstruction class];
-    for (NSString *line in lines) {
-        TSInstruction *instruction = [TSInstruction instructionWithString:line];
-        if (instruction != nil) {
-            if ([instruction isKindOfClass:$TSLinkInstruction]) {
-                linkInstruction = [TSLinkInstruction instructionWithString:line];
-            } else {
-                [includeInstructions addObject:instruction];
-            }
-        }
+        TSContactViewController *controller = [[TSContactViewController alloc] initWithPackage:nil instructions:instructions];
+        [controller setTitle:@"Results Form"];
+        [controller setSubject:@"CrashReporter: Script Results"];
+        [controller setDetailEntryPlaceholderText:@"Enter any additional information here."];
+        [controller setMessageBody:@"Attached are the results of the script that was provided to this user."];
+        [controller setDetailFormat:detailFormat];
+        [controller setRequiresDetailsFromUser:NO];
+        [self.navigationController pushViewController:controller animated:YES];
+        [controller release];
     }
-
-    NSString *detailFormat =
-        @"Additional information from the user:\n"
-        "-------------------------------------------\n"
-        "%@\n"
-        "-------------------------------------------";
-
-    TSContactViewController *controller = [[TSContactViewController alloc] initWithPackage:nil linkInstruction:linkInstruction includeInstructions:includeInstructions];
-    [controller setTitle:@"Results Form"];
-    [controller setSubject:@"CrashReporter: Script Results"];
-    [controller setDetailEntryPlaceholderText:@"Enter any additional information here."];
-    [controller setMessageBody:@"Attached are the results of the script that was provided to this user."];
-    [controller setDetailFormat:detailFormat];
-    [controller setRequiresDetailsFromUser:NO];
-    [self.navigationController pushViewController:controller animated:YES];
-    [controller release];
-
-    [includeInstructions release];
 }
 
 #pragma mark - NSURLConnectionDelegate
