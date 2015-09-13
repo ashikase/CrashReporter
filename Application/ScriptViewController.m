@@ -19,6 +19,7 @@
 
 @implementation ScriptViewController {
     UITextView *textView_;
+    Button *executeButton_;
     BOOL hasShownExplanation_;
 
     NSString *script_;
@@ -72,12 +73,13 @@
     [buttonView addSubview:borderView];
     [borderView release];
 
-    UIButton *button;
+    Button *button;
     button = [Button button];
     [button setFrame:CGRectMake(10.0, 10.0, screenBounds.size.width - 20.0, 44.0)];
     [button setTitle:NSLocalizedString(@"SCRIPT_EXECUTE", nil) forState:UIControlStateNormal];
     [button addTarget:self action:@selector(executeButtonTapped) forControlEvents:UIControlEventTouchUpInside];
     [buttonView addSubview:button];
+    executeButton_ = [button retain];
 
     UIView *view = [[UIView alloc] initWithFrame:CGRectMake(0.0, 0.0, screenBounds.size.width, screenBounds.size.height)];
     view.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
@@ -96,6 +98,7 @@
     [instructions_ release];
     [script_ release];
     [scriptURL_ release];
+    [executeButton_ release];
     [textView_ release];
     [super dealloc];
 }
@@ -162,6 +165,26 @@
     }
 }
 
+- (void)showInvalid {
+    NSString *title = @"\u2639 ERROR \u2639";
+    NSString *message = @"This script contains errors and cannot be used.\n\nPlease inform the person that provided this script.";
+    UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:title message:message delegate:nil
+        cancelButtonTitle:nil
+        otherButtonTitles:NSLocalizedString(@"OK", nil), nil];
+    [alertView show];
+    [alertView release];
+}
+
+- (void)showWarning {
+    NSString *title = @"\u26A0 WARNING \u26A0";
+    NSString *message = @"This script contains shell commands.\n\nIf used improperly, such commands could destroy data on your device.\n\nDo not execute this script if you do not trust its source.";
+    UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:title message:message delegate:nil
+        cancelButtonTitle:nil
+        otherButtonTitles:NSLocalizedString(@"OK", nil), nil];
+    [alertView show];
+    [alertView release];
+}
+
 #pragma mark - NSURLConnectionDelegate
 
 - (void)connection:(NSURLConnection *)connection didReceiveResponse:(NSURLResponse *)response {
@@ -215,24 +238,23 @@
 #pragma mark - UIAlertViewDelegate
 
 - (void)alertView:(UIAlertView *)alertView didDismissWithButtonIndex:(NSInteger)buttonIndex {
-    BOOL containsCommand = NO;
-    Class $TSIncludeInstruction = [TSIncludeInstruction class];
-    for (TSInstruction *instruction in instructions_) {
-        if ([instruction isKindOfClass:$TSIncludeInstruction]) {
-            if ([(TSIncludeInstruction *)instruction includeType] == TSIncludeInstructionTypeCommand) {
-                containsCommand = YES;
-                break;
+    if (instructions_ == nil) {
+        [executeButton_ setEnabled:NO];
+        [self showInvalid];
+    } else {
+        BOOL containsCommand = NO;
+        Class $TSIncludeInstruction = [TSIncludeInstruction class];
+        for (TSInstruction *instruction in instructions_) {
+            if ([instruction isKindOfClass:$TSIncludeInstruction]) {
+                if ([(TSIncludeInstruction *)instruction includeType] == TSIncludeInstructionTypeCommand) {
+                    containsCommand = YES;
+                    break;
+                }
             }
         }
-    }
-    if (containsCommand) {
-        NSString *title = @"\u26A0 WARNING \u26A0";
-        NSString *message = @"This script contains shell commands.\n\nIf used improperly, such commands could destroy data on your device.\n\nDo not execute this script if you do not trust its source.";
-        UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:title message:message delegate:nil
-            cancelButtonTitle:nil
-            otherButtonTitles:NSLocalizedString(@"OK", nil), nil];
-        [alertView show];
-        [alertView release];
+        if (containsCommand) {
+            [self showWarning];
+        }
     }
 }
 
