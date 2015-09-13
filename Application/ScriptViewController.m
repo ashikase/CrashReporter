@@ -19,6 +19,8 @@
 
 @implementation ScriptViewController {
     UITextView *textView_;
+    BOOL hasShownExplanation_;
+
     NSString *script_;
     NSURL *scriptURL_;
     NSURLConnection *connection_;
@@ -113,17 +115,9 @@
             connection_ = [[NSURLConnection alloc] initWithRequest:request delegate:self startImmediately:YES];
             [request release];
         }
+    } else {
+        [self showExplanation];
     }
-
-
-    //NSString *message = NSLocalizedString(@"CUSTOM_BLAME_WARNING", nil);
-    NSString *title = @"Explanation";
-    NSString *message = @"This script will be used to gather information from your device. It may also be used to perform maintenance.\n\nThe gathered information and maintenance results will then be used to generate a report.\n\nPlease review the script, then tap 'execute' to begin processing.\n\nTo cancel, tap the cancel button at the top.";
-    UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:title message:message delegate:self
-        cancelButtonTitle:nil
-        otherButtonTitles:NSLocalizedString(@"OK", nil), nil];
-    [alertView show];
-    [alertView release];
 }
 
 #pragma mark - Actions
@@ -146,6 +140,22 @@
         [controller setRequiresDetailsFromUser:NO];
         [self.navigationController pushViewController:controller animated:YES];
         [controller release];
+    }
+}
+
+#pragma mark - Other
+
+- (void)showExplanation {
+    if (!hasShownExplanation_) {
+        //NSString *message = NSLocalizedString(@"CUSTOM_BLAME_WARNING", nil);
+        NSString *title = @"Explanation";
+        NSString *message = @"This script will be used to gather information from your device. It may also be used to perform maintenance.\n\nThe gathered information and maintenance results will then be used to generate a report.\n\nPlease review the script, then tap 'execute' to begin processing.\n\nTo cancel, tap the cancel button at the top.";
+        UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:title message:message delegate:self
+            cancelButtonTitle:nil
+            otherButtonTitles:NSLocalizedString(@"OK", nil), nil];
+        [alertView show];
+        [alertView release];
+        hasShownExplanation_ = YES;
     }
 }
 
@@ -175,6 +185,7 @@
             textView_.text = content;
             [script_ release];
             script_ = content;
+            [self showExplanation];
         } else {
             NSLog(@"ERROR: Unable to interpret downloaded content as a UTF8 string.");
         }
