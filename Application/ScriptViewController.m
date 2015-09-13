@@ -117,6 +117,8 @@
             NSURLRequest *request = [[NSURLRequest alloc] initWithURL:scriptURL_];
             connection_ = [[NSURLConnection alloc] initWithRequest:request delegate:self startImmediately:YES];
             [request release];
+
+            [[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:YES];
         }
     } else {
         [self showExplanation];
@@ -222,6 +224,8 @@
         [connection_ release];
         connection_ = nil;
     }
+
+    [[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:NO];
 }
 
 - (void)connection:(NSURLConnection *)connection didFailWithError:(NSError *)error {
@@ -232,6 +236,8 @@
     data_ = nil;
     [connection_ release];
     connection_ = nil;
+
+    [[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:NO];
 }
 
 #pragma mark - UIAlertViewDelegate
