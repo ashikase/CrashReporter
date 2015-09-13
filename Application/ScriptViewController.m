@@ -30,10 +30,18 @@
     NSArray *instructions_;
 }
 
+static void init(ScriptViewController *self) {
+    self.title = NSLocalizedString(@"SCRIPT", nil);
+
+    UIBarButtonItem *item = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemCancel target:self action:@selector(cancelButtonTapped)];
+    [self.navigationItem setLeftBarButtonItem:item];
+    [item release];
+}
+
 - (instancetype)initWithString:(NSString *)string {
     self = [super init];
     if (self != nil) {
-        self.title = NSLocalizedString(@"SCRIPT", nil);
+        init(self);
         script_ = [string copy];
         instructions_ = [[TSInstruction instructionsWithString:script_] retain];
     }
@@ -43,7 +51,7 @@
 - (instancetype)initWithURL:(NSURL *)url {
     self = [super init];
     if (self != nil) {
-        self.title = NSLocalizedString(@"SCRIPT", nil);
+        init(self);
         scriptURL_ = [url copy];
     }
     return self;
@@ -126,6 +134,10 @@
 }
 
 #pragma mark - Actions
+
+- (void)cancelButtonTapped {
+    [self.navigationController popViewControllerAnimated:YES];
+}
 
 - (void)executeButtonTapped {
     if (instructions_ != nil) {
