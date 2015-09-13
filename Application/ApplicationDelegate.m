@@ -133,6 +133,7 @@ static void resetIconBadgeNumber() {
         }
 
         if (viewController != nil) {
+            [navigationController_ popToRootViewControllerAnimated:NO];
             [navigationController_ pushViewController:viewController animated:YES];
             [viewController release];
 
