@@ -158,9 +158,9 @@ static void init(ScriptViewController *self) {
 
 - (void)showExplanation {
     if (!hasShownExplanation_) {
-        //NSString *message = NSLocalizedString(@"CUSTOM_BLAME_WARNING", nil);
-        NSString *title = @"Explanation";
-        NSString *message = @"This script will be used to gather information from your device. It may also be used to perform maintenance.\n\nThe gathered information and maintenance results will then be used to generate a report.\n\nPlease review the script, then tap 'execute' to begin processing.\n\nTo cancel, tap the cancel button at the top.";
+        NSString *title = NSLocalizedString(@"SCRIPT_INTRO_TITLE", nil);
+        NSString *message = [NSString stringWithFormat:NSLocalizedString(@"SCRIPT_INTRO_MESSAGE", nil),
+                 NSLocalizedString(@"SCRIPT_EXECUTE", nil), NSLocalizedString(@"CANCEL", nil)];
         UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:title message:message delegate:self
             cancelButtonTitle:nil
             otherButtonTitles:NSLocalizedString(@"OK", nil), nil];
@@ -171,8 +171,8 @@ static void init(ScriptViewController *self) {
 }
 
 - (void)showInvalid {
-    NSString *title = @"\u2639 ERROR \u2639";
-    NSString *message = @"This script contains errors and cannot be used.\n\nPlease inform the person that provided this script.";
+    NSString *title = [NSString stringWithFormat:@"\u2639 %@ \u2639", NSLocalizedString(@"SCRIPT_INVALID_TITLE", nil)];
+    NSString *message = NSLocalizedString(@"SCRIPT_INVALID_MESSAGE", nil);
     UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:title message:message delegate:nil
         cancelButtonTitle:nil
         otherButtonTitles:NSLocalizedString(@"OK", nil), nil];
@@ -181,8 +181,8 @@ static void init(ScriptViewController *self) {
 }
 
 - (void)showWarning {
-    NSString *title = @"\u26A0 WARNING \u26A0";
-    NSString *message = @"This script contains shell commands.\n\nIf used improperly, such commands could destroy data on your device.\n\nDo not execute this script if you do not trust its source.";
+    NSString *title = [NSString stringWithFormat:@"\u26A0 %@ \u26A0", NSLocalizedString(@"SCRIPT_CAUTION_TITLE", nil)];
+    NSString *message = NSLocalizedString(@"SCRIPT_CAUTION_MESSAGE", nil);
     UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:title message:message delegate:nil
         cancelButtonTitle:nil
         otherButtonTitles:NSLocalizedString(@"OK", nil), nil];
