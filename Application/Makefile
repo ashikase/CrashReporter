@@ -8,7 +8,6 @@ CrashReporter_FILES = \
 	Button.m \
     CrashLog.m \
     CrashLogGroup.m \
-    ManualScriptViewController.m \
     ModalActionSheet.m \
     PackageCache.m \
     RootViewController.m \

@@ -15,7 +15,6 @@
 
 #import "CrashLog.h"
 #import "CrashLogGroup.h"
-#import "ManualScriptViewController.h"
 #import "UIImage+CrashReporter.h"
 #import "VictimViewController.h"
 
@@ -241,7 +240,7 @@ static UIButton *menuButton(NSUInteger position, CGRect frame, UIImage *backgrou
     if (menuView_ == nil) {
         // Create menu.
         const CGFloat buttonHeight = 54.0;
-        const CGFloat menuHeight = 4.0 * (1.0 + buttonHeight);
+        const CGFloat menuHeight = 3.0 * (1.0 + buttonHeight);
         CGRect menuFrame = CGRectMake(0.0, -menuHeight, 0.0, menuHeight);
         UIView *menuView = [[UIView alloc] initWithFrame:menuFrame];
         [menuView setAutoresizingMask:UIViewAutoresizingFlexibleWidth];
@@ -251,10 +250,9 @@ static UIButton *menuButton(NSUInteger position, CGRect frame, UIImage *backgrou
         CGRect buttonFrame = CGRectMake(0.0, 0.0, menuFrame.size.width, buttonHeight);
         UIColor *buttonColor = [UIColor colorWithRed:(36.0 / 255.0) green:(132.0 / 255.0) blue:(232.0 / 255.0) alpha:1.0];
         UIImage *image = [[UIImage imageWithColor:buttonColor] stretchableImageWithLeftCapWidth:0.0 topCapHeight:0.0];
-        [menuView addSubview:menuButton(0, buttonFrame, image, @kFontAwesomeCode, @"SCRIPT_INPUT_TITLE", self, @selector(scriptInputButtonTapped))];
-        [menuView addSubview:menuButton(1, buttonFrame, image, @kFontAwesomeHeart, @"SOCIAL_SHARE_TITLE", self, @selector(socialButtonTapped))];
-        [menuView addSubview:menuButton(2, buttonFrame, image, @kFontAwesomeUsd, @"CONTRIBUTE_MONEY_TITLE", self, @selector(contributeButtonTapped))];
-        [menuView addSubview:menuButton(3, buttonFrame, image, @kFontAwesomeGavel, @"COLLABORATE_TITLE", self, @selector(collaborateButtonTapped))];
+        [menuView addSubview:menuButton(0, buttonFrame, image, @kFontAwesomeHeart, @"SOCIAL_SHARE_TITLE", self, @selector(socialButtonTapped))];
+        [menuView addSubview:menuButton(1, buttonFrame, image, @kFontAwesomeUsd, @"CONTRIBUTE_MONEY_TITLE", self, @selector(contributeButtonTapped))];
+        [menuView addSubview:menuButton(2, buttonFrame, image, @kFontAwesomeGavel, @"COLLABORATE_TITLE", self, @selector(collaborateButtonTapped))];
 
         menuView_ = menuView;
     }
@@ -438,12 +436,6 @@ static UIButton *menuButton(NSUInteger position, CGRect frame, UIImage *backgrou
             initialSpringVelocity:4.0 options:UIViewAnimationOptionCurveEaseInOut
             animations:animations completion:completion];
     }
-}
-
-- (void)scriptInputButtonTapped {
-    ManualScriptViewController *controller = [ManualScriptViewController new];
-    [self.navigationController pushViewController:controller animated:YES];
-    [controller release];
 }
 
 - (void)socialButtonTapped {
