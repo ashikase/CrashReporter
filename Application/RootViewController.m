@@ -15,6 +15,7 @@
 
 #import "CrashLog.h"
 #import "CrashLogGroup.h"
+#import "RootCell.h"
 #import "UIImage+CrashReporter.h"
 #import "VictimViewController.h"
 
@@ -86,6 +87,7 @@ static BOOL reportCrashIsDisabled$ = YES;
     BOOL hasShownReportCrashMessage_;
 
     NSArray *availableSocialServices_;
+    NSDateFormatter *dateFormatter_;
 }
 
 @synthesize menuContainerView = menuContainerView_;
@@ -114,6 +116,12 @@ static BOOL reportCrashIsDisabled$ = YES;
         [navigationItem setRightBarButtonItem:buttonItem];
         [buttonItem release];
 
+        // Save formatter for use with cells.
+        NSDateFormatter *dateFormatter = [NSDateFormatter new];
+        [dateFormatter setTimeStyle:NSDateFormatterMediumStyle];
+        [dateFormatter setDateStyle:NSDateFormatterShortStyle];
+        dateFormatter_ = dateFormatter;
+
         // Listen for changes to crash log files.
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(refresh:) name:kNotificationCrashLogsChanged object:nil];
     }
@@ -123,6 +131,7 @@ static BOOL reportCrashIsDisabled$ = YES;
 - (void)dealloc {
     [[NSNotificationCenter defaultCenter] removeObserver:self];
     [availableSocialServices_ release];
+    [dateFormatter_ release];
     [menuContainerView_ release];
     [menuTintView_ release];
     [menuView_ release];
@@ -642,16 +651,42 @@ static UIButton *menuButton(NSUInteger position, CGRect frame, UIImage *backgrou
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
-    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"."];
+    NSString * const reuseIdentifier = @"RootCell";
+
+    RootCell *cell = [tableView dequeueReusableCellWithIdentifier:reuseIdentifier];
     if (cell == nil) {
-        cell = [[[UITableViewCell alloc] initWithStyle:UITableViewCellStyleValue1 reuseIdentifier:@"."] autorelease];
+        cell = [[[RootCell alloc] initWithReuseIdentifier:reuseIdentifier] autorelease];
         cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
     }
+
     NSArray *crashLogGroups = (indexPath.section == 0) ?  [CrashLogGroup groupsForMobile] : [CrashLogGroup groupsForRoot];
     CrashLogGroup *group = [crashLogGroups objectAtIndex:indexPath.row];
-    cell.textLabel.text = group.name;
-
     NSArray *crashLogs = [group crashLogs];
+    CrashLog *crashLog = [crashLogs objectAtIndex:0];
+
+    // Name of crashed process.
+    [cell setName:group.name];
+
+
+    // Date of latest crash.
+    NSString *string = nil;
+    BOOL isRecent = NO;
+    NSDate *logDate = [crashLog logDate];
+    NSTimeInterval interval = [[NSDate date] timeIntervalSinceDate:logDate];
+    if (interval < 86400.0) {
+        if (interval < 3600.0) {
+            string = NSLocalizedString(@"CRASH_LESS_THAN_HOUR", nil);
+        } else {
+            string = [NSString stringWithFormat:NSLocalizedString(@"CRASH_LESS_THAN_HOURS", nil), (unsigned)ceil(interval / 3600.0)];
+        }
+        isRecent = YES;
+    } else {
+        string = [dateFormatter_ stringFromDate:logDate];
+    }
+    [cell setLatestCrashDate:string];
+    [cell setRecent:isRecent];
+
+    // Number of unviewed logs and total logs.
     unsigned long totalCount = [crashLogs count];
     unsigned long unviewedCount = 0;
     for (CrashLog *crashLog in crashLogs) {
@@ -659,7 +694,6 @@ static UIButton *menuButton(NSUInteger position, CGRect frame, UIImage *backgrou
             ++unviewedCount;
         }
     }
-
     cell.detailTextLabel.text = [NSString stringWithFormat:@"%lu/%lu", unviewedCount, totalCount];
 
     return cell;
@@ -684,6 +718,10 @@ static UIButton *menuButton(NSUInteger position, CGRect frame, UIImage *backgrou
     } else {
         NSLog(@"ERROR: Failed to delete logs for group \"%@\".", [group name]);
     }
+}
+
+- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
+    return [RootCell cellHeight];
 }
 
 - (void)tableView:(UITableView *)tableView willDisplayHeaderView:(UIView *)view forSection:(NSInteger)section {

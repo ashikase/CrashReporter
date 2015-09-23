@@ -10,6 +10,7 @@ CrashReporter_FILES = \
     CrashLogGroup.m \
     ModalActionSheet.m \
     PackageCache.m \
+	RootCell.m \
     RootViewController.m \
     ScriptViewController.m \
     SuspectsViewController.m \
