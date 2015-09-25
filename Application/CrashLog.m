@@ -201,6 +201,10 @@ static NSInteger compareBinaryImagePaths(CRBinaryImage *binaryImage1, CRBinaryIm
 
 #pragma mark - Properties
 
+- (CrashLogType)type {
+    return CrashLogTypeApp;
+}
+
 - (BOOL)isSymbolicated {
     return fileIsSymbolicated([self filepath], nil);
 }

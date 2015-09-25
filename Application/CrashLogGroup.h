@@ -11,17 +11,24 @@
 
 #import <Foundation/Foundation.h>
 
+#import "CrashLog.h"
+
 extern NSString * const kCrashLogDirectoryForMobile;
 extern NSString * const kCrashLogDirectoryForRoot;
 
-@class CrashLog;
+typedef enum : NSUInteger {
+    CrashLogGroupTypeUnknown      = CrashLogTypeUnknown,
+    CrashLogGroupTypeApp          = CrashLogTypeApp,
+    CrashLogGroupTypeAppExtension = CrashLogTypeAppExtension,
+    CrashLogGroupTypeService      = CrashLogTypeService
+} CrashLogGroupType;
 
 @interface CrashLogGroup : NSObject
 @property (nonatomic, readonly) NSString *name;
 @property (nonatomic, readonly) NSString *logDirectory;
 @property (nonatomic, readonly) NSArray *crashLogs;
-+ (NSArray *)groupsForMobile;
-+ (NSArray *)groupsForRoot;
+@property (nonatomic, readonly) CrashLogGroupType type;
++ (NSArray *)groupsForType:(CrashLogGroupType)type;
 + (void)forgetGroups;
 + (instancetype)groupWithName:(NSString *)name logDirectory:(NSString *)logDirectory;
 - (instancetype)initWithName:(NSString *)name logDirectory:(NSString *)logDirectory;

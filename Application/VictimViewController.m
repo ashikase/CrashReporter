@@ -98,15 +98,13 @@ static inline NSUInteger indexOf(NSUInteger section, NSUInteger row, BOOL delete
 #pragma mark - Other
 
 - (void)reloadCrashLogGroup {
-    NSString *groupName = [group_ name];
-    NSString *logDirectory = [group_ logDirectory];
-
     // Reload all crash log groups.
     [CrashLogGroup forgetGroups];
-    NSArray *crashLogGroups = [logDirectory isEqualToString:@kCrashLogDirectoryForMobile] ?
-        [CrashLogGroup groupsForMobile] : [CrashLogGroup groupsForRoot];
+
+    NSArray *crashLogGroups = [CrashLogGroup groupsForType:[group_ type]];
 
     // Find the new group with the same group name (i.e. same process).
+    NSString *groupName = [group_ name];
     for (CrashLogGroup *group in crashLogGroups) {
         if ([[group name] isEqualToString:groupName]) {
             [group_ release];

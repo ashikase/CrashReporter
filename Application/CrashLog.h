@@ -13,12 +13,20 @@
 
 extern NSString * const kViewedCrashLogs;
 
+typedef enum : NSUInteger {
+    CrashLogTypeUnknown,
+    CrashLogTypeApp,
+    CrashLogTypeAppExtension,
+    CrashLogTypeService
+} CrashLogType;
+
 @class CRBinaryImage;
 
 @interface CrashLog : NSObject
 @property(nonatomic, readonly) NSString *filepath;
 @property(nonatomic, readonly) NSString *logName;
 @property(nonatomic, readonly) NSDate *logDate;
+@property(nonatomic, readonly) CrashLogType type;
 @property(nonatomic, readonly) CRBinaryImage *victim;
 @property(nonatomic, readonly) NSArray *suspects;
 @property(nonatomic, readonly) NSArray *potentialSuspects;

@@ -533,6 +533,17 @@ static UIButton *menuButton(NSUInteger position, CGRect frame, UIImage *backgrou
     }
 }
 
+#pragma mark - Other
+
+- (NSArray *)crashLogGroupsForSection:(NSUInteger)section {
+    switch (section) {
+        case 0: return [CrashLogGroup groupsForType:CrashLogGroupTypeApp];
+        case 1: return [CrashLogGroup groupsForType:CrashLogGroupTypeAppExtension];
+        case 2: return [CrashLogGroup groupsForType:CrashLogGroupTypeService];
+        default: return nil;
+    }
+}
+
 #pragma mark - Delegate (UIAlertView)
 
 - (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
@@ -599,26 +610,24 @@ static UIButton *menuButton(NSUInteger position, CGRect frame, UIImage *backgrou
         if (buttonIndex == 1) {
             BOOL deleted = YES;
 
-            // Delete all root crash logs.
+            // Delete all crash logs.
             // NOTE: Must copy the array of groups as calling 'delete' on a group
             //       will modify the global storage (fast-enumeration does not allow
             //       such modifications).
-            NSArray *groups = [[CrashLogGroup groupsForRoot] copy];
-            for (CrashLogGroup *group in groups) {
-                if (![group delete]) {
-                    deleted = NO;
+            CrashLogGroupType types[3] = {
+                CrashLogGroupTypeApp,
+                CrashLogGroupTypeAppExtension,
+                CrashLogGroupTypeService
+            };
+            for (unsigned i = 0; i < 3; ++i) {
+                NSArray *groups = [[CrashLogGroup groupsForType:types[i]] copy];
+                for (CrashLogGroup *group in groups) {
+                    if (![group delete]) {
+                        deleted = NO;
+                    }
                 }
+                [groups release];
             }
-            [groups release];
-
-            // Delete all mobile crash logs.
-            groups = [[CrashLogGroup groupsForMobile] copy];
-            for (CrashLogGroup *group in groups) {
-                if (![group delete]) {
-                    deleted = NO;
-                }
-            }
-            [groups release];
 
             if (!deleted) {
                 NSString *title = NSLocalizedString(@"ERROR", nil);
@@ -638,15 +647,20 @@ static UIButton *menuButton(NSUInteger position, CGRect frame, UIImage *backgrou
 #pragma mark - Delegate (UITableViewDataSource)
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
-    return 2;
+    return 3;
 }
 
 - (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section {
-    return (section == 0) ? @"mobile" : @"root";
+    switch (section) {
+        case 0: return @"Apps";
+        case 1: return @"App Extensions";
+        case 2: return @"Services (Daemons, etc.)";
+        default: return nil;
+    }
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-    NSArray *crashLogGroups = (section == 0) ?  [CrashLogGroup groupsForMobile] : [CrashLogGroup groupsForRoot];
+    NSArray *crashLogGroups = [self crashLogGroupsForSection:section];
     return [crashLogGroups count];
 }
 
@@ -656,10 +670,9 @@ static UIButton *menuButton(NSUInteger position, CGRect frame, UIImage *backgrou
     RootCell *cell = [tableView dequeueReusableCellWithIdentifier:reuseIdentifier];
     if (cell == nil) {
         cell = [[[RootCell alloc] initWithReuseIdentifier:reuseIdentifier] autorelease];
-        cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
     }
 
-    NSArray *crashLogGroups = (indexPath.section == 0) ?  [CrashLogGroup groupsForMobile] : [CrashLogGroup groupsForRoot];
+    NSArray *crashLogGroups = [self crashLogGroupsForSection:indexPath.section];
     CrashLogGroup *group = [crashLogGroups objectAtIndex:indexPath.row];
     NSArray *crashLogs = [group crashLogs];
     CrashLog *crashLog = [crashLogs objectAtIndex:0];
@@ -702,7 +715,7 @@ static UIButton *menuButton(NSUInteger position, CGRect frame, UIImage *backgrou
 #pragma mark - Delegate (UITableViewDelegate)
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
-    NSArray *crashLogGroups = (indexPath.section == 0) ?  [CrashLogGroup groupsForMobile] : [CrashLogGroup groupsForRoot];
+    NSArray *crashLogGroups = [self crashLogGroupsForSection:indexPath.section];
     CrashLogGroup *group = [crashLogGroups objectAtIndex:indexPath.row];
 
     VictimViewController *controller = [[VictimViewController alloc] initWithGroup:group];
@@ -711,7 +724,7 @@ static UIButton *menuButton(NSUInteger position, CGRect frame, UIImage *backgrou
 }
 
 - (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath*)indexPath {
-    NSArray *crashLogGroups = (indexPath.section == 0) ?  [CrashLogGroup groupsForMobile] : [CrashLogGroup groupsForRoot];
+    NSArray *crashLogGroups = [self crashLogGroupsForSection:indexPath.section];
     CrashLogGroup *group = [crashLogGroups objectAtIndex:indexPath.row];
     if ([group delete]) {
         [tableView deleteRowsAtIndexPaths:[NSArray arrayWithObject:indexPath] withRowAnimation:UITableViewRowAnimationLeft];

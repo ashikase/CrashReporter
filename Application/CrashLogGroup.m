@@ -11,11 +11,13 @@
 
 #import "CrashLogGroup.h"
 
-#import "CrashLog.h"
 #include "paths.h"
 
-static NSMutableArray *mobileCrashLogGroups$ = nil;
-static NSMutableArray *rootCrashLogGroups$ = nil;
+static NSMutableArray *crashLogGroups$ = nil;
+
+static NSMutableArray *appCrashLogGroups$ = nil;
+static NSMutableArray *appExtensionCrashLogGroups$ = nil;
+static NSMutableArray *serviceCrashLogGroups$ = nil;
 
 static NSArray *crashLogGroupsForDirectory(NSString *directory) {
     NSMutableDictionary *groups = [NSMutableDictionary dictionary];
@@ -77,6 +79,27 @@ static NSInteger reverseCompareCrashLogs(CrashLog *a, CrashLog *b, void *context
     return [[b filepath] compare:[a filepath]];
 }
 
+static NSArray *crashLogGroups() {
+    if (crashLogGroups$ == nil) {
+        NSMutableArray *groups = [[NSMutableArray alloc] init];
+        [groups addObjectsFromArray:crashLogGroupsForDirectory(@kCrashLogDirectoryForMobile)];
+        [groups addObjectsFromArray:crashLogGroupsForDirectory(@kCrashLogDirectoryForRoot)];
+        crashLogGroups$ = [[groups sortedArrayUsingFunction:compareCrashLogGroups context:NULL] mutableCopy];
+        [groups release];
+    }
+    return crashLogGroups$;
+}
+
+static NSArray *crashLogGroupsForType(CrashLogGroupType type) {
+    NSMutableArray *groups = [NSMutableArray array];
+    for (CrashLogGroup *group in crashLogGroups()) {
+        if ([group type] == type) {
+            [groups addObject:group];
+        }
+    }
+    return groups;
+}
+
 @implementation CrashLogGroup {
     NSMutableArray *crashLogs_;
 }
@@ -84,27 +107,44 @@ static NSInteger reverseCompareCrashLogs(CrashLog *a, CrashLog *b, void *context
 @synthesize name = name_;
 @synthesize logDirectory = logDirectory_;
 
-+ (NSArray *)groupsForMobile {
-    if (mobileCrashLogGroups$ == nil) {
-        NSArray *groups = crashLogGroupsForDirectory(@kCrashLogDirectoryForMobile);
-        mobileCrashLogGroups$ = [[groups sortedArrayUsingFunction:compareCrashLogGroups context:NULL] mutableCopy];
-    }
-    return mobileCrashLogGroups$;
-}
++ (NSArray *)groupsForType:(CrashLogGroupType)type {
+    NSArray *groups = nil;
 
-+ (NSArray *)groupsForRoot {
-    if (rootCrashLogGroups$ == nil) {
-        NSArray *groups = crashLogGroupsForDirectory(@kCrashLogDirectoryForRoot);
-        rootCrashLogGroups$ = [[groups sortedArrayUsingFunction:compareCrashLogGroups context:NULL] mutableCopy];
+    switch (type) {
+        case CrashLogGroupTypeApp:
+            if (appCrashLogGroups$ == nil) {
+                appCrashLogGroups$ = [crashLogGroupsForType(type) mutableCopy];
+            }
+            groups = appCrashLogGroups$;
+            break;
+        case CrashLogGroupTypeAppExtension:
+            if (appExtensionCrashLogGroups$ == nil) {
+                appExtensionCrashLogGroups$ = [crashLogGroupsForType(type) mutableCopy];
+            }
+            groups = appExtensionCrashLogGroups$;
+            break;
+        case CrashLogGroupTypeService:
+            if (serviceCrashLogGroups$ == nil) {
+                serviceCrashLogGroups$ = [crashLogGroupsForType(type) mutableCopy];
+            }
+            groups = serviceCrashLogGroups$;
+            break;
+        default:
+            break;
     }
-    return rootCrashLogGroups$;
+
+    return groups;
 }
 
 + (void)forgetGroups {
-    [mobileCrashLogGroups$ release];
-    mobileCrashLogGroups$ = nil;
-    [rootCrashLogGroups$ release];
-    rootCrashLogGroups$ = nil;
+    [crashLogGroups$ release];
+    crashLogGroups$ = nil;
+    [appCrashLogGroups$ release];
+    appCrashLogGroups$ = nil;
+    [appExtensionCrashLogGroups$ release];
+    appExtensionCrashLogGroups$ = nil;
+    [serviceCrashLogGroups$ release];
+    serviceCrashLogGroups$ = nil;
 }
 
 + (instancetype)groupWithName:(NSString *)name logDirectory:(NSString *)logDirectory {
@@ -149,10 +189,12 @@ static NSInteger reverseCompareCrashLogs(CrashLog *a, CrashLog *b, void *context
         }
     }
 
-    // Remove group from global array.
-    NSMutableArray *crashLogGroups = [[self logDirectory] isEqualToString:@kCrashLogDirectoryForMobile] ?
-        mobileCrashLogGroups$ : rootCrashLogGroups$;
-    [crashLogGroups removeObject:self];
+    // Remove group from global arrays.
+    // NOTE: Not all global arrays will contain the group.
+    [crashLogGroups$ removeObject:self];
+    [appCrashLogGroups$ removeObject:self];
+    [appExtensionCrashLogGroups$ removeObject:self];
+    [serviceCrashLogGroups$ removeObject:self];
 
     return YES;
 }
@@ -167,6 +209,17 @@ static NSInteger reverseCompareCrashLogs(CrashLog *a, CrashLog *b, void *context
         }
     }
     return NO;
+}
+
+#pragma mark - Type
+
+- (CrashLogGroupType)type {
+    CrashLogGroupType type = CrashLogGroupTypeUnknown;
+    if ([crashLogs_ count] > 0) {
+        CrashLog *crashLog = [crashLogs_ objectAtIndex:0];
+        type = (CrashLogGroupType)[crashLog type];
+    }
+    return type;
 }
 
 @end
