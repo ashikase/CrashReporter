@@ -83,6 +83,7 @@ static BOOL reportCrashIsDisabled$ = YES;
 @end
 
 @implementation RootViewController {
+    BOOL hasAppeared_;
     BOOL hasShownSafeModeMessage_;
     BOOL hasShownReportCrashMessage_;
 
@@ -157,8 +158,12 @@ static BOOL reportCrashIsDisabled$ = YES;
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
 
-    [CrashLogGroup forgetGroups];
-    [self.tableView reloadData];
+    if (hasAppeared_) {
+        [CrashLogGroup forgetGroups];
+        [self.tableView reloadData];
+    } else {
+        hasAppeared_ = YES;
+    }
 }
 
 - (void)viewDidAppear:(BOOL)animated {
