@@ -241,6 +241,7 @@ static void resetIconBadgeNumber() {
         CrashLog *crashLog = [CrashLog crashLogWithFilepath:filepath];
         if (crashLog != nil) {
             SuspectsViewController *controller = [[SuspectsViewController alloc] initWithCrashLog:crashLog];
+            [navigationController_ popToRootViewControllerAnimated:animated];
             [navigationController_ pushViewController:controller animated:animated];
             [controller release];
         }
