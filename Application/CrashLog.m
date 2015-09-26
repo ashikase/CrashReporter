@@ -66,30 +66,33 @@ static void saveViewedState(NSString *filepath) {
 
 // NOTE: Filename part of path must be of the form [app_name]_date_device-name.
 //       The device-name cannot contain underscores.
-- (instancetype)initWithFilepath:(NSString *)filepath {
+// TODO: Is it possible for device-name to have an underscore?
++ (instancetype)crashLogWithFilepath:(NSString *)filepath {
+    NSString *basename = [[filepath lastPathComponent] stringByDeletingPathExtension];
+    NSArray *matches = [basename captureComponentsMatchedByRegex:@"(.+)_(\\d{4})-(\\d{2})-(\\d{2})-(\\d{2})(\\d{2})(\\d{2})_[^_]+"];
+    if ([matches count] == 8) {
+        return [[[self alloc] initWithFilepath:filepath matches:matches] autorelease];
+    } else {
+        return nil;
+    }
+}
+
+- (instancetype)initWithFilepath:(NSString *)filepath matches:(NSArray *)matches {
     self = [super init];
     if (self != nil) {
-        NSString *basename = [[filepath lastPathComponent] stringByDeletingPathExtension];
-        NSArray *matches = [basename captureComponentsMatchedByRegex:@"(.+)_(\\d{4})-(\\d{2})-(\\d{2})-(\\d{2})(\\d{2})(\\d{2})_[^_]+"];
-        if ([matches count] == 8) {
-            filepath_ = [filepath copy];
-            logName_ = [[matches objectAtIndex:1] copy];
+        filepath_ = [filepath copy];
+        logName_ = [[matches objectAtIndex:1] copy];
 
-            // Parse the date.
-            NSDateComponents *components = [NSDateComponents new];
-            [components setYear:[[matches objectAtIndex:2] integerValue]];
-            [components setMonth:[[matches objectAtIndex:3] integerValue]];
-            [components setDay:[[matches objectAtIndex:4] integerValue]];
-            [components setHour:[[matches objectAtIndex:5] integerValue]];
-            [components setMinute:[[matches objectAtIndex:6] integerValue]];
-            [components setSecond:[[matches objectAtIndex:7] integerValue]];
-            logDate_ = [[calendar() dateFromComponents:components] retain];
-            [components release];
-        } else {
-            // Filename is invalid.
-            [self release];
-            self = nil;
-        }
+        // Parse the date.
+        NSDateComponents *components = [NSDateComponents new];
+        [components setYear:[[matches objectAtIndex:2] integerValue]];
+        [components setMonth:[[matches objectAtIndex:3] integerValue]];
+        [components setDay:[[matches objectAtIndex:4] integerValue]];
+        [components setHour:[[matches objectAtIndex:5] integerValue]];
+        [components setMinute:[[matches objectAtIndex:6] integerValue]];
+        [components setSecond:[[matches objectAtIndex:7] integerValue]];
+        logDate_ = [[calendar() dateFromComponents:components] retain];
+        [components release];
     }
     return self;
 }

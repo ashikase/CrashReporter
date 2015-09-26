@@ -31,7 +31,7 @@ static NSArray *crashLogGroupsForDirectory(NSString *directory) {
         for (NSString *filename in contents) {
             if ([filename hasSuffix:@"ips"] || [filename hasSuffix:@"plist"] || [filename hasSuffix:@"synced"]) {
                 NSString *filepath = [directory stringByAppendingPathComponent:filename];
-                CrashLog *crashLog = [[CrashLog alloc] initWithFilepath:filepath];
+                CrashLog *crashLog = [CrashLog crashLogWithFilepath:filepath];
                 if (crashLog != nil) {
                     // Store filepath for "known viewed" check below.
                     [existentFilepaths addObject:filepath];
@@ -44,7 +44,6 @@ static NSArray *crashLogGroupsForDirectory(NSString *directory) {
                         [groups setObject:group forKey:name];
                     }
                     [group addCrashLog:crashLog];
-                    [crashLog release];
                 }
             }
         }

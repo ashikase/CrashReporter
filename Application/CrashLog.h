@@ -33,7 +33,7 @@ typedef enum : NSUInteger {
 @property(nonatomic, readonly, getter = isLoaded) BOOL loaded;
 @property(nonatomic, readonly, getter = isSymbolicated) BOOL symbolicated;
 @property(nonatomic, assign, getter = isViewed) BOOL viewed;
-- (instancetype)initWithFilepath:(NSString *)filepath;
++ (instancetype)crashLogWithFilepath:(NSString *)filepath;
 - (BOOL)delete;
 - (BOOL)load;
 @end
