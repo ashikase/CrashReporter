@@ -215,10 +215,13 @@ static NSArray *crashLogGroupsForType(CrashLogGroupType type) {
 
 - (CrashLogGroupType)type {
     CrashLogGroupType type = CrashLogGroupTypeUnknown;
-    if ([crashLogs_ count] > 0) {
-        CrashLog *crashLog = [crashLogs_ objectAtIndex:0];
+
+    NSArray *crashLogs = [self crashLogs];
+    if ([crashLogs count] > 0) {
+        CrashLog *crashLog = [crashLogs objectAtIndex:0];
         type = (CrashLogGroupType)[crashLog type];
     }
+
     return type;
 }
 
