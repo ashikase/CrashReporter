@@ -42,6 +42,7 @@ static NSArray *crashLogGroupsForDirectory(NSString *directory) {
                     if (group == nil) {
                         group = [[CrashLogGroup alloc] initWithName:name logDirectory:directory];
                         [groups setObject:group forKey:name];
+                        [group release];
                     }
                     [group addCrashLog:crashLog];
                 }
