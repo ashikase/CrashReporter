@@ -21,7 +21,7 @@
     static dispatch_once_t once;
     static id instance;
     dispatch_once(&once, ^{
-        instance = [self new];
+        instance = [[self alloc] init];
     });
     return instance;
 }
@@ -29,7 +29,7 @@
 - (id)init {
     self = [super init];
     if (self != nil) {
-        cache_ = [NSMutableDictionary new];
+        cache_ = [[NSMutableDictionary alloc] init];
 
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(didReceiveMemoryWarning)
             name:UIApplicationDidReceiveMemoryWarningNotification object:nil];

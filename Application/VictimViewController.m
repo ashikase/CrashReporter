@@ -58,7 +58,7 @@ static inline NSUInteger indexOf(NSUInteger section, NSUInteger row, BOOL delete
     if (IOS_GTE(6_0)) {
         UITableView *tableView = [self tableView];
         tableView.alwaysBounceVertical = YES;
-        UIRefreshControl *refreshControl = [NSClassFromString(@"UIRefreshControl") new];
+        UIRefreshControl *refreshControl = [[NSClassFromString(@"UIRefreshControl") alloc] init];
         [refreshControl addTarget:self action:@selector(refresh:) forControlEvents:UIControlEventValueChanged];
         [tableView addSubview:refreshControl];
         [refreshControl release];
@@ -156,7 +156,7 @@ static inline NSUInteger indexOf(NSUInteger section, NSUInteger row, BOOL delete
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
     NSUInteger numRows = 0;
-    NSUInteger count = [[group_ crashLogs] count];
+    const NSUInteger count = [[group_ crashLogs] count];
     if (count != 0) {
         if (section == 0) {
             numRows = deletedRowZero_? 0 : 1;
@@ -174,10 +174,10 @@ static inline NSUInteger indexOf(NSUInteger section, NSUInteger row, BOOL delete
         cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
     }
 
-    NSUInteger index = indexOf(indexPath.section, indexPath.row, deletedRowZero_);
+    const NSUInteger index = indexOf(indexPath.section, indexPath.row, deletedRowZero_);
     CrashLog *crashLog = [[group_ crashLogs] objectAtIndex:index];
 
-    NSDateFormatter *formatter = [NSDateFormatter new];
+    NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
     [formatter setDateFormat:@"HH:mm:ss (yyyy MMM d)"];
     UILabel *label = cell.textLabel;
     label.text = [formatter stringFromDate:[crashLog logDate]];
@@ -190,15 +190,15 @@ static inline NSUInteger indexOf(NSUInteger section, NSUInteger row, BOOL delete
 #pragma mark - UITableViewDelegate
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
-    NSUInteger index = indexOf(indexPath.section, indexPath.row, deletedRowZero_);
+    const NSUInteger index = indexOf(indexPath.section, indexPath.row, deletedRowZero_);
     CrashLog *crashLog = [[group_ crashLogs] objectAtIndex:index];
     [self showSuspectsForCrashLog:crashLog];
 }
 
 - (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath {
-    NSUInteger section = indexPath.section;
+    const NSUInteger section = indexPath.section;
 
-    NSUInteger index = indexOf(section, indexPath.row, deletedRowZero_);
+    const NSUInteger index = indexOf(section, indexPath.row, deletedRowZero_);
     CrashLog *crashLog = [[group_ crashLogs] objectAtIndex:index];
     if ([group_ deleteCrashLog:crashLog]) {
         if (section == 0) {

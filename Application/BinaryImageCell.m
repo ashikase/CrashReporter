@@ -133,7 +133,7 @@ static UIImage *installDateImage$ = nil;
 - (void)layoutSubviews {
     [super layoutSubviews];
 
-    CGSize contentSize = [[self contentView] bounds].size;
+    const CGSize contentSize = [[self contentView] bounds].size;
     CGSize maxSize = CGSizeMake(contentSize.width - kContentInset.left - kContentInset.right, 10000.0);
 
     // Name.
@@ -210,8 +210,8 @@ static UIImage *installDateImage$ = nil;
 #pragma mark - Properties
 
 - (void)setName:(NSString *)name {
-    NSUInteger oldLength = [[nameLabel_ text] length];
-    NSUInteger newLength = [name length];
+    const NSUInteger oldLength = [[nameLabel_ text] length];
+    const NSUInteger newLength = [name length];
     [nameLabel_ setText:name];
     if (((oldLength == 0) && (newLength != 0)) || ((oldLength != 0) && (newLength == 0))) {
         [self setNeedsLayout];
@@ -219,8 +219,8 @@ static UIImage *installDateImage$ = nil;
 }
 
 - (void)setPackageName:(NSString *)packageName {
-    NSUInteger oldLength = [[packageNameLabel_ text] length];
-    NSUInteger newLength = [packageName length];
+    const NSUInteger oldLength = [[packageNameLabel_ text] length];
+    const NSUInteger newLength = [packageName length];
     [packageNameLabel_ setText:packageName];
     if (((oldLength == 0) && (newLength != 0)) || ((oldLength != 0) && (newLength == 0))) {
         [self setNeedsLayout];
@@ -228,8 +228,8 @@ static UIImage *installDateImage$ = nil;
 }
 
 - (void)setPackageIdentifier:(NSString *)packageIdentifier {
-    NSUInteger oldLength = [[packageIdentifierLabel_ text] length];
-    NSUInteger newLength = [packageIdentifier length];
+    const NSUInteger oldLength = [[packageIdentifierLabel_ text] length];
+    const NSUInteger newLength = [packageIdentifier length];
     [packageIdentifierLabel_ setText:packageIdentifier];
     if (((oldLength == 0) && (newLength != 0)) || ((oldLength != 0) && (newLength == 0))) {
         [self setNeedsLayout];
@@ -237,8 +237,8 @@ static UIImage *installDateImage$ = nil;
 }
 
 - (void)setPackageInstallDate:(NSString *)packageInstallDate {
-    NSUInteger oldLength = [[packageInstallDateLabel_ text] length];
-    NSUInteger newLength = [packageInstallDate length];
+    const NSUInteger oldLength = [[packageInstallDateLabel_ text] length];
+    const NSUInteger newLength = [packageInstallDate length];
     if (newLength != 0) {
         packageInstallDate = [NSString stringWithFormat:@"%@: %@", NSLocalizedString(@"PACKAGE_INSTALL_DATE_PREFIX", nil), packageInstallDate];
     }

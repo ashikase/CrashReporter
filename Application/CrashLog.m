@@ -84,7 +84,7 @@ static void saveViewedState(NSString *filepath) {
         logName_ = [[matches objectAtIndex:1] copy];
 
         // Parse the date.
-        NSDateComponents *components = [NSDateComponents new];
+        NSDateComponents *components = [[NSDateComponents alloc] init];
         [components setYear:[[matches objectAtIndex:2] integerValue]];
         [components setMonth:[[matches objectAtIndex:3] integerValue]];
         [components setDay:[[matches objectAtIndex:4] integerValue]];
@@ -236,7 +236,7 @@ static NSInteger compareBinaryImagePaths(CRBinaryImage *binaryImage1, CRBinaryIm
 - (BOOL)delete {
     NSString *filepath = [self filepath];
 
-    BOOL didDelete = deleteFile(filepath);
+    const BOOL didDelete = deleteFile(filepath);
     if (didDelete) {
         // Also delete the associated syslog file.
         // TODO: Should also update any associated "Latest-" links.

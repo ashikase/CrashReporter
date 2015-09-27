@@ -38,16 +38,17 @@
 @end
 
 @implementation SuspectsViewController {
+    CrashLog *crashLog_;
+
     UITableView *tableView_;
     ModalActionSheet *statusPopup_;
 
-    CrashLog *crashLog_;
+    NSDateFormatter *dateFormatter_;
+
     NSArray *lastSelectedLinkInstructions_;
     TSPackage *lastSelectedPackage_;
     NSString *lastSelectedPath_;
     NSIndexPath *lastSelectedIndexPath_;
-
-    NSDateFormatter *dateFormatter_;
 }
 
 - (id)initWithCrashLog:(CrashLog *)crashLog {
@@ -57,7 +58,7 @@
 
         // Set title using date.
         NSDate *date = [crashLog logDate];
-        NSDateFormatter *dateFormatter = [NSDateFormatter new];
+        NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
         [dateFormatter setDateFormat:@"HH:mm:ss (yyyy MMM d)"];
         self.title = [dateFormatter stringFromDate:date];
 
@@ -83,10 +84,10 @@
 
 - (void)loadView {
     UIScreen *mainScreen = [UIScreen mainScreen];
-    CGRect screenBounds = [mainScreen bounds];
-    CGFloat scale = [mainScreen scale];
-    CGFloat buttonViewHeight = 1.0 + 44.0 * 2.0 + 30.0;
-    CGFloat tableViewHeight = (screenBounds.size.height - buttonViewHeight);
+    const CGRect screenBounds = [mainScreen bounds];
+    const CGFloat scale = [mainScreen scale];
+    const CGFloat buttonViewHeight = 1.0 + 44.0 * 2.0 + 30.0;
+    const CGFloat tableViewHeight = (screenBounds.size.height - buttonViewHeight);
 
     UITableView *tableView = [[UITableView alloc] initWithFrame:CGRectMake(0.0, 0.0, screenBounds.size.width, tableViewHeight)];
     tableView.allowsSelectionDuringEditing = YES;
@@ -134,7 +135,7 @@
 
 - (void)viewWillAppear:(BOOL)animated {
     if (![crashLog_ isLoaded]) {
-        statusPopup_ = [ModalActionSheet new];
+        statusPopup_ = [[ModalActionSheet alloc] init];
         [statusPopup_ updateText:NSLocalizedString(@"PROCESSING", nil)];
         [statusPopup_ show];
     }
@@ -158,13 +159,13 @@
 - (CRBinaryImage *)binaryImageForIndexPath:(NSIndexPath *)indexPath {
     CRBinaryImage *binaryImage = nil;
 
-    NSUInteger section = [indexPath section];
+    const NSUInteger section = [indexPath section];
     if (section == 0) {
         binaryImage = [crashLog_ victim];
     } else if (section == 3) {
         binaryImage = [[crashLog_ potentialSuspects] objectAtIndex:indexPath.row];
     } else {
-        NSUInteger index = (section == 1) ? 0 : (indexPath.row + 1);
+        const NSUInteger index = (section == 1) ? 0 : (indexPath.row + 1);
         binaryImage = [[crashLog_ suspects] objectAtIndex:index];
     }
 
@@ -273,7 +274,7 @@ static NSString *createIncludeLineForFilepath(NSString *filepath, NSString *name
                     syslogLine = createIncludeLineForFilepath([self syslogPath], @"syslog");
                 }
 
-                NSMutableArray *includeInstructions = [NSMutableArray new];
+                NSMutableArray *includeInstructions = [[NSMutableArray alloc] init];
                 [includeInstructions addObject:[TSIncludeInstruction instructionWithString:crashlogLine]];
                 [crashlogLine release];
                 if (syslogLine != nil) {
@@ -340,7 +341,7 @@ static NSString *createIncludeLineForFilepath(NSString *filepath, NSString *name
                 if (linkInstruction.isEmail) {
                     // Present mail controller.
                     if ([MFMailComposeViewController canSendMail]) {
-                        MFMailComposeViewController *controller = [MFMailComposeViewController new];
+                        MFMailComposeViewController *controller = [[MFMailComposeViewController alloc] init];
                         [controller setMailComposeDelegate:self];
                         [controller setToRecipients:[linkInstruction recipients]];
                         [self presentModalViewController:controller animated:YES];
@@ -382,7 +383,7 @@ static NSString *createIncludeLineForFilepath(NSString *filepath, NSString *name
     } else if (section == 3) {
         return [[crashLog_ potentialSuspects] count];
     } else {
-        NSUInteger count = [[crashLog_ suspects] count];
+        const NSUInteger count = [[crashLog_ suspects] count];
         if (count > 0) {
             return (section == 1) ? 1 : (count - 1);
         } else {
@@ -398,7 +399,7 @@ static NSString *createIncludeLineForFilepath(NSString *filepath, NSString *name
     } else if (section == 3) {
         key = @"LOADED_BINARIES";
     } else {
-        NSUInteger count = [[crashLog_ suspects] count];
+        const NSUInteger count = [[crashLog_ suspects] count];
         if (count > 0) {
             if (section == 1) {
                 key = @"MAIN_SUSPECT";
@@ -427,7 +428,7 @@ static NSString *createIncludeLineForFilepath(NSString *filepath, NSString *name
         NSString *string = nil;
         BOOL isRecent = NO;
         NSDate *installDate = [package installDate];
-        NSTimeInterval interval = [[crashLog_ logDate] timeIntervalSinceDate:installDate];
+        const NSTimeInterval interval = [[crashLog_ logDate] timeIntervalSinceDate:installDate];
         if (interval < 86400.0) {
             if (interval < 3600.0) {
                 string = NSLocalizedString(@"LESS_THAN_HOUR", nil);
@@ -464,7 +465,7 @@ static NSString *createIncludeLineForFilepath(NSString *filepath, NSString *name
     TSPackage *package = [[PackageCache sharedInstance] packageForFile:filepath];
 
     // Determine links for the given package.
-    NSMutableArray *linkInstructions = [NSMutableArray new];
+    NSMutableArray *linkInstructions = [[NSMutableArray alloc] init];
 
     // Add a link to contact the author of the package.
     TSLinkInstruction *instruction = [package supportLink];

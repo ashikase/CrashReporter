@@ -49,10 +49,10 @@ static void resetIconBadgeNumber() {
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
     // Create dictionary to hold filepaths for any incoming notifications.
-    notificationFilepaths_ = [NSMutableDictionary new];
+    notificationFilepaths_ = [[NSMutableDictionary alloc] init];
 
     // Create root view controller.
-    RootViewController *rootController = [RootViewController new];
+    RootViewController *rootController = [[RootViewController alloc] init];
     navigationController_ = [[UINavigationController alloc] initWithRootViewController:rootController];
     [rootController release];
 

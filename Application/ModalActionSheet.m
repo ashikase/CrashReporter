@@ -32,7 +32,7 @@
         window.windowLevel = UIWindowLevelAlert;
         window_ = window;
 
-        UIProgressHUD *hud = [UIProgressHUD new];
+        UIProgressHUD *hud = [[UIProgressHUD alloc] init];
         [hud showInView:window];
         hud_ = hud;
     }

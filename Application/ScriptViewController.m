@@ -60,10 +60,10 @@ static void init(ScriptViewController *self) {
     [super loadView];
 
     UIScreen *mainScreen = [UIScreen mainScreen];
-    CGRect screenBounds = [mainScreen bounds];
-    CGFloat scale = [mainScreen scale];
-    CGFloat buttonViewHeight = 44.0 + 20.0;
-    CGFloat webViewHeight = (screenBounds.size.height - buttonViewHeight);
+    const CGRect screenBounds = [mainScreen bounds];
+    const CGFloat scale = [mainScreen scale];
+    const CGFloat buttonViewHeight = 44.0 + 20.0;
+    const CGFloat webViewHeight = (screenBounds.size.height - buttonViewHeight);
 
     [self.webView setFrame:CGRectMake(0.0, 0.0, screenBounds.size.width, webViewHeight)];
 
@@ -195,7 +195,7 @@ static void init(ScriptViewController *self) {
 #pragma mark - NSURLConnectionDelegate
 
 - (void)connection:(NSURLConnection *)connection didReceiveResponse:(NSURLResponse *)response {
-    NSInteger statusCode = [(NSHTTPURLResponse *)response statusCode];
+    const NSInteger statusCode = [(NSHTTPURLResponse *)response statusCode];
     if (statusCode == 200) {
         data_ = [[NSMutableData alloc] init];
     } else {

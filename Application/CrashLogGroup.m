@@ -21,7 +21,7 @@ static NSMutableArray *serviceCrashLogGroups$ = nil;
 
 static NSArray *crashLogGroupsForDirectory(NSString *directory) {
     NSMutableDictionary *groups = [NSMutableDictionary dictionary];
-    NSMutableArray *existentFilepaths = [NSMutableArray new];
+    NSMutableArray *existentFilepaths = [[NSMutableArray alloc] init];
 
     // Look in path for crash log files; group logs by app name.
     NSFileManager *fileMan = [NSFileManager defaultManager];
@@ -156,7 +156,7 @@ static NSArray *crashLogGroupsForType(CrashLogGroupType type) {
     if (self != nil) {
         name_ = [name copy];
         logDirectory_ = [logDirectory copy];
-        crashLogs_ = [NSMutableArray new];
+        crashLogs_ = [[NSMutableArray alloc] init];
     }
     return self;
 }
@@ -178,7 +178,7 @@ static NSArray *crashLogGroupsForType(CrashLogGroupType type) {
 
 - (BOOL)delete {
     // Delete contained crash logs.
-    NSUInteger count = [crashLogs_ count];
+    const NSUInteger count = [crashLogs_ count];
     for (NSInteger i = (count - 1); i >= 0; --i) {
         CrashLog *crashLog = [crashLogs_ objectAtIndex:i];
         if ([crashLog delete]) {

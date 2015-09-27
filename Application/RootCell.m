@@ -101,7 +101,7 @@ static UIImage *crashDateImage$ = nil;
 - (void)layoutSubviews {
     [super layoutSubviews];
 
-    CGSize contentSize = [[self contentView] bounds].size;
+    const CGSize contentSize = [[self contentView] bounds].size;
     CGSize maxSize = CGSizeMake(contentSize.width - kContentInset.left - kContentInset.right, 10000.0);
 
     // Name.

@@ -118,7 +118,7 @@ static BOOL reportCrashIsDisabled$ = YES;
         [buttonItem release];
 
         // Save formatter for use with cells.
-        NSDateFormatter *dateFormatter = [NSDateFormatter new];
+        NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
         [dateFormatter setTimeStyle:NSDateFormatterMediumStyle];
         [dateFormatter setDateStyle:NSDateFormatterShortStyle];
         dateFormatter_ = dateFormatter;
@@ -148,7 +148,7 @@ static BOOL reportCrashIsDisabled$ = YES;
     if (IOS_GTE(6_0)) {
         UITableView *tableView = [self tableView];
         tableView.alwaysBounceVertical = YES;
-        UIRefreshControl *refreshControl = [NSClassFromString(@"UIRefreshControl") new];
+        UIRefreshControl *refreshControl = [[NSClassFromString(@"UIRefreshControl") alloc] init];
         [refreshControl addTarget:self action:@selector(refresh:) forControlEvents:UIControlEventValueChanged];
         [tableView addSubview:refreshControl];
         [refreshControl release];
@@ -255,13 +255,13 @@ static UIButton *menuButton(NSUInteger position, CGRect frame, UIImage *backgrou
         // Create menu.
         const CGFloat buttonHeight = 54.0;
         const CGFloat menuHeight = 3.0 * (1.0 + buttonHeight);
-        CGRect menuFrame = CGRectMake(0.0, -menuHeight, 0.0, menuHeight);
+        const CGRect menuFrame = CGRectMake(0.0, -menuHeight, 0.0, menuHeight);
         UIView *menuView = [[UIView alloc] initWithFrame:menuFrame];
         [menuView setAutoresizingMask:UIViewAutoresizingFlexibleWidth];
         [menuView setBackgroundColor:[UIColor colorWithRed:0.85 green:0.85 blue:0.85 alpha:1.0]];
 
         // Add buttons.
-        CGRect buttonFrame = CGRectMake(0.0, 0.0, menuFrame.size.width, buttonHeight);
+        const CGRect buttonFrame = CGRectMake(0.0, 0.0, menuFrame.size.width, buttonHeight);
         UIColor *buttonColor = [UIColor colorWithRed:(36.0 / 255.0) green:(132.0 / 255.0) blue:(232.0 / 255.0) alpha:1.0];
         UIImage *image = [[UIImage imageWithColor:buttonColor] stretchableImageWithLeftCapWidth:0.0 topCapHeight:0.0];
         [menuView addSubview:menuButton(0, buttonFrame, image, @kFontAwesomeHeart, @"SOCIAL_SHARE_TITLE", self, @selector(socialButtonTapped))];
@@ -272,6 +272,7 @@ static UIButton *menuButton(NSUInteger position, CGRect frame, UIImage *backgrou
     }
     return menuView_;
 }
+
 - (UIView *)menuTintView {
     if (menuTintView_ == nil) {
         // Create view to tint other views when menu is visible.
@@ -281,7 +282,7 @@ static UIButton *menuButton(NSUInteger position, CGRect frame, UIImage *backgrou
         [menuTintView setBackgroundColor:[UIColor blackColor]];
 
         // Add tap recognizer to dismiss menu when tapping outside its bounds.
-        UITapGestureRecognizer *recognizer = [UITapGestureRecognizer new];
+        UITapGestureRecognizer *recognizer = [[UITapGestureRecognizer alloc] init];
         [recognizer addTarget:self action:@selector(handleTap:)];
         [menuTintView addGestureRecognizer:recognizer];
         [recognizer release];
@@ -335,7 +336,7 @@ static UIButton *menuButton(NSUInteger position, CGRect frame, UIImage *backgrou
             }
 
             // Get height of navigation bar.
-            CGFloat navBarHeight = [[[self navigationController] navigationBar] bounds].size.height;
+            const CGFloat navBarHeight = [[[self navigationController] navigationBar] bounds].size.height;
 
             frame.origin.y = statusBarHeight + navBarHeight;
             frame.size.height = viewBounds.size.height - statusBarHeight - navBarHeight;
@@ -364,9 +365,9 @@ static UIButton *menuButton(NSUInteger position, CGRect frame, UIImage *backgrou
         }
 
         // Set content inset needed to "center left-aligned" image and title.
-        CGFloat middleWidth = 0.5 * (smallestWidth + largestWidth);
-        CGFloat leftInset = 0.5 * (frame.size.width - middleWidth);
-        UIEdgeInsets insets = UIEdgeInsetsMake(0, leftInset - (0.5 * kMenuButtonImageSize.width), 0, 0);
+        const CGFloat middleWidth = 0.5 * (smallestWidth + largestWidth);
+        const CGFloat leftInset = 0.5 * (frame.size.width - middleWidth);
+        const UIEdgeInsets insets = UIEdgeInsetsMake(0, leftInset - (0.5 * kMenuButtonImageSize.width), 0, 0);
         for (UIView *view in [[self menuView] subviews]) {
             if ([view isKindOfClass:$UIButton]) {
                 UIButton *button = (UIButton *)view;
@@ -412,7 +413,7 @@ static UIButton *menuButton(NSUInteger position, CGRect frame, UIImage *backgrou
 - (void)menuButtonTapped {
     // Get and setup menu container.
     UIView *menuContainerView = [self menuContainerView];
-    BOOL willAppear = ([menuContainerView superview] == nil);
+    const BOOL willAppear = ([menuContainerView superview] == nil);
     if (willAppear) {
         // Add the menu container to the screen.
         // NOTE: Controller's view is a scroll view; add to its parent.
@@ -454,8 +455,8 @@ static UIButton *menuButton(NSUInteger position, CGRect frame, UIImage *backgrou
 
 - (void)socialButtonTapped {
     if (IOS_GTE(6_0)) {
-        NSMutableArray *services = [NSMutableArray new];
-        NSMutableArray *serviceTitles = [NSMutableArray new];
+        NSMutableArray *services = [[NSMutableArray alloc] init];
+        NSMutableArray *serviceTitles = [[NSMutableArray alloc] init];
 
         void *handle = dlopen("/System/Library/Frameworks/Social.framework/Social", RTLD_LAZY);
         Class $SLComposeViewController = NSClassFromString(@"SLComposeViewController");
@@ -552,7 +553,7 @@ static UIButton *menuButton(NSUInteger position, CGRect frame, UIImage *backgrou
 #pragma mark - Delegate (UIAlertView)
 
 - (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
-    NSInteger tag = [alertView tag];
+    const NSInteger tag = [alertView tag];
     if (tag == AlertViewTypeCollaborate) {
         NSURL *url = nil;
         switch (buttonIndex) {
@@ -705,7 +706,7 @@ static UIButton *menuButton(NSUInteger position, CGRect frame, UIImage *backgrou
     [cell setRecent:isRecent];
 
     // Number of unviewed logs and total logs.
-    unsigned long totalCount = [crashLogs count];
+    const unsigned long totalCount = [crashLogs count];
     unsigned long unviewedCount = 0;
     for (CrashLog *crashLog in crashLogs) {
         if (![crashLog isViewed]) {
@@ -764,7 +765,7 @@ static void checkForDaemon(launch_data_t j, const char *key, void *context) {
 __attribute__((constructor)) static void init() {
     // Check if we were started in CrashReporter's Safe Mode.
     struct stat buf;
-    BOOL failedToShutdown = (stat(kIsRunningFilepath, &buf) == 0);
+    const BOOL failedToShutdown = (stat(kIsRunningFilepath, &buf) == 0);
     if (failedToShutdown) {
         // Mark that we are in Safe Mode.
         // NOTE: Safe Mode itself will have been enabled by the launch script.
