@@ -209,43 +209,34 @@ static UIImage *installDateImage$ = nil;
 
 #pragma mark - Properties
 
-- (void)setName:(NSString *)name {
-    const NSUInteger oldLength = [[nameLabel_ text] length];
-    const NSUInteger newLength = [name length];
-    [nameLabel_ setText:name];
+- (void)setText:(NSString *)text forLabel:(UILabel *)label {
+    const NSUInteger oldLength = [[label text] length];
+    const NSUInteger newLength = [text length];
+
+    [label setText:text];
+
     if (((oldLength == 0) && (newLength != 0)) || ((oldLength != 0) && (newLength == 0))) {
         [self setNeedsLayout];
     }
+}
+
+- (void)setName:(NSString *)name {
+    [self setText:name forLabel:nameLabel_];
 }
 
 - (void)setPackageName:(NSString *)packageName {
-    const NSUInteger oldLength = [[packageNameLabel_ text] length];
-    const NSUInteger newLength = [packageName length];
-    [packageNameLabel_ setText:packageName];
-    if (((oldLength == 0) && (newLength != 0)) || ((oldLength != 0) && (newLength == 0))) {
-        [self setNeedsLayout];
-    }
+    [self setText:packageName forLabel:packageNameLabel_];
 }
 
 - (void)setPackageIdentifier:(NSString *)packageIdentifier {
-    const NSUInteger oldLength = [[packageIdentifierLabel_ text] length];
-    const NSUInteger newLength = [packageIdentifier length];
-    [packageIdentifierLabel_ setText:packageIdentifier];
-    if (((oldLength == 0) && (newLength != 0)) || ((oldLength != 0) && (newLength == 0))) {
-        [self setNeedsLayout];
-    }
+    [self setText:packageIdentifier forLabel:packageIdentifierLabel_];
 }
 
 - (void)setPackageInstallDate:(NSString *)packageInstallDate {
-    const NSUInteger oldLength = [[packageInstallDateLabel_ text] length];
-    const NSUInteger newLength = [packageInstallDate length];
-    if (newLength != 0) {
+    if ([packageInstallDate length] != 0) {
         packageInstallDate = [NSString stringWithFormat:@"%@: %@", NSLocalizedString(@"PACKAGE_INSTALL_DATE_PREFIX", nil), packageInstallDate];
     }
-    [packageInstallDateLabel_ setText:packageInstallDate];
-    if (((oldLength == 0) && (newLength != 0)) || ((oldLength != 0) && (newLength == 0))) {
-        [self setNeedsLayout];
-    }
+    [self setText:packageInstallDate forLabel:packageInstallDateLabel_];
 }
 
 - (void)setPackageType:(BinaryImageCellPackageType)packageType {
