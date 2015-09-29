@@ -22,6 +22,7 @@ typedef enum : NSUInteger {
 @property(nonatomic, assign, getter = isRecent) BOOL recent;
 @property(nonatomic, assign, getter = isFromUnofficialSource) BOOL fromUnofficialSource;
 @property(nonatomic, assign) BinaryImageCellPackageType packageType;
+@property(nonatomic, assign) BOOL showsTopSeparator;
 + (CGFloat)heightForPackageRowCount:(NSUInteger)rowCount;
 - (id)initWithReuseIdentifier:(NSString *)reuseIdentifier;
 - (void)setName:(NSString *)name;
