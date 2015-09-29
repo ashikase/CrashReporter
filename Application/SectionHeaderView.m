@@ -21,6 +21,7 @@
     if (self != nil) {
         UILabel *label = [[UILabel alloc] initWithFrame:CGRectZero];
         label.autoresizingMask = UIViewAutoresizingFlexibleRightMargin;
+        label.backgroundColor = [UIColor clearColor];
         label.textColor = [UIColor colorWithRed:(109.0 / 255.0) green:(109.0 / 255.0) blue:(114.0 / 255.0) alpha:1.0];
         label.font = [UIFont boldSystemFontOfSize:15.0];
 
