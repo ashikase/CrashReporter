@@ -502,20 +502,14 @@ static NSString *createIncludeLineForFilepath(NSString *filepath, NSString *name
 
 - (UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section {
     NSString *key = nil;
-    if (section == 0) {
-        key = @"CRASHED_PROCESS";
-    } else if (section == 3) {
-        key = @"LOADED_BINARIES";
-    } else {
-        const NSUInteger count = [[crashLog_ suspects] count];
-        if (count > 0) {
-            if (section == 1) {
-                key = @"MAIN_SUSPECT";
-            } else if (count > 1) {
-                key = @"OTHER_SUSPECTS";
-            }
-        }
+    switch (section) {
+        case 0: key = @"CRASHED_PROCESS"; break;
+        case 1: key = @"MAIN_SUSPECT"; break;
+        case 2: key = @"OTHER_SUSPECTS"; break;
+        case 3: key = @"LOADED_BINARIES"; break;
+        default: break;
     }
+
     UIScreen *mainScreen = [UIScreen mainScreen];
     const CGRect screenBounds = [mainScreen bounds];
     SectionHeaderView *headerView = [[SectionHeaderView alloc] initWithFrame:CGRectMake(0.0, 0.0, screenBounds.size.width, 38.0)];
