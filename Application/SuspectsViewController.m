@@ -93,9 +93,15 @@
     UITableView *tableView = [[UITableView alloc] initWithFrame:CGRectMake(0.0, 0.0, screenBounds.size.width, tableViewHeight)];
     tableView.allowsSelectionDuringEditing = YES;
     tableView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+    tableView.backgroundColor = [UIColor colorWithRed:(239.0 / 255.0) green:(239.0 / 255.0) blue:(239.0 / 255.0) alpha:1.0];
     tableView.dataSource = self;
     tableView.delegate = self;
     tableView_ = tableView;
+
+    // Add footer so that separators are not shown for "empty" cells.
+    UIView *footerView = [[UIView alloc] initWithFrame:CGRectZero];
+    [tableView setTableFooterView:footerView];
+    [footerView release];
 
     UIView *buttonView = [[UIView alloc] initWithFrame:CGRectMake(0.0, tableViewHeight, screenBounds.size.width, buttonViewHeight)];
     buttonView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleTopMargin;
