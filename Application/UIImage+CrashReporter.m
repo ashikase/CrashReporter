@@ -9,6 +9,8 @@
  * License: GPL v3 (See LICENSE file for details)
  */
 
+#import "UIImage+CrashReporter.h"
+
 @implementation UIImage (CrashReporter)
 
 + (instancetype)imageWithColor:(UIColor *)color {
