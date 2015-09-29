@@ -21,6 +21,7 @@
 #import "PackageCache.h"
 #import "Button.h"
 #import "BinaryImageCell.h"
+#import "SectionHeaderView.h"
 #import "UIImage+CrashReporter.h"
 
 #include "font-awesome.h"
@@ -392,25 +393,6 @@ static NSString *createIncludeLineForFilepath(NSString *filepath, NSString *name
     }
 }
 
-- (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section {
-    NSString *key = nil;
-    if (section == 0) {
-        key = @"CRASHED_PROCESS";
-    } else if (section == 3) {
-        key = @"LOADED_BINARIES";
-    } else {
-        const NSUInteger count = [[crashLog_ suspects] count];
-        if (count > 0) {
-            if (section == 1) {
-                key = @"MAIN_SUSPECT";
-            } else if (count > 1) {
-                key = @"OTHER_SUSPECTS";
-            }
-        }
-    }
-    return NSLocalizedString(key, nil);
-}
-
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
     NSString * const reuseIdentifier = @"BinaryImageCell";
 
@@ -508,6 +490,33 @@ static NSString *createIncludeLineForFilepath(NSString *filepath, NSString *name
     lastSelectedPath_ = [filepath retain];
 
     [tableView deselectRowAtIndexPath:[tableView indexPathForSelectedRow] animated:YES];
+}
+
+- (UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section {
+    NSString *key = nil;
+    if (section == 0) {
+        key = @"CRASHED_PROCESS";
+    } else if (section == 3) {
+        key = @"LOADED_BINARIES";
+    } else {
+        const NSUInteger count = [[crashLog_ suspects] count];
+        if (count > 0) {
+            if (section == 1) {
+                key = @"MAIN_SUSPECT";
+            } else if (count > 1) {
+                key = @"OTHER_SUSPECTS";
+            }
+        }
+    }
+    UIScreen *mainScreen = [UIScreen mainScreen];
+    const CGRect screenBounds = [mainScreen bounds];
+    SectionHeaderView *headerView = [[SectionHeaderView alloc] initWithFrame:CGRectMake(0.0, 0.0, screenBounds.size.width, 38.0)];
+    headerView.textLabel.text = NSLocalizedString(key, nil);
+    return [headerView autorelease];
+}
+
+- (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {
+    return 38.0;
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
