@@ -15,6 +15,7 @@ CrashReporter_FILES = \
     ScriptViewController.m \
     SuspectsViewController.m \
     UIImage+CrashReporter.m \
+    UITableView+CrashReporter.m \
     VictimViewController.m \
     main.m \
     pastie.m
