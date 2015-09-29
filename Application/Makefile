@@ -13,6 +13,7 @@ CrashReporter_FILES = \
 	RootCell.m \
     RootViewController.m \
     ScriptViewController.m \
+	SectionHeaderView.m \
     SuspectsViewController.m \
     UIImage+CrashReporter.m \
     UITableView+CrashReporter.m \
