@@ -441,6 +441,8 @@ static NSString *createIncludeLineForFilepath(NSString *filepath, NSString *name
         [cell setPackageType:BinaryImageCellPackageTypeUnknown];
     }
 
+    cell.showsTopSeparator = (indexPath.row == 0);
+
     return cell;
 }
 
