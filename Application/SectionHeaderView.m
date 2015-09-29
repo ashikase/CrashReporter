@@ -26,12 +26,7 @@
         label.font = [UIFont boldSystemFontOfSize:15.0];
 
         UIButton *button = [UIButton buttonWithType:UIButtonTypeCustom];
-        button.backgroundColor = [UIColor colorWithRed:(36.0 / 255.0) green:(132.0 / 255.0) blue:(232.0 / 255.0) alpha:1.0];
-        button.titleLabel.font = [UIFont boldSystemFontOfSize:17.0];
-        [button setTitle:@"?" forState:UIControlStateNormal];
-        [button setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
-        CALayer *layer = button.layer;
-        layer.masksToBounds = YES;
+        [button setBackgroundImage:[UIImage imageNamed:@"help_button"] forState:UIControlStateNormal];
 
         self.autoresizingMask = UIViewAutoresizingFlexibleWidth;
         [self addSubview:label];
@@ -50,13 +45,12 @@
     const CGRect screenBounds = [mainScreen bounds];
 
     UIButton *button = self.helpButton;
-    const CGSize buttonSize = CGSizeMake(21.0, 21.0);
-    const CGRect buttonFrame = CGRectMake(screenBounds.size.width - buttonSize.width - 10.0, 15.0, buttonSize.width, buttonSize.height);
+    const CGSize buttonSize = CGSizeMake(22.0, 22.0);
+    const CGRect buttonFrame = CGRectMake(screenBounds.size.width - buttonSize.width - 10.0, 10.0, buttonSize.width, buttonSize.height);
     button.frame = buttonFrame;
-    button.layer.cornerRadius = buttonSize.width / 2.0;
 
     UILabel *label = self.textLabel;
-    const CGRect labelFrame = CGRectMake(15.0, 17.0, buttonFrame.origin.x, textLabel_.font.pointSize + 4.0);
+    const CGRect labelFrame = CGRectMake(10.0, 13.0, buttonFrame.origin.x, textLabel_.font.pointSize + 4.0);
     label.frame = labelFrame;
 }
 
