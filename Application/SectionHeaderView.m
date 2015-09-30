@@ -11,12 +11,20 @@
 
 #import "SectionHeaderView.h"
 
+static const CGFloat kSectionHeaderHeight = 38.0;
+
 @implementation SectionHeaderView
 
 @synthesize textLabel = textLabel_;
 @synthesize helpButton = helpButton_;
 
-- (instancetype)initWithFrame:(CGRect)frame {
++ (CGFloat)defaultHeight {
+    return kSectionHeaderHeight;
+}
+
+- (instancetype)initWithDefaultSize {
+    const CGRect screenBounds = [[UIScreen mainScreen] bounds];
+    const CGRect frame = CGRectMake(0.0, 0.0, screenBounds.size.width, kSectionHeaderHeight);
     self = [super initWithFrame:frame];
     if (self != nil) {
         UILabel *label = [[UILabel alloc] initWithFrame:CGRectZero];

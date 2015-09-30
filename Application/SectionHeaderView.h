@@ -12,6 +12,8 @@
 @interface SectionHeaderView : UIView
 @property (nonatomic, readonly) UILabel *textLabel;
 @property (nonatomic, readonly) UIButton *helpButton;
++ (CGFloat)defaultHeight;
+- (instancetype)initWithDefaultSize;
 @end
 
 /* vim: set ft=objc ff=unix sw=4 ts=4 tw=80 expandtab: */
