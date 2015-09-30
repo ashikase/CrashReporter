@@ -60,6 +60,8 @@ static UIImage *crashDateImage$ = nil;
 - (id)initWithReuseIdentifier:(NSString *)reuseIdentifier {
     self = [super initWithStyle:UITableViewCellStyleValue1 reuseIdentifier:reuseIdentifier];
     if (self != nil) {
+        self.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
+
         UIView *contentView = [self contentView];
 
         UIFont *font;
