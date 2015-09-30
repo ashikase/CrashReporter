@@ -9,12 +9,12 @@
  * License: GPL v3 (See LICENSE file for details)
  */
 
-#import "TableViewController.h"
+#import <UIKit/UIKit.h>
 
-@class CrashLog;
-
-@interface SuspectsViewController : TableViewController
-- (id)initWithCrashLog:(CrashLog *)crashLog;
+@interface TableViewController : UIViewController
+@property (nonatomic, readonly) UITableView *tableView;
+@property (nonatomic, assign) BOOL supportsRefreshControl;
+- (void)refresh:(NSNotification *)notification;
 @end
 
 /* vim: set ft=objc ff=unix sw=4 ts=4 tw=80 expandtab: */

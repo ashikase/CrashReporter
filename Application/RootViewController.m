@@ -16,6 +16,7 @@
 #import "CrashLog.h"
 #import "CrashLogGroup.h"
 #import "RootCell.h"
+#import "SectionHeaderView.h"
 #import "UIImage+CrashReporter.h"
 #import "VictimViewController.h"
 
@@ -71,8 +72,6 @@ typedef enum {
 
 extern vproc_err_t vproc_swap_complex(vproc_t vp, vproc_gsk_t key, launch_data_t inval, launch_data_t *outval);
 
-extern NSString * const kNotificationCrashLogsChanged;
-
 static BOOL isSafeMode$ = NO;
 static BOOL reportCrashIsDisabled$ = YES;
 
@@ -98,9 +97,10 @@ static BOOL reportCrashIsDisabled$ = YES;
 #pragma mark - Creation & Destruction
 
 - (id)init {
-    self = [super initWithStyle:UITableViewStylePlain];
+    self = [super init];
     if (self != nil) {
         self.title = @"CrashReporter";
+        self.supportsRefreshControl = YES;
 
         UINavigationItem *navigationItem = [self navigationItem];
 
@@ -122,15 +122,11 @@ static BOOL reportCrashIsDisabled$ = YES;
         [dateFormatter setTimeStyle:NSDateFormatterMediumStyle];
         [dateFormatter setDateStyle:NSDateFormatterShortStyle];
         dateFormatter_ = dateFormatter;
-
-        // Listen for changes to crash log files.
-        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(refresh:) name:kNotificationCrashLogsChanged object:nil];
     }
     return self;
 }
 
 - (void)dealloc {
-    [[NSNotificationCenter defaultCenter] removeObserver:self];
     [availableSocialServices_ release];
     [dateFormatter_ release];
     [menuContainerView_ release];
@@ -140,20 +136,6 @@ static BOOL reportCrashIsDisabled$ = YES;
 }
 
 #pragma mark - View (Setup)
-
-- (void)viewDidLoad {
-    [super viewDidLoad];
-
-    // Add a refresh control.
-    if (IOS_GTE(6_0)) {
-        UITableView *tableView = [self tableView];
-        tableView.alwaysBounceVertical = YES;
-        UIRefreshControl *refreshControl = [[NSClassFromString(@"UIRefreshControl") alloc] init];
-        [refreshControl addTarget:self action:@selector(refresh:) forControlEvents:UIControlEventValueChanged];
-        [tableView addSubview:refreshControl];
-        [refreshControl release];
-    }
-}
 
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
@@ -216,10 +198,6 @@ static BOOL reportCrashIsDisabled$ = YES;
         [menuView_ release];
         menuView_ = nil;
     }
-}
-
-- (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation {
-    return interfaceOrientation != UIInterfaceOrientationPortraitUpsideDown;
 }
 
 - (void)willAnimateRotationToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation duration:(NSTimeInterval)duration {
@@ -377,7 +355,6 @@ static UIButton *menuButton(NSUInteger position, CGRect frame, UIImage *backgrou
     }
 }
 
-
 #pragma mark - Actions
 
 - (void)handleTap:(UITapGestureRecognizer *)recognizer {
@@ -515,15 +492,6 @@ static UIButton *menuButton(NSUInteger position, CGRect frame, UIImage *backgrou
     [alert release];
 }
 
-- (void)refresh:(id)sender {
-    [CrashLogGroup forgetGroups];
-    [self.tableView reloadData];
-
-    if ([sender isKindOfClass:NSClassFromString(@"UIRefreshControl")]) {
-        [sender endRefreshing];
-    }
-}
-
 #pragma mark - Social
 
 - (void)shareViaSocialNetwork:(NSString *)socialNetwork {
@@ -546,6 +514,22 @@ static UIButton *menuButton(NSUInteger position, CGRect frame, UIImage *backgrou
         case 0: return [CrashLogGroup groupsForType:CrashLogGroupTypeApp];
         case 1: return [CrashLogGroup groupsForType:CrashLogGroupTypeAppExtension];
         case 2: return [CrashLogGroup groupsForType:CrashLogGroupTypeService];
+        default: return nil;
+    }
+}
+
+#pragma mark - Overrides (TableViewController)
+
+- (void)refresh:(id)sender {
+    [CrashLogGroup forgetGroups];
+    [super refresh:sender];
+}
+
+- (NSString *)titleForHeaderInSection:(NSInteger)section {
+    switch (section) {
+        case 0: return @"Apps";
+        case 1: return @"App Extensions";
+        case 2: return @"Services (Daemons, etc.)";
         default: return nil;
     }
 }
@@ -656,15 +640,6 @@ static UIButton *menuButton(NSUInteger position, CGRect frame, UIImage *backgrou
     return 3;
 }
 
-- (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section {
-    switch (section) {
-        case 0: return @"Apps";
-        case 1: return @"App Extensions";
-        case 2: return @"Services (Daemons, etc.)";
-        default: return nil;
-    }
-}
-
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
     NSArray *crashLogGroups = [self crashLogGroupsForSection:section];
     return [crashLogGroups count];
@@ -741,11 +716,6 @@ static UIButton *menuButton(NSUInteger position, CGRect frame, UIImage *backgrou
 
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
     return [RootCell cellHeight];
-}
-
-- (void)tableView:(UITableView *)tableView willDisplayHeaderView:(UIView *)view forSection:(NSInteger)section {
-    // Change background color of header to improve visibility.
-    [view setTintColor:[UIColor colorWithRed:0.85 green:0.85 blue:0.85 alpha:1.0]];
 }
 
 @end

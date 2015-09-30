@@ -14,11 +14,10 @@
 #import <libcrashreport/libcrashreport.h>
 #import "CrashLog.h"
 #import "CrashLogGroup.h"
+#import "SectionHeaderView.h"
 #import "SuspectsViewController.h"
 
 #include "paths.h"
-
-extern NSString * const kNotificationCrashLogsChanged;
 
 static inline NSUInteger indexOf(NSUInteger section, NSUInteger row, BOOL deletedRowZero) {
     return section + row - (deletedRowZero ? 1 : 0);
@@ -30,47 +29,29 @@ static inline NSUInteger indexOf(NSUInteger section, NSUInteger row, BOOL delete
 }
 
 - (id)initWithGroup:(CrashLogGroup *)group {
-    self = [super initWithStyle:UITableViewStylePlain];
+    self = [super init];
     if (self != nil) {
         group_ = [group retain];
+
         self.title = group_.name;
+        self.supportsRefreshControl = YES;
 
         // Add button for deleting all logs for this group.
         UIBarButtonItem *buttonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemTrash
             target:self action:@selector(trashButtonTapped)];
         self.navigationItem.rightBarButtonItem = buttonItem;
         [buttonItem release];
-
-        // Listen for changes to crash log files.
-        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(refresh:) name:kNotificationCrashLogsChanged object:nil];
     }
     return self;
 }
 
 - (void)dealloc {
-    [[NSNotificationCenter defaultCenter] removeObserver:self];
     [group_ release];
     [super dealloc];
 }
 
-- (void)viewDidLoad {
-    // Add a refresh control.
-    if (IOS_GTE(6_0)) {
-        UITableView *tableView = [self tableView];
-        tableView.alwaysBounceVertical = YES;
-        UIRefreshControl *refreshControl = [[NSClassFromString(@"UIRefreshControl") alloc] init];
-        [refreshControl addTarget:self action:@selector(refresh:) forControlEvents:UIControlEventValueChanged];
-        [tableView addSubview:refreshControl];
-        [refreshControl release];
-    }
-}
-
 - (void)viewWillAppear:(BOOL)animated {
     [self.tableView reloadData];
-}
-
-- (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation {
-    return interfaceOrientation != UIInterfaceOrientationPortraitUpsideDown;
 }
 
 #pragma mark - Actions
@@ -88,11 +69,7 @@ static inline NSUInteger indexOf(NSUInteger section, NSUInteger row, BOOL delete
 
 - (void)refresh:(id)sender {
     [self reloadCrashLogGroup];
-    [self.tableView reloadData];
-
-    if ([sender isKindOfClass:NSClassFromString(@"UIRefreshControl")]) {
-        [sender endRefreshing];
-    }
+    [super refresh:sender];
 }
 
 #pragma mark - Other
@@ -121,6 +98,12 @@ static inline NSUInteger indexOf(NSUInteger section, NSUInteger row, BOOL delete
     [controller release];
 }
 
+#pragma mark - Overrides (TableViewController)
+
+- (NSString *)titleForHeaderInSection:(NSInteger)section {
+    return (section == 0) ? @"LATEST" : @"EARLIER";
+}
+
 #pragma mark - Delegate (UIAlertView)
 
 - (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
@@ -147,11 +130,6 @@ static inline NSUInteger indexOf(NSUInteger section, NSUInteger row, BOOL delete
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
     return 2;
-}
-
-- (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section {
-    NSString *key = (section == 0) ? @"LATEST" : @"EARLIER";
-    return NSLocalizedString(key, nil);
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
@@ -215,11 +193,6 @@ static inline NSUInteger indexOf(NSUInteger section, NSUInteger row, BOOL delete
         [alert show];
         [alert release];
     }
-}
-
-- (void)tableView:(UITableView *)tableView willDisplayHeaderView:(UIView *)view forSection:(NSInteger)section {
-    // Change background color of header to improve visibility.
-    [view setTintColor:[UIColor colorWithRed:0.85 green:0.85 blue:0.85 alpha:1.0]];
 }
 
 @end

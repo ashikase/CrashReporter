@@ -9,9 +9,9 @@
  * License: GPL v3 (See LICENSE file for details)
  */
 
-#import <UIKit/UIKit.h>
+#import "TableViewController.h"
 
-@interface RootViewController : UITableViewController
+@interface RootViewController : TableViewController
 @end
 
 /* vim: set ft=objc ff=unix sw=4 ts=4 tw=80 expandtab: */

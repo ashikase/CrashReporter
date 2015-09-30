@@ -41,7 +41,6 @@
 @implementation SuspectsViewController {
     CrashLog *crashLog_;
 
-    UITableView *tableView_;
     ModalActionSheet *statusPopup_;
 
     NSDateFormatter *dateFormatter_;
@@ -72,7 +71,6 @@
 }
 
 - (void)dealloc {
-    [tableView_ release];
     [statusPopup_ release];
     [crashLog_ release];
     [lastSelectedLinkInstructions_ release];
@@ -83,25 +81,19 @@
     [super dealloc];
 }
 
-- (void)loadView {
+#pragma mark - View (Setup)
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+
     UIScreen *mainScreen = [UIScreen mainScreen];
     const CGRect screenBounds = [mainScreen bounds];
     const CGFloat scale = [mainScreen scale];
     const CGFloat buttonViewHeight = 1.0 + 44.0 * 2.0 + 30.0;
     const CGFloat tableViewHeight = (screenBounds.size.height - buttonViewHeight);
 
-    UITableView *tableView = [[UITableView alloc] initWithFrame:CGRectMake(0.0, 0.0, screenBounds.size.width, tableViewHeight)];
-    tableView.allowsSelectionDuringEditing = YES;
-    tableView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
-    tableView.backgroundColor = [UIColor colorWithRed:(239.0 / 255.0) green:(239.0 / 255.0) blue:(239.0 / 255.0) alpha:1.0];
-    tableView.dataSource = self;
-    tableView.delegate = self;
-    tableView_ = tableView;
-
-    // Add footer so that separators are not shown for "empty" cells.
-    UIView *footerView = [[UIView alloc] initWithFrame:CGRectZero];
-    [tableView setTableFooterView:footerView];
-    [footerView release];
+    UITableView *tableView = self.tableView;
+    tableView.frame = CGRectMake(0.0, 0.0, screenBounds.size.width, tableViewHeight);
 
     UIView *buttonView = [[UIView alloc] initWithFrame:CGRectMake(0.0, tableViewHeight, screenBounds.size.width, buttonViewHeight)];
     buttonView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleTopMargin;
@@ -129,14 +121,7 @@
     }
     [buttonView addSubview:button];
 
-    UIView *view = [[UIView alloc] initWithFrame:CGRectMake(0.0, 0.0, screenBounds.size.width, screenBounds.size.height)];
-    view.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
-    view.backgroundColor = [UIColor whiteColor];
-    [view addSubview:tableView];
-    [view addSubview:buttonView];
-    self.view = view;
-
-    [view release];
+    [self.view addSubview:buttonView];
     [buttonView release];
 }
 
@@ -155,10 +140,6 @@
 
     // Mark log as viewed.
     [crashLog_ setViewed:YES];
-}
-
-- (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation {
-    return interfaceOrientation != UIInterfaceOrientationPortraitUpsideDown;
 }
 
 #pragma mark - Other
@@ -188,7 +169,7 @@
     [statusPopup_ release];
     statusPopup_ = nil;
 
-    [tableView_ reloadData];
+    [self.tableView reloadData];
 }
 
 - (NSString *)syslogPath {
@@ -238,6 +219,18 @@ static NSString *createIncludeLineForFilepath(NSString *filepath, NSString *name
     NSString *string = createIncludeLineForFilepath([self syslogPath], @"syslog");
     [self presentViewerWithString:string];
     [string release];
+}
+
+#pragma mark - Overrides (TableViewController)
+
+- (NSString *)titleForHeaderInSection:(NSInteger)section {
+    switch (section) {
+        case 0: return @"CRASHED_PROCESS";
+        case 1: return @"MAIN_SUSPECT";
+        case 2: return @"OTHER_SUSPECTS";
+        case 3: return @"LOADED_BINARIES";
+        default: return nil;
+    }
 }
 
 #pragma mark - Delegate (MFMailComposeViewControllerDelegate)
@@ -498,27 +491,6 @@ static NSString *createIncludeLineForFilepath(NSString *filepath, NSString *name
     lastSelectedPath_ = [filepath retain];
 
     [tableView deselectRowAtIndexPath:[tableView indexPathForSelectedRow] animated:YES];
-}
-
-- (UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section {
-    NSString *key = nil;
-    switch (section) {
-        case 0: key = @"CRASHED_PROCESS"; break;
-        case 1: key = @"MAIN_SUSPECT"; break;
-        case 2: key = @"OTHER_SUSPECTS"; break;
-        case 3: key = @"LOADED_BINARIES"; break;
-        default: break;
-    }
-
-    UIScreen *mainScreen = [UIScreen mainScreen];
-    const CGRect screenBounds = [mainScreen bounds];
-    SectionHeaderView *headerView = [[SectionHeaderView alloc] initWithFrame:CGRectMake(0.0, 0.0, screenBounds.size.width, 38.0)];
-    headerView.textLabel.text = NSLocalizedString(key, nil);
-    return [headerView autorelease];
-}
-
-- (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {
-    return 38.0;
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {

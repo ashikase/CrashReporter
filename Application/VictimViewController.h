@@ -9,11 +9,11 @@
  * License: GPL v3 (See LICENSE file for details)
  */
 
-#import <UIKit/UIKit.h>
+#import "TableViewController.h"
 
 @class CrashLogGroup;
 
-@interface VictimViewController : UITableViewController
+@interface VictimViewController : TableViewController
 - (id)initWithGroup:(CrashLogGroup *)group;
 @end
 
