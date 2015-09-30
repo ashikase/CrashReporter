@@ -14,6 +14,7 @@
 @interface TableViewController : UIViewController
 @property (nonatomic, readonly) UITableView *tableView;
 @property (nonatomic, assign) BOOL supportsRefreshControl;
+- (void)presentHelpForName:(NSString *)name;
 - (void)refresh:(NSNotification *)notification;
 @end
 

@@ -66,6 +66,13 @@
         [dateFormatter setTimeStyle:NSDateFormatterMediumStyle];
         [dateFormatter setDateStyle:NSDateFormatterShortStyle];
         dateFormatter_ = dateFormatter;
+
+        // Add "Help" button.
+        NSString *title = NSLocalizedString(@"HELP", nil);
+        UIBarButtonItem *buttonItem = [[UIBarButtonItem alloc] initWithTitle:title style:UIBarButtonItemStylePlain
+            target:self action:@selector(helpButtonTapped)];
+        [[self navigationItem] setRightBarButtonItem:buttonItem];
+        [buttonItem release];
     }
     return self;
 }
@@ -219,6 +226,10 @@ static NSString *createIncludeLineForFilepath(NSString *filepath, NSString *name
     NSString *string = createIncludeLineForFilepath([self syslogPath], @"syslog");
     [self presentViewerWithString:string];
     [string release];
+}
+
+- (void)helpButtonTapped {
+    [self presentHelpForName:@"SUSPECTS"];
 }
 
 #pragma mark - Overrides (TableViewController)
