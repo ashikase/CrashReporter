@@ -30,6 +30,19 @@ extern NSString * const kNotificationCrashLogsChanged;
     [super dealloc];
 }
 
+- (instancetype)init {
+    self = [super init];
+    if (self != nil) {
+        // Set title for back button.
+        NSString *title = NSLocalizedString(@"BACK", nil);
+        UIBarButtonItem *buttonItem = [[UIBarButtonItem alloc] initWithTitle:title style:UIBarButtonItemStylePlain
+            target:nil action:NULL];
+        [[self navigationItem] setBackBarButtonItem:buttonItem];
+        [buttonItem release];
+    }
+    return self;
+}
+
 - (void)loadView {
     UIScreen *mainScreen = [UIScreen mainScreen];
     const CGRect screenBounds = [mainScreen bounds];
