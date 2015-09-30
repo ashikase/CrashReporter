@@ -34,7 +34,7 @@ static const CGFloat kSectionHeaderHeight = 38.0;
         label.font = [UIFont boldSystemFontOfSize:15.0];
 
         UIButton *button = [UIButton buttonWithType:UIButtonTypeCustom];
-        [button setBackgroundImage:[UIImage imageNamed:@"help_button"] forState:UIControlStateNormal];
+        [button setImage:[UIImage imageNamed:@"help_button"] forState:UIControlStateNormal];
 
         self.autoresizingMask = UIViewAutoresizingFlexibleWidth;
         [self addSubview:label];
@@ -53,9 +53,10 @@ static const CGFloat kSectionHeaderHeight = 38.0;
     const CGRect screenBounds = [mainScreen bounds];
 
     UIButton *button = self.helpButton;
-    const CGSize buttonSize = CGSizeMake(22.0, 22.0);
-    const CGRect buttonFrame = CGRectMake(screenBounds.size.width - buttonSize.width - 10.0, 10.0, buttonSize.width, buttonSize.height);
+    const CGSize buttonSize = CGSizeMake(kSectionHeaderHeight + 2.0, kSectionHeaderHeight);
+    const CGRect buttonFrame = CGRectMake(screenBounds.size.width - buttonSize.width, 0.0, buttonSize.width, buttonSize.height);
     button.frame = buttonFrame;
+    button.imageEdgeInsets = UIEdgeInsetsMake(5.0, 0.0, 0.0, 0.0);
 
     UILabel *label = self.textLabel;
     const CGRect labelFrame = CGRectMake(10.0, 13.0, buttonFrame.origin.x, textLabel_.font.pointSize + 4.0);
