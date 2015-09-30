@@ -11,6 +11,7 @@
 
 #import "TableViewController.h"
 
+#import <TechSupport/TechSupport.h>
 #import "SectionHeaderView.h"
 
 extern NSString * const kNotificationCrashLogsChanged;
@@ -80,12 +81,38 @@ extern NSString * const kNotificationCrashLogsChanged;
 
 #pragma mark - Actions
 
+- (void)helpButtonTapped:(UIButton *)button {
+    [self presentHelpForSection:button.tag];
+}
+
 - (void)refresh:(id)sender {
     [self.tableView reloadData];
 
     if ([sender isKindOfClass:NSClassFromString(@"UIRefreshControl")]) {
         [sender endRefreshing];
     }
+}
+
+#pragma mark - Help
+
+- (void)presentHelpForName:(NSString *)name {
+    NSString *path = [[NSBundle mainBundle] pathForResource:name ofType:@"html" inDirectory:@"Documentation"];
+    NSError *error = nil;
+    NSString *content = [[NSString alloc] initWithContentsOfFile:path encoding:NSUTF8StringEncoding error:&error];
+    if (content != nil) {
+        TSHTMLViewController *controller = [[TSHTMLViewController alloc] initWithHTMLContent:content];
+        controller.title = NSLocalizedString(name, nil);
+        [self.navigationController pushViewController:controller animated:YES];
+        [controller release];
+        [content release];
+    } else {
+        NSLog(@"ERROR: Unable to read contents of file \"%@\": %@", path, [error localizedDescription]);
+    }
+}
+
+- (void)presentHelpForSection:(NSInteger)section {
+    NSString *name = [self titleForHeaderInSection:section];
+    [self presentHelpForName:name];
 }
 
 #pragma mark - Delegate (UITableViewDataSource)
@@ -105,9 +132,15 @@ extern NSString * const kNotificationCrashLogsChanged;
 }
 
 - (UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section {
-    NSString *key = [self titleForHeaderInSection:section];
     SectionHeaderView *headerView = [[SectionHeaderView alloc] initWithDefaultSize];
+
+    NSString *key = [self titleForHeaderInSection:section];
     headerView.textLabel.text = NSLocalizedString(key, nil);
+
+    UIButton *button = headerView.helpButton;
+    button.tag = section;
+    [button addTarget:self action:@selector(helpButtonTapped:) forControlEvents:UIControlEventTouchUpInside];
+
     return [headerView autorelease];
 }
 
