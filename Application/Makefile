@@ -19,6 +19,7 @@ CrashReporter_FILES = \
 	TableViewController.m \
     UIImage+CrashReporter.m \
     UITableView+CrashReporter.m \
+    VictimCell.m \
     VictimViewController.m \
     main.m \
     pastie.m

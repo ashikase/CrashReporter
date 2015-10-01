@@ -16,16 +16,12 @@
 #import "CrashLogGroup.h"
 #import "SectionHeaderView.h"
 #import "SuspectsViewController.h"
+#import "VictimCell.h"
 
 #include "paths.h"
 
-static inline NSUInteger indexOf(NSUInteger section, NSUInteger row, BOOL deletedRowZero) {
-    return section + row - (deletedRowZero ? 1 : 0);
-}
-
 @implementation VictimViewController {
     CrashLogGroup *group_;
-    BOOL deletedRowZero_;
 }
 
 - (id)initWithGroup:(CrashLogGroup *)group {
@@ -67,11 +63,6 @@ static inline NSUInteger indexOf(NSUInteger section, NSUInteger row, BOOL delete
     [message release];
 }
 
-- (void)refresh:(id)sender {
-    [self reloadCrashLogGroup];
-    [super refresh:sender];
-}
-
 #pragma mark - Other
 
 - (void)reloadCrashLogGroup {
@@ -99,6 +90,40 @@ static inline NSUInteger indexOf(NSUInteger section, NSUInteger row, BOOL delete
 }
 
 #pragma mark - Overrides (TableViewController)
+
++ (Class)cellClass {
+    return [VictimCell class];
+}
+
+- (NSArray *)arrayForSection:(NSInteger)section {
+    NSArray *array = nil;
+
+    switch (section) {
+        case 0: {
+            NSArray *crashLogs = [group_ crashLogs];
+            const NSUInteger count = [crashLogs count];
+            if (count > 0) {
+                array = [crashLogs subarrayWithRange:NSMakeRange(0, 1)];
+            }
+        }   break;
+        case 1: {
+            NSArray *crashLogs = [group_ crashLogs];
+            const NSUInteger count = [crashLogs count];
+            if (count > 1) {
+                array = [crashLogs subarrayWithRange:NSMakeRange(1, count - 1)];
+            }
+        }   break;
+        default:
+            break;
+    }
+
+    return array;
+}
+
+- (void)refresh:(id)sender {
+    [self reloadCrashLogGroup];
+    [super refresh:sender];
+}
 
 - (NSString *)titleForHeaderInSection:(NSInteger)section {
     return (section == 0) ? @"LATEST" : @"EARLIER";
@@ -132,57 +157,46 @@ static inline NSUInteger indexOf(NSUInteger section, NSUInteger row, BOOL delete
     return 2;
 }
 
-- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-    NSUInteger numRows = 0;
-    const NSUInteger count = [[group_ crashLogs] count];
-    if (count != 0) {
-        if (section == 0) {
-            numRows = deletedRowZero_? 0 : 1;
-        } else {
-            numRows = deletedRowZero_? count : count - 1;
-        }
-    }
-    return numRows;
-}
-
-- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
-    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"."];
-    if (cell == nil) {
-        cell = [[[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"."] autorelease];
-        cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
-    }
-
-    const NSUInteger index = indexOf(indexPath.section, indexPath.row, deletedRowZero_);
-    CrashLog *crashLog = [[group_ crashLogs] objectAtIndex:index];
-
-    NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
-    [formatter setDateFormat:@"HH:mm:ss (yyyy MMM d)"];
-    UILabel *label = cell.textLabel;
-    label.text = [formatter stringFromDate:[crashLog logDate]];
-    label.textColor = [crashLog isViewed] ? [UIColor grayColor] : [UIColor blackColor];
-    [formatter release];
-
-    return cell;
-}
-
 #pragma mark - UITableViewDelegate
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
-    const NSUInteger index = indexOf(indexPath.section, indexPath.row, deletedRowZero_);
-    CrashLog *crashLog = [[group_ crashLogs] objectAtIndex:index];
-    [self showSuspectsForCrashLog:crashLog];
+    NSArray *array = [self arrayForSection:indexPath.section];
+    if (array != nil) {
+        CrashLog *crashLog = [array objectAtIndex:indexPath.row];
+        [self showSuspectsForCrashLog:crashLog];
+    }
 }
 
 - (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath {
-    const NSUInteger section = indexPath.section;
+    const NSInteger section = indexPath.section;
 
-    const NSUInteger index = indexOf(section, indexPath.row, deletedRowZero_);
-    CrashLog *crashLog = [[group_ crashLogs] objectAtIndex:index];
+    // NOTE: Retrieve arrays for both sections before deletion in order to know
+    //       what has changed, needed for deletion animation.
+    NSArray *latest = [self arrayForSection:0];
+    NSArray *earlier = [self arrayForSection:1];
+
+    NSArray *array = (section == 0) ? latest : earlier;
+    CrashLog *crashLog = [array objectAtIndex:indexPath.row];
     if ([group_ deleteCrashLog:crashLog]) {
-        if (section == 0) {
-            deletedRowZero_ = YES;
+        // Animate deletion of row.
+        NSArray *indexPaths = [NSArray arrayWithObject:indexPath];
+        [tableView beginUpdates];
+        if ([array count] == 1) {
+            [tableView reloadRowsAtIndexPaths:indexPaths withRowAnimation:UITableViewRowAnimationLeft];
+        } else {
+            [tableView deleteRowsAtIndexPaths:indexPaths withRowAnimation:UITableViewRowAnimationLeft];
         }
-        [tableView deleteRowsAtIndexPaths:[NSArray arrayWithObject:indexPath] withRowAnimation:UITableViewRowAnimationLeft];
+        if (section == 0) {
+            // Animate movement of row from section 1 to section 0.
+            const NSUInteger earlierCount = [earlier count];
+            NSArray *earlierIndexPaths = [NSArray arrayWithObject:[NSIndexPath indexPathForRow:0 inSection:1]];
+            if (earlierCount == 1) {
+                [tableView reloadRowsAtIndexPaths:earlierIndexPaths withRowAnimation:UITableViewRowAnimationLeft];
+            } else if (earlierCount > 1) {
+                [tableView deleteRowsAtIndexPaths:earlierIndexPaths withRowAnimation:UITableViewRowAnimationLeft];
+            }
+        }
+        [tableView endUpdates];
     } else {
         NSString *title = NSLocalizedString(@"ERROR", nil);
         NSString *message = NSLocalizedString(@"FILE_DELETION_FAILED"
