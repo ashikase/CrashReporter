@@ -204,8 +204,18 @@ extern NSString * const kNotificationCrashLogsChanged;
     return [headerView autorelease];
 }
 
+- (UIView *)tableView:(UITableView *)tableView viewForFooterInSection:(NSInteger)section {
+    UIView *view = [[UIView alloc] initWithFrame:CGRectZero];
+    return [view autorelease];
+}
+
 - (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {
     return [SectionHeaderView defaultHeight];
+}
+
+- (CGFloat)tableView:(UITableView *)tableView heightForFooterInSection:(NSInteger)section {
+    NSInteger lastSection = [tableView numberOfSections] - 1;
+    return (section != lastSection) ? 10.0 : 0.0;
 }
 
 - (UITableViewCellEditingStyle)tableView:(UITableView *)tableView editingStyleForRowAtIndexPath:(NSIndexPath *)indexPath {
