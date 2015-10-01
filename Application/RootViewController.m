@@ -509,6 +509,10 @@ static UIButton *menuButton(NSUInteger position, CGRect frame, UIImage *backgrou
 
 #pragma mark - Other
 
+- (NSArray *)arrayForSection:(NSInteger)section {
+    return [self crashLogGroupsForSection:section];
+}
+
 - (NSArray *)crashLogGroupsForSection:(NSUInteger)section {
     switch (section) {
         case 0: return [CrashLogGroup groupsForType:CrashLogGroupTypeApp];
@@ -520,9 +524,17 @@ static UIButton *menuButton(NSUInteger position, CGRect frame, UIImage *backgrou
 
 #pragma mark - Overrides (TableViewController)
 
++ (Class)cellClass {
+    return [RootCell class];
+}
+
 - (void)refresh:(id)sender {
     [CrashLogGroup forgetGroups];
     [super refresh:sender];
+}
+
+- (NSString *)titleForEmptyCell {
+    return @"NO_REPORTS";
 }
 
 - (NSString *)titleForHeaderInSection:(NSInteger)section {
@@ -640,82 +652,28 @@ static UIButton *menuButton(NSUInteger position, CGRect frame, UIImage *backgrou
     return 3;
 }
 
-- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-    NSArray *crashLogGroups = [self crashLogGroupsForSection:section];
-    return [crashLogGroups count];
-}
-
-- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
-    NSString * const reuseIdentifier = @"RootCell";
-
-    RootCell *cell = [tableView dequeueReusableCellWithIdentifier:reuseIdentifier];
-    if (cell == nil) {
-        cell = [[[RootCell alloc] initWithReuseIdentifier:reuseIdentifier] autorelease];
-    }
-
-    NSArray *crashLogGroups = [self crashLogGroupsForSection:indexPath.section];
-    CrashLogGroup *group = [crashLogGroups objectAtIndex:indexPath.row];
-    NSArray *crashLogs = [group crashLogs];
-    CrashLog *crashLog = [crashLogs objectAtIndex:0];
-
-    // Name of crashed process.
-    [cell setName:group.name];
-
-
-    // Date of latest crash.
-    NSString *string = nil;
-    BOOL isRecent = NO;
-    NSDate *logDate = [crashLog logDate];
-    NSTimeInterval interval = [[NSDate date] timeIntervalSinceDate:logDate];
-    if (interval < 86400.0) {
-        if (interval < 3600.0) {
-            string = NSLocalizedString(@"CRASH_LESS_THAN_HOUR", nil);
-        } else {
-            string = [NSString stringWithFormat:NSLocalizedString(@"CRASH_LESS_THAN_HOURS", nil), (unsigned)ceil(interval / 3600.0)];
-        }
-        isRecent = YES;
-    } else {
-        string = [dateFormatter_ stringFromDate:logDate];
-    }
-    [cell setLatestCrashDate:string];
-    [cell setRecent:isRecent];
-
-    // Number of unviewed logs and total logs.
-    const unsigned long totalCount = [crashLogs count];
-    unsigned long unviewedCount = 0;
-    for (CrashLog *crashLog in crashLogs) {
-        if (![crashLog isViewed]) {
-            ++unviewedCount;
-        }
-    }
-    cell.detailTextLabel.text = [NSString stringWithFormat:@"%lu/%lu", unviewedCount, totalCount];
-
-    return cell;
-}
-
 #pragma mark - Delegate (UITableViewDelegate)
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     NSArray *crashLogGroups = [self crashLogGroupsForSection:indexPath.section];
-    CrashLogGroup *group = [crashLogGroups objectAtIndex:indexPath.row];
-
-    VictimViewController *controller = [[VictimViewController alloc] initWithGroup:group];
-    [self.navigationController pushViewController:controller animated:YES];
-    [controller release];
-}
-
-- (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath*)indexPath {
-    NSArray *crashLogGroups = [self crashLogGroupsForSection:indexPath.section];
-    CrashLogGroup *group = [crashLogGroups objectAtIndex:indexPath.row];
-    if ([group delete]) {
-        [tableView deleteRowsAtIndexPaths:[NSArray arrayWithObject:indexPath] withRowAnimation:UITableViewRowAnimationLeft];
-    } else {
-        NSLog(@"ERROR: Failed to delete logs for group \"%@\".", [group name]);
+    if ([crashLogGroups count] > 0) {
+        CrashLogGroup *group = [crashLogGroups objectAtIndex:indexPath.row];
+        VictimViewController *controller = [[VictimViewController alloc] initWithGroup:group];
+        [self.navigationController pushViewController:controller animated:YES];
+        [controller release];
     }
 }
 
-- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
-    return [RootCell cellHeight];
+- (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath {
+    NSArray *crashLogGroups = [self crashLogGroupsForSection:indexPath.section];
+    if ([crashLogGroups count] > 0) {
+        CrashLogGroup *group = [crashLogGroups objectAtIndex:indexPath.row];
+        if ([group delete]) {
+            [tableView deleteRowsAtIndexPaths:[NSArray arrayWithObject:indexPath] withRowAnimation:UITableViewRowAnimationLeft];
+        } else {
+            NSLog(@"ERROR: Failed to delete logs for group \"%@\".", [group name]);
+        }
+    }
 }
 
 @end

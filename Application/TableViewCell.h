@@ -15,6 +15,7 @@
 @property(nonatomic, assign) BOOL showsTopSeparator;
 + (CGFloat)cellHeight;
 - (id)initWithReuseIdentifier:(NSString *)reuseIdentifier;
+- (void)configureWithObject:(id)object;
 @end
 
 /* vim: set ft=objc ff=unix sw=4 ts=4 tw=80 expandtab: */

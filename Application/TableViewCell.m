@@ -59,6 +59,11 @@
     [bottomSeparatorView_ setFrame:CGRectMake(0.0, size.height - separatorHeight, size.width, separatorHeight)];
 }
 
+#pragma mark - Configuration
+
+- (void)configureWithObject:(id)object {
+}
+
 #pragma mark - Properties
 
 - (BOOL)showsTopSeparator {

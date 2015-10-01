@@ -11,6 +11,8 @@
 
 #import "RootCell.h"
 
+#import "CrashLog.h"
+#import "CrashLogGroup.h"
 #import "UIImage+CrashReporter.h"
 #include "font-awesome.h"
 
@@ -57,6 +59,16 @@ static UIImage *crashDateImage$ = nil;
     return kContentInset.top + kContentInset.bottom + (kFontSizeName + 4.0) + kFontSizeCrashDate;
 }
 
++ (id)dateFormatter {
+    static NSDateFormatter *dateFormatter = nil;
+    if (dateFormatter == nil ) {
+        dateFormatter = [[NSDateFormatter alloc] init];
+        [dateFormatter setTimeStyle:NSDateFormatterMediumStyle];
+        [dateFormatter setDateStyle:NSDateFormatterShortStyle];
+    }
+    return dateFormatter;
+}
+
 - (id)initWithReuseIdentifier:(NSString *)reuseIdentifier {
     self = [super initWithReuseIdentifier:reuseIdentifier];
     if (self != nil) {
@@ -98,8 +110,6 @@ static UIImage *crashDateImage$ = nil;
     [super dealloc];
 }
 
-#pragma mark - View (Layout)
-
 - (void)layoutSubviews {
     [super layoutSubviews];
 
@@ -138,6 +148,45 @@ static UIImage *crashDateImage$ = nil;
     }
     [latestCrashDateImageView_ setFrame:latestCrashDateImageViewFrame];
     [latestCrashDateLabel_ setFrame:latestCrashDateLabelFrame];
+}
+
+- (void)configureWithObject:(id)object {
+    NSAssert([object isKindOfClass:[CrashLogGroup class]], @"ERROR: Incorrect class type: Expected CrashLogGroup, received %@.", [object class]);
+
+    CrashLogGroup *group = object;
+    NSArray *crashLogs = [group crashLogs];
+    CrashLog *crashLog = [crashLogs objectAtIndex:0];
+
+    // Name of crashed process.
+    [self setName:group.name];
+
+    // Date of latest crash.
+    NSString *string = nil;
+    BOOL isRecent = NO;
+    NSDate *logDate = [crashLog logDate];
+    NSTimeInterval interval = [[NSDate date] timeIntervalSinceDate:logDate];
+    if (interval < 86400.0) {
+        if (interval < 3600.0) {
+            string = NSLocalizedString(@"CRASH_LESS_THAN_HOUR", nil);
+        } else {
+            string = [NSString stringWithFormat:NSLocalizedString(@"CRASH_LESS_THAN_HOURS", nil), (unsigned)ceil(interval / 3600.0)];
+        }
+        isRecent = YES;
+    } else {
+        string = [[[self class] dateFormatter] stringFromDate:logDate];
+    }
+    [self setLatestCrashDate:string];
+    [self setRecent:isRecent];
+
+    // Number of unviewed logs and total logs.
+    const unsigned long totalCount = [crashLogs count];
+    unsigned long unviewedCount = 0;
+    for (CrashLog *crashLog in crashLogs) {
+        if (![crashLog isViewed]) {
+            ++unviewedCount;
+        }
+    }
+    self.detailTextLabel.text = [NSString stringWithFormat:@"%lu/%lu", unviewedCount, totalCount];
 }
 
 #pragma mark - Properties

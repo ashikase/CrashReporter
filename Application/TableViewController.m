@@ -13,6 +13,7 @@
 
 #import <TechSupport/TechSupport.h>
 #import "SectionHeaderView.h"
+#import "TableViewCell.h"
 
 extern NSString * const kNotificationCrashLogsChanged;
 
@@ -23,6 +24,10 @@ extern NSString * const kNotificationCrashLogsChanged;
 @implementation TableViewController
 
 @synthesize tableView = tableView_;
+
++ (Class)cellClass {
+    return nil;
+}
 
 - (void)dealloc {
     [[NSNotificationCenter defaultCenter] removeObserver:self];
@@ -130,37 +135,54 @@ extern NSString * const kNotificationCrashLogsChanged;
 
 #pragma mark - Other
 
+- (NSArray *)arrayForSection:(NSInteger)section {
+    return nil;
+}
+
 - (NSString *)titleForEmptyCell {
     return @"NONE";
+}
+
+- (NSString *)titleForHeaderInSection:(NSInteger)section {
+    return nil;
 }
 
 #pragma mark - Delegate (UITableViewDataSource)
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-    return 0;
+    NSArray *array = [self arrayForSection:section];
+    return [array count] ?: 1;
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
-    NSString * const reuseIdentifier = @"EmptyCell";
-    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:reuseIdentifier];
-    if (cell == nil) {
-        cell = [[[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:reuseIdentifier] autorelease];
-        cell.backgroundColor = [UIColor clearColor];
-        cell.selectionStyle = UITableViewCellSelectionStyleNone;
+    NSArray *array = [self arrayForSection:indexPath.section];
+    if ([array count] > 0) {
+        Class klass = [[self class] cellClass];
+        NSString *reuseIdentifier = NSStringFromClass(klass);
+        TableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:reuseIdentifier];
+        if (cell == nil) {
+            cell = [[[klass alloc] initWithReuseIdentifier:reuseIdentifier] autorelease];
+        }
+        [cell configureWithObject:[array objectAtIndex:indexPath.row]];
+        return cell;
+    } else {
+        NSString * const reuseIdentifier = @"EmptyCell";
+        UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:reuseIdentifier];
+        if (cell == nil) {
+            cell = [[[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:reuseIdentifier] autorelease];
+            cell.backgroundColor = [UIColor clearColor];
+            cell.selectionStyle = UITableViewCellSelectionStyleNone;
 
-        UILabel *label = cell.textLabel;
-        label.font = [UIFont boldSystemFontOfSize:15.0];
-        label.textColor = [UIColor colorWithRed:(109.0 / 255.0) green:(109.0 / 255.0) blue:(114.0 / 255.0) alpha:1.0];
-        label.text = NSLocalizedString([self titleForEmptyCell], nil);
+            UILabel *label = cell.textLabel;
+            label.font = [UIFont boldSystemFontOfSize:15.0];
+            label.textColor = [UIColor colorWithRed:(109.0 / 255.0) green:(109.0 / 255.0) blue:(114.0 / 255.0) alpha:1.0];
+            label.text = NSLocalizedString([self titleForEmptyCell], nil);
+        }
+        return cell;
     }
-    return cell;
 }
 
 #pragma mark - Delegate (UITableViewDelegate)
-
-- (NSString *)titleForHeaderInSection:(NSInteger)section {
-    return nil;
-}
 
 - (UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section {
     SectionHeaderView *headerView = [[SectionHeaderView alloc] initWithDefaultSize];
@@ -177,6 +199,25 @@ extern NSString * const kNotificationCrashLogsChanged;
 
 - (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {
     return [SectionHeaderView defaultHeight];
+}
+
+- (UITableViewCellEditingStyle)tableView:(UITableView *)tableView editingStyleForRowAtIndexPath:(NSIndexPath *)indexPath {
+    NSArray *array = [self arrayForSection:indexPath.section];
+    if ([array count] > 0) {
+        return UITableViewCellEditingStyleDelete;
+    } else {
+        return UITableViewCellEditingStyleNone;
+    }
+}
+
+- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
+    NSArray *array = [self arrayForSection:indexPath.section];
+    if ([array count] > 0) {
+        return [[[self class] cellClass] cellHeight];
+    } else {
+        // Height for "EmptyCell".
+        return 30.0;
+    }
 }
 
 @end
