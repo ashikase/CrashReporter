@@ -16,7 +16,7 @@
 
 extern NSString * const kNotificationCrashLogsChanged;
 
-@interface TableViewController () <UITableViewDataSource, UITableViewDelegate>
+@interface TableViewController ()
 @property (nonatomic, retain) UITableView *tableView;
 @end
 
@@ -128,6 +128,12 @@ extern NSString * const kNotificationCrashLogsChanged;
     [self presentHelpForName:name];
 }
 
+#pragma mark - Other
+
+- (NSString *)titleForEmptyCell {
+    return @"NONE";
+}
+
 #pragma mark - Delegate (UITableViewDataSource)
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
@@ -135,7 +141,19 @@ extern NSString * const kNotificationCrashLogsChanged;
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
-    return nil;
+    NSString * const reuseIdentifier = @"EmptyCell";
+    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:reuseIdentifier];
+    if (cell == nil) {
+        cell = [[[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:reuseIdentifier] autorelease];
+        cell.backgroundColor = [UIColor clearColor];
+        cell.selectionStyle = UITableViewCellSelectionStyleNone;
+
+        UILabel *label = cell.textLabel;
+        label.font = [UIFont boldSystemFontOfSize:15.0];
+        label.textColor = [UIColor colorWithRed:(109.0 / 255.0) green:(109.0 / 255.0) blue:(114.0 / 255.0) alpha:1.0];
+        label.text = NSLocalizedString([self titleForEmptyCell], nil);
+    }
+    return cell;
 }
 
 #pragma mark - Delegate (UITableViewDelegate)

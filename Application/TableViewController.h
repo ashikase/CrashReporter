@@ -11,7 +11,7 @@
 
 #import <UIKit/UIKit.h>
 
-@interface TableViewController : UIViewController
+@interface TableViewController : UIViewController <UITableViewDataSource, UITableViewDelegate>
 @property (nonatomic, readonly) UITableView *tableView;
 @property (nonatomic, assign) BOOL supportsRefreshControl;
 - (void)presentHelpForName:(NSString *)name;
