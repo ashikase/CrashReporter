@@ -115,17 +115,14 @@ extern NSString * const kNotificationCrashLogsChanged;
 #pragma mark - Help
 
 - (void)presentHelpForName:(NSString *)name {
-    NSString *path = [[NSBundle mainBundle] pathForResource:name ofType:@"html" inDirectory:@"Documentation"];
-    NSError *error = nil;
-    NSString *content = [[NSString alloc] initWithContentsOfFile:path encoding:NSUTF8StringEncoding error:&error];
-    if (content != nil) {
-        TSHTMLViewController *controller = [[TSHTMLViewController alloc] initWithHTMLContent:content];
+    NSURL *url = [[NSBundle mainBundle] URLForResource:name withExtension:@"html" subdirectory:@"Documentation"];
+    if (url != nil) {
+        TSHTMLViewController *controller = [[TSHTMLViewController alloc] initWithURL:url];
         controller.title = NSLocalizedString(name, nil);
         [self.navigationController pushViewController:controller animated:YES];
         [controller release];
-        [content release];
     } else {
-        NSLog(@"ERROR: Unable to read contents of file \"%@\": %@", path, [error localizedDescription]);
+        NSLog(@"ERROR: Unable to obtain URL for help file \"%@\".", name);
     }
 }
 
