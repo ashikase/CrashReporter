@@ -507,25 +507,19 @@ static UIButton *menuButton(NSUInteger position, CGRect frame, UIImage *backgrou
     }
 }
 
-#pragma mark - Other
+#pragma mark - Overrides (TableViewController)
 
-- (NSArray *)arrayForSection:(NSInteger)section {
-    return [self crashLogGroupsForSection:section];
++ (Class)cellClass {
+    return [RootCell class];
 }
 
-- (NSArray *)crashLogGroupsForSection:(NSUInteger)section {
+- (NSArray *)arrayForSection:(NSInteger)section {
     switch (section) {
         case 0: return [CrashLogGroup groupsForType:CrashLogGroupTypeApp];
         case 1: return [CrashLogGroup groupsForType:CrashLogGroupTypeAppExtension];
         case 2: return [CrashLogGroup groupsForType:CrashLogGroupTypeService];
         default: return nil;
     }
-}
-
-#pragma mark - Overrides (TableViewController)
-
-+ (Class)cellClass {
-    return [RootCell class];
 }
 
 - (void)refresh:(id)sender {
@@ -655,9 +649,9 @@ static UIButton *menuButton(NSUInteger position, CGRect frame, UIImage *backgrou
 #pragma mark - Delegate (UITableViewDelegate)
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
-    NSArray *crashLogGroups = [self crashLogGroupsForSection:indexPath.section];
-    if ([crashLogGroups count] > 0) {
-        CrashLogGroup *group = [crashLogGroups objectAtIndex:indexPath.row];
+    NSArray *array = [self arrayForSection:indexPath.section];
+    if ([array count] > 0) {
+        CrashLogGroup *group = [array objectAtIndex:indexPath.row];
         VictimViewController *controller = [[VictimViewController alloc] initWithGroup:group];
         [self.navigationController pushViewController:controller animated:YES];
         [controller release];
@@ -665,11 +659,17 @@ static UIButton *menuButton(NSUInteger position, CGRect frame, UIImage *backgrou
 }
 
 - (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath {
-    NSArray *crashLogGroups = [self crashLogGroupsForSection:indexPath.section];
-    if ([crashLogGroups count] > 0) {
-        CrashLogGroup *group = [crashLogGroups objectAtIndex:indexPath.row];
+    NSArray *array = [self arrayForSection:indexPath.section];
+    const NSUInteger count = [array count];
+    if (count > 0) {
+        CrashLogGroup *group = [array objectAtIndex:indexPath.row];
         if ([group delete]) {
-            [tableView deleteRowsAtIndexPaths:[NSArray arrayWithObject:indexPath] withRowAnimation:UITableViewRowAnimationLeft];
+            NSArray *indexPaths = [NSArray arrayWithObject:indexPath];
+            if (count == 1) {
+                [tableView reloadRowsAtIndexPaths:indexPaths withRowAnimation:UITableViewRowAnimationLeft];
+            } else {
+                [tableView deleteRowsAtIndexPaths:indexPaths withRowAnimation:UITableViewRowAnimationLeft];
+            }
         } else {
             NSLog(@"ERROR: Failed to delete logs for group \"%@\".", [group name]);
         }
