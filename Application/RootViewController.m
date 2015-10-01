@@ -533,9 +533,9 @@ static UIButton *menuButton(NSUInteger position, CGRect frame, UIImage *backgrou
 
 - (NSString *)titleForHeaderInSection:(NSInteger)section {
     switch (section) {
-        case 0: return @"Apps";
-        case 1: return @"App Extensions";
-        case 2: return @"Services (Daemons, etc.)";
+        case 0: return @"APPS";
+        case 1: return @"APP_EXTENSIONS";
+        case 2: return @"SERVICES";
         default: return nil;
     }
 }
