@@ -17,7 +17,7 @@
 }
 
 + (CGFloat)cellHeight {
-    return 30.0;
+    return 0.0;
 }
 
 - (id)initWithReuseIdentifier:(NSString *)reuseIdentifier {
