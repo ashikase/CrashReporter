@@ -151,20 +151,42 @@
 
 #pragma mark - Other
 
-- (CRBinaryImage *)binaryImageForIndexPath:(NSIndexPath *)indexPath {
-    CRBinaryImage *binaryImage = nil;
+- (NSArray *)arrayForSection:(NSInteger)section {
+    return [self binaryImagesForSection:section];
+}
 
-    const NSUInteger section = [indexPath section];
-    if (section == 0) {
-        binaryImage = [crashLog_ victim];
-    } else if (section == 3) {
-        binaryImage = [[crashLog_ potentialSuspects] objectAtIndex:indexPath.row];
-    } else {
-        const NSUInteger index = (section == 1) ? 0 : (indexPath.row + 1);
-        binaryImage = [[crashLog_ suspects] objectAtIndex:index];
+- (NSArray *)binaryImagesForSection:(NSInteger)section {
+    NSArray *array = nil;
+
+    switch (section) {
+        case 0: {
+            CRBinaryImage *victim = [crashLog_ victim];
+            if (victim != nil) {
+                array = [NSArray arrayWithObject:victim];
+            }
+        }   break;
+        case 1: {
+            NSArray *suspects = [crashLog_ suspects];
+            const NSUInteger count = [suspects count];
+            if (count > 0) {
+                array = [suspects subarrayWithRange:NSMakeRange(0, 1)];
+            }
+        }   break;
+        case 2: {
+            NSArray *suspects = [crashLog_ suspects];
+            const NSUInteger count = [suspects count];
+            if (count > 1) {
+                array = [suspects subarrayWithRange:NSMakeRange(1, count - 1)];
+            }
+        }   break;
+        case 3:
+            array = [crashLog_ potentialSuspects];
+            break;
+        default:
+            break;
     }
 
-    return binaryImage;
+    return array;
 }
 
 - (void)load {
@@ -233,6 +255,10 @@ static NSString *createIncludeLineForFilepath(NSString *filepath, NSString *name
 }
 
 #pragma mark - Overrides (TableViewController)
+
++ (Class)cellClass {
+    return [BinaryImageCell class];
+}
 
 - (NSString *)titleForHeaderInSection:(NSInteger)section {
     switch (section) {
@@ -388,126 +414,72 @@ static NSString *createIncludeLineForFilepath(NSString *filepath, NSString *name
     return 4;
 }
 
-- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-    if (section == 0) {
-        return 1;
-    } else if (section == 3) {
-        return [[crashLog_ potentialSuspects] count];
-    } else {
-        const NSUInteger count = [[crashLog_ suspects] count];
-        if (count > 0) {
-            return (section == 1) ? 1 : (count - 1);
-        } else {
-            return 0;
-        }
-    }
-}
-
-- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
-    NSString * const reuseIdentifier = @"BinaryImageCell";
-
-    BinaryImageCell *cell = [tableView dequeueReusableCellWithIdentifier:reuseIdentifier];
-    if (cell == nil) {
-        cell = [[[BinaryImageCell alloc] initWithReuseIdentifier:reuseIdentifier] autorelease];
-    }
-
-    CRBinaryImage *binaryImage = [self binaryImageForIndexPath:indexPath];
-    NSString *text = [[binaryImage path] lastPathComponent];
-    [cell setName:text];
-
-    PIPackage *package = [binaryImage package];
-    if (package != nil) {
-        NSString *string = nil;
-        BOOL isRecent = NO;
-        NSDate *installDate = [package installDate];
-        const NSTimeInterval interval = [[crashLog_ logDate] timeIntervalSinceDate:installDate];
-        if (interval < 86400.0) {
-            if (interval < 3600.0) {
-                string = NSLocalizedString(@"LESS_THAN_HOUR", nil);
-            } else {
-                string = [NSString stringWithFormat:NSLocalizedString(@"LESS_THAN_HOURS", nil), (unsigned)ceil(interval / 3600.0)];
-            }
-            isRecent = YES;
-        } else {
-            string = [dateFormatter_ stringFromDate:installDate];
-        }
-        [cell setPackageInstallDate:string];
-        [cell setRecent:isRecent];
-
-        [cell setPackageName:[NSString stringWithFormat:@"%@ (v%@)", [package name] , [package version]]];
-        [cell setPackageIdentifier:[package identifier]];
-        [cell setPackageType:([package isKindOfClass:[PIApplePackage class]] ?
-                BinaryImageCellPackageTypeApple : BinaryImageCellPackageTypeDebian)];
-    } else {
-        [cell setPackageName:nil];
-        [cell setPackageIdentifier:nil];
-        [cell setPackageInstallDate:nil];
-        [cell setPackageType:BinaryImageCellPackageTypeUnknown];
-    }
-
-    cell.showsTopSeparator = (indexPath.row == 0);
-
-    return cell;
-}
-
 #pragma mark - Delegate (UITableViewDelegate)
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     // Get package for selected row.
-    CRBinaryImage *binaryImage = [self binaryImageForIndexPath:indexPath];
-    NSString *filepath = [binaryImage path];
-    TSPackage *package = [[PackageCache sharedInstance] packageForFile:filepath];
+    NSArray *binaryImages = [self binaryImagesForSection:indexPath.section];
+    if ([binaryImages count] > 0) {
+        CRBinaryImage *binaryImage = [binaryImages objectAtIndex:indexPath.row];
+        NSString *filepath = [binaryImage path];
+        TSPackage *package = [[PackageCache sharedInstance] packageForFile:filepath];
 
-    // Determine links for the given package.
-    NSMutableArray *linkInstructions = [[NSMutableArray alloc] init];
+        // Determine links for the given package.
+        NSMutableArray *linkInstructions = [[NSMutableArray alloc] init];
 
-    // Add a link to contact the author of the package.
-    TSLinkInstruction *instruction = [package supportLink];
-    if (instruction != nil) {
-        [linkInstructions addObject:instruction];
+        // Add a link to contact the author of the package.
+        TSLinkInstruction *instruction = [package supportLink];
+        if (instruction != nil) {
+            [linkInstructions addObject:instruction];
+        }
+
+        // Add a link to the package's depiction in the store that it came from.
+        instruction = [package storeLink];
+        if (instruction != nil) {
+            [linkInstructions addObject:instruction];
+        }
+
+        // Add an email link to send to an arbitrary address.
+        NSString *string = [NSString stringWithFormat:@"link email \"\" as \"%@\" is_support", NSLocalizedString(@"FORWARD_TO", nil)];
+        instruction = [TSLinkInstruction instructionWithString:string];
+        if (instruction != nil) {
+            [linkInstructions addObject:instruction];
+        }
+
+        // Add optional links provided by package (link to FAQ, Known Issues, etc).
+        [linkInstructions addObjectsFromArray:[package otherLinks]];
+
+        // Present choices.
+        NSString *message = (package == nil) ? NSLocalizedString(@"PACKAGE_FAILED_1", nil) : nil;
+        NSString *cancelTitle = NSLocalizedString(@"CANCEL", nil);
+        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:package.name message:message delegate:self
+                                              cancelButtonTitle:cancelTitle otherButtonTitles:nil];
+        for (TSLinkInstruction *linkInstruction in linkInstructions) {
+            [alert addButtonWithTitle:[linkInstruction title]];
+        }
+        [alert addButtonWithTitle:@"Notifications..."];
+        [alert setNumberOfRows:(2 + [linkInstructions count])];
+        [alert show];
+        [alert release];
+
+        lastSelectedIndexPath_ = [indexPath retain];
+        lastSelectedLinkInstructions_ = [linkInstructions retain];
+        lastSelectedPackage_ = [package retain];
+        lastSelectedPath_ = [filepath retain];
+
+        [tableView deselectRowAtIndexPath:[tableView indexPathForSelectedRow] animated:YES];
     }
-
-    // Add a link to the package's depiction in the store that it came from.
-    instruction = [package storeLink];
-    if (instruction != nil) {
-        [linkInstructions addObject:instruction];
-    }
-
-    // Add an email link to send to an arbitrary address.
-    NSString *string = [NSString stringWithFormat:@"link email \"\" as \"%@\" is_support", NSLocalizedString(@"FORWARD_TO", nil)];
-    instruction = [TSLinkInstruction instructionWithString:string];
-    if (instruction != nil) {
-        [linkInstructions addObject:instruction];
-    }
-
-    // Add optional links provided by package (link to FAQ, Known Issues, etc).
-    [linkInstructions addObjectsFromArray:[package otherLinks]];
-
-    // Present choices.
-    NSString *message = (package == nil) ? NSLocalizedString(@"PACKAGE_FAILED_1", nil) : nil;
-    NSString *cancelTitle = NSLocalizedString(@"CANCEL", nil);
-    UIAlertView *alert = [[UIAlertView alloc] initWithTitle:package.name message:message delegate:self
-        cancelButtonTitle:cancelTitle otherButtonTitles:nil];
-    for (TSLinkInstruction *linkInstruction in linkInstructions) {
-        [alert addButtonWithTitle:[linkInstruction title]];
-    }
-    [alert addButtonWithTitle:@"Notifications..."];
-    [alert setNumberOfRows:(2 + [linkInstructions count])];
-    [alert show];
-    [alert release];
-
-    lastSelectedIndexPath_ = [indexPath retain];
-    lastSelectedLinkInstructions_ = [linkInstructions retain];
-    lastSelectedPackage_ = [package retain];
-    lastSelectedPath_ = [filepath retain];
-
-    [tableView deselectRowAtIndexPath:[tableView indexPathForSelectedRow] animated:YES];
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
-    CRBinaryImage *binaryImage = [self binaryImageForIndexPath:indexPath];
-    PIPackage *package = [binaryImage package];
-    return [BinaryImageCell heightForPackageRowCount:((package != nil) ? 3 : 0)];
+    NSArray *binaryImages = [self binaryImagesForSection:indexPath.section];
+    if ([binaryImages count] > 0) {
+        CRBinaryImage *binaryImage = [binaryImages objectAtIndex:indexPath.row];
+        PIPackage *package = [binaryImage package];
+        return [BinaryImageCell heightForPackageRowCount:((package != nil) ? 3 : 0)];
+    } else {
+        return [super tableView:tableView heightForRowAtIndexPath:indexPath];
+    }
 }
 
 @end

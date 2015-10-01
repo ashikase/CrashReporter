@@ -163,6 +163,7 @@ extern NSString * const kNotificationCrashLogsChanged;
         if (cell == nil) {
             cell = [[[klass alloc] initWithReuseIdentifier:reuseIdentifier] autorelease];
         }
+        cell.showsTopSeparator = (indexPath.row == 0);
         [cell configureWithObject:[array objectAtIndex:indexPath.row]];
         return cell;
     } else {

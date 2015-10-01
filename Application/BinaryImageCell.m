@@ -11,6 +11,8 @@
 
 #import "BinaryImageCell.h"
 
+#import <libcrashreport/libcrashreport.h>
+#import <libpackageinfo/libpackageinfo.h>
 #import "UIImage+CrashReporter.h"
 #include "font-awesome.h"
 
@@ -132,8 +134,6 @@ static UIImage *installDateImage$ = nil;
     [super dealloc];
 }
 
-#pragma mark - View (Layout)
-
 - (void)layoutSubviews {
     [super layoutSubviews];
 
@@ -209,6 +209,45 @@ static UIImage *installDateImage$ = nil;
     }
     [packageInstallDateImageView_ setFrame:packageInstallDateImageViewFrame];
     [packageInstallDateLabel_ setFrame:packageInstallDateLabelFrame];
+}
+
+- (void)configureWithObject:(id)object {
+    NSAssert([object isKindOfClass:[CRBinaryImage class]], @"ERROR: Incorrect class type: Expected CRBinaryImage, received %@.", [object class]);
+
+    CRBinaryImage *binaryImage = object;
+    NSString *text = [[binaryImage path] lastPathComponent];
+    [self setName:text];
+
+    PIPackage *package = [binaryImage package];
+    if (package != nil) {
+        NSString *string = nil;
+        BOOL isRecent = NO;
+        NSDate *installDate = [package installDate];
+        //const NSTimeInterval interval = [[crashLog_ logDate] timeIntervalSinceDate:installDate];
+        const NSTimeInterval interval = 0.0;
+        if (interval < 86400.0) {
+            if (interval < 3600.0) {
+                string = NSLocalizedString(@"LESS_THAN_HOUR", nil);
+            } else {
+                string = [NSString stringWithFormat:NSLocalizedString(@"LESS_THAN_HOURS", nil), (unsigned)ceil(interval / 3600.0)];
+            }
+            isRecent = YES;
+        } else {
+            string = [[[self class] dateFormatter] stringFromDate:installDate];
+        }
+        [self setPackageInstallDate:string];
+        [self setRecent:isRecent];
+
+        [self setPackageName:[NSString stringWithFormat:@"%@ (v%@)", [package name] , [package version]]];
+        [self setPackageIdentifier:[package identifier]];
+        [self setPackageType:([package isKindOfClass:[PIApplePackage class]] ?
+                BinaryImageCellPackageTypeApple : BinaryImageCellPackageTypeDebian)];
+    } else {
+        [self setPackageName:nil];
+        [self setPackageIdentifier:nil];
+        [self setPackageInstallDate:nil];
+        [self setPackageType:BinaryImageCellPackageTypeUnknown];
+    }
 }
 
 #pragma mark - Properties
