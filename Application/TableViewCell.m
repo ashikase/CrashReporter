@@ -16,6 +16,9 @@
     UIView *bottomSeparatorView_;
 }
 
+@synthesize referenceDate = referenceDate_;
+@dynamic showsTopSeparator;
+
 + (CGFloat)cellHeight {
     return 0.0;
 }
@@ -51,6 +54,7 @@
 }
 
 - (void)dealloc {
+    [referenceDate_ release];
     [topSeparatorView_ release];
     [bottomSeparatorView_ release];
     [super dealloc];

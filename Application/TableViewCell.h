@@ -12,6 +12,7 @@
 #import <UIKit/UIKit.h>
 
 @interface TableViewCell : UITableViewCell
+@property(nonatomic, retain) NSDate *referenceDate;
 @property(nonatomic, assign) BOOL showsTopSeparator;
 + (CGFloat)cellHeight;
 + (NSDateFormatter *)dateFormatter;

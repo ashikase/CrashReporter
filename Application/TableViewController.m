@@ -139,6 +139,10 @@ extern NSString * const kNotificationCrashLogsChanged;
     return nil;
 }
 
+- (NSDate *)referenceDate {
+    return nil;
+}
+
 - (NSString *)titleForEmptyCell {
     return @"NONE";
 }
@@ -163,6 +167,7 @@ extern NSString * const kNotificationCrashLogsChanged;
         if (cell == nil) {
             cell = [[[klass alloc] initWithReuseIdentifier:reuseIdentifier] autorelease];
         }
+        cell.referenceDate = [self referenceDate];
         cell.showsTopSeparator = (indexPath.row == 0);
         [cell configureWithObject:[array objectAtIndex:indexPath.row]];
         return cell;

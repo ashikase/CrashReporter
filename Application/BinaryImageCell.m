@@ -223,8 +223,7 @@ static UIImage *installDateImage$ = nil;
         NSString *string = nil;
         BOOL isRecent = NO;
         NSDate *installDate = [package installDate];
-        //const NSTimeInterval interval = [[crashLog_ logDate] timeIntervalSinceDate:installDate];
-        const NSTimeInterval interval = 0.0;
+        const NSTimeInterval interval = [[self referenceDate] timeIntervalSinceDate:installDate];
         if (interval < 86400.0) {
             if (interval < 3600.0) {
                 string = NSLocalizedString(@"LESS_THAN_HOUR", nil);

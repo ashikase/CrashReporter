@@ -260,6 +260,10 @@ static NSString *createIncludeLineForFilepath(NSString *filepath, NSString *name
     return [BinaryImageCell class];
 }
 
+- (NSDate *)referenceDate {
+    return [crashLog_ logDate];
+}
+
 - (NSString *)titleForHeaderInSection:(NSInteger)section {
     switch (section) {
         case 0: return @"CRASHED_PROCESS";
