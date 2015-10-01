@@ -59,6 +59,7 @@ extern NSString * const kNotificationCrashLogsChanged;
     tableView.backgroundColor = [UIColor colorWithRed:(239.0 / 255.0) green:(239.0 / 255.0) blue:(239.0 / 255.0) alpha:1.0];
     tableView.dataSource = self;
     tableView.delegate = self;
+    tableView.separatorStyle = UITableViewCellSeparatorStyleNone;
     self.tableView = tableView;
 
     // Add footer so that separators are not shown for "empty" cells.
