@@ -20,6 +20,16 @@
     return 0.0;
 }
 
++ (NSDateFormatter *)dateFormatter {
+    static NSDateFormatter *dateFormatter = nil;
+    if (dateFormatter == nil ) {
+        dateFormatter = [[NSDateFormatter alloc] init];
+        [dateFormatter setTimeStyle:NSDateFormatterMediumStyle];
+        [dateFormatter setDateStyle:NSDateFormatterShortStyle];
+    }
+    return dateFormatter;
+}
+
 - (id)initWithReuseIdentifier:(NSString *)reuseIdentifier {
     self = [super initWithStyle:UITableViewCellStyleValue1 reuseIdentifier:reuseIdentifier];
     if (self != nil) {

@@ -59,16 +59,6 @@ static UIImage *crashDateImage$ = nil;
     return kContentInset.top + kContentInset.bottom + (kFontSizeName + 4.0) + kFontSizeCrashDate;
 }
 
-+ (id)dateFormatter {
-    static NSDateFormatter *dateFormatter = nil;
-    if (dateFormatter == nil ) {
-        dateFormatter = [[NSDateFormatter alloc] init];
-        [dateFormatter setTimeStyle:NSDateFormatterMediumStyle];
-        [dateFormatter setDateStyle:NSDateFormatterShortStyle];
-    }
-    return dateFormatter;
-}
-
 - (id)initWithReuseIdentifier:(NSString *)reuseIdentifier {
     self = [super initWithReuseIdentifier:reuseIdentifier];
     if (self != nil) {

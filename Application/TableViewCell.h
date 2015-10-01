@@ -14,6 +14,7 @@
 @interface TableViewCell : UITableViewCell
 @property(nonatomic, assign) BOOL showsTopSeparator;
 + (CGFloat)cellHeight;
++ (NSDateFormatter *)dateFormatter;
 - (id)initWithReuseIdentifier:(NSString *)reuseIdentifier;
 - (void)configureWithObject:(id)object;
 @end
