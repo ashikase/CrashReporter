@@ -38,8 +38,6 @@ static UIImage *installDateImage$ = nil;
     UILabel *packageInstallDateLabel_;
     UIImageView *packageIdentifierImageView_;
     UIImageView *packageInstallDateImageView_;
-    UIView *topSeparatorView_;
-    UIView *bottomSeparatorView_;
 }
 
 @synthesize newer = newer_;
@@ -71,8 +69,10 @@ static UIImage *installDateImage$ = nil;
     return kContentInset.top + kContentInset.bottom + (kFontSizeName + 4.0) + (kFontSizePackage + 3.0) * rowCount;
 }
 
+#pragma mark - Overrides (TableViewCell)
+
 - (id)initWithReuseIdentifier:(NSString *)reuseIdentifier {
-    self = [super initWithStyle:UITableViewCellStyleDefault reuseIdentifier:reuseIdentifier];
+    self = [super initWithReuseIdentifier:reuseIdentifier];
     if (self != nil) {
         UIView *contentView = [self contentView];
 
@@ -118,20 +118,6 @@ static UIImage *installDateImage$ = nil;
         [imageView setImage:installDateImage$];
         [contentView addSubview:imageView];
         packageInstallDateImageView_ = imageView;
-
-        // Provide our own separator views for more control.
-        UIView *separatorView;
-
-        separatorView = [[UIView alloc] initWithFrame:CGRectZero];
-        separatorView.backgroundColor = [UIColor colorWithRed:(200.0 / 255.0) green:(199.0 / 255.0) blue:(204.0 / 255.0) alpha:1.0];
-        separatorView.hidden = YES;
-        [self addSubview:separatorView];
-        topSeparatorView_ = separatorView;
-
-        separatorView = [[UIView alloc] initWithFrame:CGRectZero];
-        separatorView.backgroundColor = [UIColor colorWithRed:(200.0 / 255.0) green:(199.0 / 255.0) blue:(204.0 / 255.0) alpha:1.0];
-        [self addSubview:separatorView];
-        bottomSeparatorView_ = separatorView;
     }
     return self;
 }
@@ -223,13 +209,6 @@ static UIImage *installDateImage$ = nil;
     }
     [packageInstallDateImageView_ setFrame:packageInstallDateImageViewFrame];
     [packageInstallDateLabel_ setFrame:packageInstallDateLabelFrame];
-
-    // Separators.
-    const CGFloat scale = [[UIScreen mainScreen] scale];
-    const CGFloat separatorHeight = 1.0 / scale;
-    const CGSize size = self.bounds.size;
-    [topSeparatorView_ setFrame:CGRectMake(0.0, 0.0, size.width, separatorHeight)];
-    [bottomSeparatorView_ setFrame:CGRectMake(0.0, size.height - separatorHeight, size.width, separatorHeight)];
 }
 
 #pragma mark - Properties
@@ -298,14 +277,6 @@ static UIImage *installDateImage$ = nil;
         fromUnofficialSource_ = fromUnofficialSource;
         [[self contentView] setBackgroundColor:(fromUnofficialSource_ ? kColorFromUnofficialSource : [UIColor whiteColor])];
     }
-}
-
-- (BOOL)showsTopSeparator {
-    return topSeparatorView_.hidden;
-}
-
-- (void)setShowsTopSeparator:(BOOL)shows {
-    topSeparatorView_.hidden = !shows;
 }
 
 @end

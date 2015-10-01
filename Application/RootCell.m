@@ -37,8 +37,6 @@ static UIImage *crashDateImage$ = nil;
 @synthesize recent = recent_;
 @synthesize fromUnofficialSource = fromUnofficialSource_;
 
-#pragma mark - Creation & Destruction
-
 + (void)initialize {
     [super initialize];
 
@@ -51,6 +49,8 @@ static UIImage *crashDateImage$ = nil;
     }
 }
 
+#pragma mark - Overrides (TableViewCell)
+
 + (CGFloat)cellHeight {
     // FIXME: The (+ x.0) values added to the font sizes are only valid for the
     //        current font sizes (18.0 and 12.0). Determine proper calculation.
@@ -58,7 +58,7 @@ static UIImage *crashDateImage$ = nil;
 }
 
 - (id)initWithReuseIdentifier:(NSString *)reuseIdentifier {
-    self = [super initWithStyle:UITableViewCellStyleValue1 reuseIdentifier:reuseIdentifier];
+    self = [super initWithReuseIdentifier:reuseIdentifier];
     if (self != nil) {
         self.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
 
