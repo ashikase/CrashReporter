@@ -14,19 +14,12 @@
 #import <libcrashreport/libcrashreport.h>
 #import <libpackageinfo/libpackageinfo.h>
 #import "TableViewCellLine.h"
-#import "UIImage+CrashReporter.h"
 #include "font-awesome.h"
 
 #define kColorInstallDate          [UIColor grayColor]
 #define kColorNewer                [UIColor lightGrayColor]
 #define kColorRecent               [UIColor redColor]
 #define kColorFromUnofficialSource [UIColor colorWithRed:0.8 green:0.2 blue:0.3 alpha:1.0]
-
-static const CGSize kLineImageSize = (CGSize){11.0, 15.0};
-
-static UIImage *appleImage$ = nil;
-static UIImage *debianImage$ = nil;
-static UIImage *installDateImage$ = nil;
 
 @implementation BinaryImageCell {
     TableViewCellLine *packageNameLine_;
@@ -43,18 +36,6 @@ static UIImage *installDateImage$ = nil;
 
 #pragma mark - Creation & Destruction
 
-+ (void)initialize {
-    if (self == [BinaryImageCell self]) {
-        // Create and cache icon font images.
-        UIFont *imageFont = [UIFont fontWithName:@"FontAwesome" size:11.0];
-        UIColor *imageColor = [UIColor blackColor];
-
-        appleImage$ = [[UIImage imageWithText:@kFontAwesomeApple font:imageFont color:imageColor imageSize:kLineImageSize] retain];
-        debianImage$ = [[UIImage imageWithText:@kFontAwesomeDropbox font:imageFont color:imageColor imageSize:kLineImageSize] retain];
-        installDateImage$ = [[UIImage imageWithText:@kFontAwesomeClockO font:imageFont color:imageColor imageSize:kLineImageSize] retain];
-    }
-}
-
 + (CGFloat)heightForPackageRowCount:(NSUInteger)rowCount {
     // FIXME: The (+ x.0) values added to the font sizes are only valid for the
     //        current font sizes (18.0 and 12.0). Determine proper calculation.
@@ -69,7 +50,7 @@ static UIImage *installDateImage$ = nil;
         packageNameLine_ = [[self addLine] retain];
         packageIdentifierLine_ = [[self addLine] retain];
         packageInstallDateLine_ = [[self addLine] retain];
-        packageInstallDateLine_.imageView.image = installDateImage$;
+        packageInstallDateLine_.iconLabel.text = @kFontAwesomeClockO;
     }
     return self;
 }
@@ -140,13 +121,13 @@ static UIImage *installDateImage$ = nil;
     if (packageType_ != packageType) {
         packageType_ = packageType;
 
-        UIImage *image = nil;
+        NSString *text = nil;
         switch (packageType_) {
-            case BinaryImageCellPackageTypeApple: image = appleImage$; break;
-            case BinaryImageCellPackageTypeDebian: image = debianImage$; break;
+            case BinaryImageCellPackageTypeApple: text = @kFontAwesomeApple; break;
+            case BinaryImageCellPackageTypeDebian: text = @kFontAwesomeDropbox; break;
             default: break;
         }
-        [packageIdentifierLine_.imageView setImage:image];
+        packageIdentifierLine_.iconLabel.text = text;
         [self setNeedsLayout];
     }
 }

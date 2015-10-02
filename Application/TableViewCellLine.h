@@ -12,7 +12,7 @@
 #import <UIKit/UIKit.h>
 
 @interface TableViewCellLine : UIView
-@property(nonatomic, readonly) UIImageView *imageView;
+@property(nonatomic, readonly) UILabel *iconLabel;
 @property(nonatomic, readonly) UILabel *label;
 + (CGFloat)defaultHeight;
 @end

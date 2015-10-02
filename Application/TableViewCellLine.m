@@ -11,17 +11,19 @@
 
 #import "TableViewCellLine.h"
 
+#define kColorIconLabel [UIColor blackColor]
 #define kColorLabel [UIColor grayColor]
 
-static const CGFloat kFontSizeLine = 12.0;
+static const CGFloat kFontSizeIconLabel = 11.0;
+static const CGFloat kFontSizeLabel = 12.0;
 
 @implementation TableViewCellLine
 
-@synthesize imageView = imageView_;
+@synthesize iconLabel = iconLabel_;
 @synthesize label = label_;
 
 + (CGFloat)defaultHeight {
-    return kFontSizeLine + 4.0;
+    return kFontSizeLabel + 4.0;
 }
 
 - (instancetype)init {
@@ -29,15 +31,19 @@ static const CGFloat kFontSizeLine = 12.0;
     if (self != nil) {
         self.clipsToBounds = YES;
 
-        UIImageView *imageView;
-        imageView = [[UIImageView alloc] initWithFrame:CGRectZero];
-        [self addSubview:imageView];
-        imageView_ = imageView;
+        UILabel *label;
 
-        UILabel *label = [[UILabel alloc] initWithFrame:CGRectZero];
+        label = [[UILabel alloc] initWithFrame:CGRectZero];
+        label.font = [UIFont fontWithName:@"FontAwesome" size:kFontSizeIconLabel];
+        label.textAlignment = NSTextAlignmentCenter;
+        label.textColor = kColorIconLabel;
+        [self addSubview:label];
+        iconLabel_ = label;
+
+        label = [[UILabel alloc] initWithFrame:CGRectZero];
         label.autoresizingMask = UIViewAutoresizingFlexibleWidth;
         label.textColor = kColorLabel;
-        label.font = [UIFont systemFontOfSize:kFontSizeLine];
+        label.font = [UIFont systemFontOfSize:kFontSizeLabel];
         [self addSubview:label];
         label_ = label;
     }
@@ -45,7 +51,7 @@ static const CGFloat kFontSizeLine = 12.0;
 }
 
 - (void)dealloc {
-    [imageView_ release];
+    [iconLabel_ release];
     [label_ release];
     [super dealloc];
 }
@@ -55,14 +61,18 @@ static const CGFloat kFontSizeLine = 12.0;
 
     const CGSize size = self.bounds.size;
 
-    UIImageView *imageView = self.imageView;
-    [imageView sizeToFit];
-    CGRect imageViewFrame = imageView.frame;
-    imageViewFrame.origin.y = 0.5 * (size.height - imageViewFrame.size.height);
-    imageView.frame = imageViewFrame;
-
-    const CGFloat x = imageViewFrame.size.width + 2.0;
-    self.label.frame = CGRectMake(x, 0.0, size.width - x, size.height);
+    UILabel *iconLabel = self.iconLabel;
+    CGFloat iconLabelWidth;
+    CGFloat labelX;
+    if ([iconLabel.text length] > 0) {
+        iconLabelWidth = kFontSizeIconLabel;
+        labelX = iconLabelWidth + 3.0;
+    } else {
+        iconLabelWidth = 0.0;
+        labelX = 0.0;
+    }
+    iconLabel.frame = CGRectMake(0.0, 0.0, iconLabelWidth, size.height);
+    self.label.frame = CGRectMake(labelX, 0.0, size.width - labelX, size.height);
 }
 
 @end

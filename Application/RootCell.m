@@ -14,7 +14,6 @@
 #import "CrashLog.h"
 #import "CrashLogGroup.h"
 #import "TableViewCellLine.h"
-#import "UIImage+CrashReporter.h"
 #include "font-awesome.h"
 
 #define kColorCrashDate            [UIColor grayColor]
@@ -23,9 +22,6 @@
 #define kColorFromUnofficialSource [UIColor colorWithRed:0.8 green:0.2 blue:0.3 alpha:1.0]
 
 static const CGFloat kFontSizeCrashDate = 12.0;
-static const CGSize kLineImageSize = (CGSize){11.0, 15.0};
-
-static UIImage *crashDateImage$ = nil;
 
 @implementation RootCell {
     TableViewCellLine *latestCrashDateLine_;
@@ -35,16 +31,6 @@ static UIImage *crashDateImage$ = nil;
 @synthesize newer = newer_;
 @synthesize recent = recent_;
 @synthesize fromUnofficialSource = fromUnofficialSource_;
-
-+ (void)initialize {
-    if (self == [RootCell self]) {
-        // Create and cache icon font images.
-        UIFont *imageFont = [UIFont fontWithName:@"FontAwesome" size:11.0];
-        UIColor *imageColor = [UIColor blackColor];
-
-        crashDateImage$ = [[UIImage imageWithText:@kFontAwesomeClockO font:imageFont color:imageColor imageSize:kLineImageSize] retain];
-    }
-}
 
 #pragma mark - Overrides (TableViewCell)
 
@@ -60,7 +46,7 @@ static UIImage *crashDateImage$ = nil;
         self.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
 
         latestCrashDateLine_ = [[self addLine] retain];
-        latestCrashDateLine_.imageView.image = crashDateImage$;
+        latestCrashDateLine_.iconLabel.text = @kFontAwesomeClockO;
     }
     return self;
 }
