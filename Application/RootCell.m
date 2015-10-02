@@ -19,7 +19,6 @@
 #define kColorCrashDate            [UIColor grayColor]
 #define kColorNewer                [UIColor lightGrayColor]
 #define kColorRecent               [UIColor redColor]
-#define kColorFromUnofficialSource [UIColor colorWithRed:0.8 green:0.2 blue:0.3 alpha:1.0]
 
 static const CGFloat kFontSizeCrashDate = 12.0;
 
@@ -30,7 +29,6 @@ static const CGFloat kFontSizeCrashDate = 12.0;
 
 @synthesize newer = newer_;
 @synthesize recent = recent_;
-@synthesize fromUnofficialSource = fromUnofficialSource_;
 
 #pragma mark - Overrides (TableViewCell)
 
@@ -116,13 +114,6 @@ static const CGFloat kFontSizeCrashDate = 12.0;
     if (recent_ != recent) {
         recent_ = recent;
         [latestCrashDateLine_.label setTextColor:(recent_ ? kColorRecent : kColorCrashDate)];
-    }
-}
-
-- (void)setFromUnofficialSource:(BOOL)fromUnofficialSource {
-    if (fromUnofficialSource_ != fromUnofficialSource) {
-        fromUnofficialSource_ = fromUnofficialSource;
-        [[self contentView] setBackgroundColor:(fromUnofficialSource_ ? kColorFromUnofficialSource : [UIColor whiteColor])];
     }
 }
 

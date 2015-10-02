@@ -14,7 +14,6 @@
 @interface RootCell : TableViewCell
 @property(nonatomic, assign, getter = isNewer) BOOL newer;
 @property(nonatomic, assign, getter = isRecent) BOOL recent;
-@property(nonatomic, assign, getter = isFromUnofficialSource) BOOL fromUnofficialSource;
 - (void)setLatestCrashDate:(NSString *)date;
 @end
 

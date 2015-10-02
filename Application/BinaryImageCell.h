@@ -20,7 +20,6 @@ typedef enum : NSUInteger {
 @interface BinaryImageCell : TableViewCell
 @property(nonatomic, assign, getter = isNewer) BOOL newer;
 @property(nonatomic, assign, getter = isRecent) BOOL recent;
-@property(nonatomic, assign, getter = isFromUnofficialSource) BOOL fromUnofficialSource;
 @property(nonatomic, assign) BinaryImageCellPackageType packageType;
 + (CGFloat)heightForPackageRowCount:(NSUInteger)rowCount;
 - (void)setPackageName:(NSString *)packageName;

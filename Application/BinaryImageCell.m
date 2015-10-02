@@ -19,7 +19,6 @@
 #define kColorInstallDate          [UIColor grayColor]
 #define kColorNewer                [UIColor lightGrayColor]
 #define kColorRecent               [UIColor redColor]
-#define kColorFromUnofficialSource [UIColor colorWithRed:0.8 green:0.2 blue:0.3 alpha:1.0]
 
 @implementation BinaryImageCell {
     TableViewCellLine *packageNameLine_;
@@ -29,7 +28,6 @@
 
 @synthesize newer = newer_;
 @synthesize recent = recent_;
-@synthesize fromUnofficialSource = fromUnofficialSource_;
 @synthesize packageType = packageType_;
 
 @dynamic showsTopSeparator;
@@ -143,13 +141,6 @@
     if (recent_ != recent) {
         recent_ = recent;
         [packageInstallDateLine_.label setTextColor:(recent_ ? kColorRecent : kColorInstallDate)];
-    }
-}
-
-- (void)setFromUnofficialSource:(BOOL)fromUnofficialSource {
-    if (fromUnofficialSource_ != fromUnofficialSource) {
-        fromUnofficialSource_ = fromUnofficialSource;
-        [[self contentView] setBackgroundColor:(fromUnofficialSource_ ? kColorFromUnofficialSource : [UIColor whiteColor])];
     }
 }
 
