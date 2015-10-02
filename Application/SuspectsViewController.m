@@ -251,7 +251,7 @@ static NSString *createIncludeLineForFilepath(NSString *filepath, NSString *name
 }
 
 - (void)helpButtonTapped {
-    [self presentHelpForName:@"SUSPECTS"];
+    [self presentHelpForName:@"REPORT_OVERVIEW"];
 }
 
 #pragma mark - Overrides (TableViewController)
