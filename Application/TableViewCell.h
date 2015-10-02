@@ -11,13 +11,20 @@
 
 #import <UIKit/UIKit.h>
 
+@class TableViewCellLine;
+
 @interface TableViewCell : UITableViewCell
+@property(nonatomic, readonly) UILabel *nameLabel;
 @property(nonatomic, retain) NSDate *referenceDate;
 @property(nonatomic, assign) BOOL showsTopSeparator;
+@property(nonatomic, assign, getter = isViewed) BOOL viewed;
 + (CGFloat)cellHeight;
 + (NSDateFormatter *)dateFormatter;
 - (id)initWithReuseIdentifier:(NSString *)reuseIdentifier;
 - (void)configureWithObject:(id)object;
+- (void)setName:(NSString *)name;
+- (TableViewCellLine *)addLine;
+- (void)setText:(NSString *)text forLabel:(UILabel *)label;
 @end
 
 /* vim: set ft=objc ff=unix sw=4 ts=4 tw=80 expandtab: */

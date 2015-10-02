@@ -16,6 +16,7 @@ CrashReporter_FILES = \
 	SectionHeaderView.m \
     SuspectsViewController.m \
 	TableViewCell.m \
+	TableViewCellLine.m \
 	TableViewController.m \
     UIImage+CrashReporter.m \
     UITableView+CrashReporter.m \

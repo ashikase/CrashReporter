@@ -9,13 +9,12 @@
  * License: GPL v3 (See LICENSE file for details)
  */
 
-#import "TableViewCell.h"
+#import <UIKit/UIKit.h>
 
-@interface RootCell : TableViewCell
-@property(nonatomic, assign, getter = isNewer) BOOL newer;
-@property(nonatomic, assign, getter = isRecent) BOOL recent;
-@property(nonatomic, assign, getter = isFromUnofficialSource) BOOL fromUnofficialSource;
-- (void)setLatestCrashDate:(NSString *)date;
+@interface TableViewCellLine : UIView
+@property(nonatomic, readonly) UIImageView *imageView;
+@property(nonatomic, readonly) UILabel *label;
++ (CGFloat)defaultHeight;
 @end
 
 /* vim: set ft=objc ff=unix sw=4 ts=4 tw=80 expandtab: */

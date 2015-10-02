@@ -11,16 +11,29 @@
 
 #import "TableViewCell.h"
 
+#import "TableViewCellLine.h"
+
+#define kColorName   [UIColor blackColor]
+#define kColorViewed [UIColor grayColor]
+
+static const UIEdgeInsets kContentInset = (UIEdgeInsets){10.0, 15.0, 10.0, 15.0};
+static const CGFloat kFontSizeName = 18.0;
+
 @implementation TableViewCell {
+    UILabel *nameLabel_;
+    NSMutableArray *lines_;
     UIView *topSeparatorView_;
     UIView *bottomSeparatorView_;
 }
 
+@synthesize nameLabel = nameLabel_;
 @synthesize referenceDate = referenceDate_;
+@synthesize viewed = viewed_;
+
 @dynamic showsTopSeparator;
 
 + (CGFloat)cellHeight {
-    return 0.0;
+    return kContentInset.top + kContentInset.bottom + (kFontSizeName + 4.0);
 }
 
 + (NSDateFormatter *)dateFormatter {
@@ -36,6 +49,18 @@
 - (id)initWithReuseIdentifier:(NSString *)reuseIdentifier {
     self = [super initWithStyle:UITableViewCellStyleValue1 reuseIdentifier:reuseIdentifier];
     if (self != nil) {
+        UIView *contentView = [self contentView];
+
+        UIFont *font = [UIFont systemFontOfSize:kFontSizeName];
+        UILabel *label = [[UILabel alloc] initWithFrame:CGRectZero];
+        [label setAutoresizingMask:UIViewAutoresizingFlexibleWidth];
+        [label setTextColor:kColorName];
+        [label setFont:font];
+        [contentView addSubview:label];
+        nameLabel_ = label;
+
+        lines_ = [[NSMutableArray alloc] init];
+
         // Provide our own separator views for more control.
         UIView *separatorView;
 
@@ -55,15 +80,57 @@
 
 - (void)dealloc {
     [referenceDate_ release];
+    [nameLabel_ release];
+    [lines_ release];
     [topSeparatorView_ release];
     [bottomSeparatorView_ release];
     [super dealloc];
+}
+
+- (TableViewCellLine *)addLine {
+    TableViewCellLine *line = [[TableViewCellLine alloc] init];
+    [self addSubview:line];
+    [lines_ addObject:line];
+    return [line autorelease];
 }
 
 #pragma mark - View (Layout)
 
 - (void)layoutSubviews {
     [super layoutSubviews];
+
+    const CGSize contentSize = self.contentView.bounds.size;
+    const CGFloat maxWidth = contentSize.width - kContentInset.left - kContentInset.right;
+    CGSize maxSize = CGSizeMake(maxWidth, 10000.0);
+
+    // Name.
+    CGRect nameLabelFrame = CGRectZero;
+    if ([[nameLabel_ text] length] > 0) {
+        nameLabelFrame = [nameLabel_ frame];
+        nameLabelFrame.origin.x = kContentInset.left;
+        nameLabelFrame.origin.y = kContentInset.top;
+        nameLabelFrame.size = [nameLabel_ sizeThatFits:maxSize];
+    }
+    [nameLabel_ setFrame:nameLabelFrame];
+
+    // Lines.
+    const CGFloat lineHeight = [TableViewCellLine defaultHeight];
+
+    CGRect lineFrame = CGRectMake(
+            kContentInset.left + 2.0,
+            nameLabelFrame.origin.y + nameLabelFrame.size.height,
+            maxWidth - 2.0,
+            lineHeight
+            );
+
+    for (TableViewCellLine *line in lines_) {
+        if ([[line.label text] length] > 0) {
+            line.frame = lineFrame;
+            lineFrame.origin.y += lineHeight;
+        } else {
+            line.frame = CGRectZero;
+        }
+    }
 
     // Separators.
     const CGFloat scale = [[UIScreen mainScreen] scale];
@@ -78,6 +145,21 @@
 - (void)configureWithObject:(id)object {
 }
 
+- (void)setText:(NSString *)text forLabel:(UILabel *)label {
+    const NSUInteger oldLength = [[label text] length];
+    const NSUInteger newLength = [text length];
+
+    [label setText:text];
+
+    if (((oldLength == 0) && (newLength != 0)) || ((oldLength != 0) && (newLength == 0))) {
+        [self setNeedsLayout];
+    }
+}
+
+- (void)setName:(NSString *)name {
+    [self setText:name forLabel:nameLabel_];
+}
+
 #pragma mark - Properties
 
 - (BOOL)showsTopSeparator {
@@ -86,6 +168,13 @@
 
 - (void)setShowsTopSeparator:(BOOL)shows {
     topSeparatorView_.hidden = !shows;
+}
+
+- (void)setViewed:(BOOL)viewed {
+    if (viewed_ != viewed) {
+        viewed_ = viewed;
+        nameLabel_.textColor = viewed ? kColorViewed : kColorName;
+    }
 }
 
 @end

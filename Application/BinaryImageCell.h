@@ -23,7 +23,6 @@ typedef enum : NSUInteger {
 @property(nonatomic, assign, getter = isFromUnofficialSource) BOOL fromUnofficialSource;
 @property(nonatomic, assign) BinaryImageCellPackageType packageType;
 + (CGFloat)heightForPackageRowCount:(NSUInteger)rowCount;
-- (void)setName:(NSString *)name;
 - (void)setPackageName:(NSString *)packageName;
 - (void)setPackageIdentifier:(NSString *)packageIdentifier;
 - (void)setPackageInstallDate:(NSString *)packageInstallDate;
