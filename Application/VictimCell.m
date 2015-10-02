@@ -22,6 +22,15 @@ static const CGFloat kFontSizeName = 18.0;
     UILabel *nameLabel_;
 }
 
++ (NSDateFormatter *)timeFormatter {
+    static NSDateFormatter *formatter = nil;
+    if (formatter == nil) {
+        formatter = [[NSDateFormatter alloc] init];
+        [formatter setDateFormat:@"HH:mm:ss (yyyy MMM d)"];
+    }
+    return formatter;
+}
+
 #pragma mark - Overrides (TableViewCell)
 
 + (CGFloat)cellHeight {
@@ -79,10 +88,8 @@ static const CGFloat kFontSizeName = 18.0;
     CrashLog *crashLog = object;
 
     // FIXME: Date formatter - shared, or use existing.
-    NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
-    [formatter setDateFormat:@"HH:mm:ss (yyyy MMM d)"];
     UILabel *label = self.textLabel;
-    label.text = [formatter stringFromDate:[crashLog logDate]];
+    label.text = [[[self class] timeFormatter] stringFromDate:[crashLog logDate]];
     label.textColor = [crashLog isViewed] ? [UIColor grayColor] : [UIColor blackColor];
     [formatter release];
 }
