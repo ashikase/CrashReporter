@@ -13,6 +13,7 @@
 
 #import <RegexKitLite/RegexKitLite.h>
 #import <libcrashreport/libcrashreport.h>
+#import <libpackageinfo/libpackageinfo.h>
 #import "crashlog_util.h"
 
 NSString * const kViewedCrashLogs = @"viewedCrashLogs";
@@ -165,7 +166,11 @@ static NSInteger compareBinaryImagePaths(CRBinaryImage *binaryImage1, CRBinaryIm
                         NSAssert(victim_ == nil, @"ERROR: Two binary images have the exact same path.");
                         victim_ = [binaryImage retain];
                     } else if ([binaryImage isBlamable]) {
-                        [blamableBinaries setObject:binaryImage forKey:path];
+                        // Filter out trusted packages.
+                        NSString *identifier = binaryImage.package.identifier;
+                        if (![identifier isEqualToString:@"mobilesubstrate"]) {
+                            [blamableBinaries setObject:binaryImage forKey:path];
+                        }
                     }
                 }
 
