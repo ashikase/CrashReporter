@@ -42,6 +42,7 @@ static const CGFloat kFontSizeCrashDate = 12.0;
     self = [super initWithReuseIdentifier:reuseIdentifier];
     if (self != nil) {
         self.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
+        self.detailTextLabel.backgroundColor  = [UIColor clearColor];
 
         latestCrashDateLine_ = [[self addLine] retain];
         latestCrashDateLine_.iconLabel.text = @kFontAwesomeClockO;

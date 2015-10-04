@@ -34,14 +34,22 @@ static const CGFloat kFontSizeLabel = 12.0;
         UILabel *label;
 
         label = [[UILabel alloc] initWithFrame:CGRectZero];
+        label.backgroundColor  = [UIColor clearColor];
         label.font = [UIFont fontWithName:@"FontAwesome" size:kFontSizeIconLabel];
-        label.textAlignment = NSTextAlignmentCenter;
+        if (IOS_LT(5_0)) {
+            // NOTE: For reasons unknown, center alignment on iOS 4 causes
+            //       certain icon font images to be cut off on the right side.
+            label.textAlignment = NSTextAlignmentLeft;
+        } else {
+            label.textAlignment = NSTextAlignmentCenter;
+        }
         label.textColor = kColorIconLabel;
         [self addSubview:label];
         iconLabel_ = label;
 
         label = [[UILabel alloc] initWithFrame:CGRectZero];
         label.autoresizingMask = UIViewAutoresizingFlexibleWidth;
+        label.backgroundColor  = [UIColor clearColor];
         label.textColor = kColorLabel;
         label.font = [UIFont systemFontOfSize:kFontSizeLabel];
         [self addSubview:label];

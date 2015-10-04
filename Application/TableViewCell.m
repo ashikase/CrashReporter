@@ -49,14 +49,21 @@ static const CGFloat kFontSizeName = 18.0;
 - (id)initWithReuseIdentifier:(NSString *)reuseIdentifier {
     self = [super initWithStyle:UITableViewCellStyleValue1 reuseIdentifier:reuseIdentifier];
     if (self != nil) {
-        UIView *contentView = [self contentView];
+        // NOTE: A background view is necessary for older versions of iOS.
+        // NOTE: Confirmed necessary for iOS 4.1.2, not necessary for iOS 8.4.
+        //       Other versions unconfirmed.
+        UIView *backgroundView = [[UIView alloc] initWithFrame:CGRectZero];
+        backgroundView.backgroundColor = [UIColor whiteColor];
+        self.backgroundView = backgroundView;
+        [backgroundView release];
 
         UIFont *font = [UIFont systemFontOfSize:kFontSizeName];
         UILabel *label = [[UILabel alloc] initWithFrame:CGRectZero];
-        [label setAutoresizingMask:UIViewAutoresizingFlexibleWidth];
-        [label setTextColor:kColorName];
-        [label setFont:font];
-        [contentView addSubview:label];
+        label.autoresizingMask = UIViewAutoresizingFlexibleWidth;
+        label.backgroundColor = [UIColor clearColor];
+        label.font = font;
+        label.textColor = kColorName;
+        [self.contentView addSubview:label];
         nameLabel_ = label;
 
         lines_ = [[NSMutableArray alloc] init];
