@@ -152,10 +152,6 @@
 #pragma mark - Other
 
 - (NSArray *)arrayForSection:(NSInteger)section {
-    return [self binaryImagesForSection:section];
-}
-
-- (NSArray *)binaryImagesForSection:(NSInteger)section {
     NSArray *array = nil;
 
     switch (section) {
@@ -422,9 +418,9 @@ static NSString *createIncludeLineForFilepath(NSString *filepath, NSString *name
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     // Get package for selected row.
-    NSArray *binaryImages = [self binaryImagesForSection:indexPath.section];
-    if ([binaryImages count] > 0) {
-        CRBinaryImage *binaryImage = [binaryImages objectAtIndex:indexPath.row];
+    NSArray *array = [self arrayForSection:indexPath.section];
+    if ([array count] > 0) {
+        CRBinaryImage *binaryImage = [array objectAtIndex:indexPath.row];
         NSString *filepath = [binaryImage path];
         TSPackage *package = [[PackageCache sharedInstance] packageForFile:filepath];
 
@@ -476,9 +472,9 @@ static NSString *createIncludeLineForFilepath(NSString *filepath, NSString *name
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
-    NSArray *binaryImages = [self binaryImagesForSection:indexPath.section];
-    if ([binaryImages count] > 0) {
-        CRBinaryImage *binaryImage = [binaryImages objectAtIndex:indexPath.row];
+    NSArray *array = [self arrayForSection:indexPath.section];
+    if ([array count] > 0) {
+        CRBinaryImage *binaryImage = [array objectAtIndex:indexPath.row];
         PIPackage *package = [binaryImage package];
         return [BinaryImageCell heightForPackageRowCount:((package != nil) ? 3 : 0)];
     } else {
