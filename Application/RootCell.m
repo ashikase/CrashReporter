@@ -72,9 +72,9 @@ static const CGFloat kFontSizeCrashDate = 12.0;
     NSTimeInterval interval = [[NSDate date] timeIntervalSinceDate:logDate];
     if (interval < 86400.0) {
         if (interval < 3600.0) {
-            string = NSLocalizedString(@"CRASH_LESS_THAN_HOUR", nil);
+            string = NSLocalizedString(@"CRASHED_LESS_THAN_HOUR", nil);
         } else {
-            string = [NSString stringWithFormat:NSLocalizedString(@"CRASH_LESS_THAN_HOURS", nil), (unsigned)ceil(interval / 3600.0)];
+            string = [NSString stringWithFormat:NSLocalizedString(@"CRASHED_LESS_THAN_HOURS", nil), (unsigned)ceil(interval / 3600.0)];
         }
         isRecent = YES;
     } else {
