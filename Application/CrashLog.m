@@ -50,16 +50,23 @@ static void saveViewedState(NSString *filepath) {
     }
 }
 
+@interface CrashLog ()
+@property (nonatomic, readonly) CRCrashReport *report;
+@end
+
 @implementation CrashLog
 
 @synthesize filepath = filepath_;
 @synthesize logName = logName_;
 @synthesize logDate = logDate_;
+@synthesize type = type_;
 @synthesize victim = victim_;
 @synthesize suspects = suspects_;
 @synthesize potentialSuspects = potentialSuspects_;
 @synthesize loaded = loaded_;
 @synthesize viewed = viewed_;
+
+@synthesize report = report_;
 
 @dynamic symbolicated;
 
@@ -94,11 +101,14 @@ static void saveViewedState(NSString *filepath) {
         [components setSecond:[[matches objectAtIndex:7] integerValue]];
         logDate_ = [[calendar() dateFromComponents:components] retain];
         [components release];
+
+        type_ = CrashLogTypeUnknown;
     }
     return self;
 }
 
 - (void)dealloc {
+    [report_ release];
     [filepath_ release];
     [logName_ release];
     [logDate_ release];
@@ -118,89 +128,83 @@ static NSInteger compareBinaryImagePaths(CRBinaryImage *binaryImage1, CRBinaryIm
 
 - (BOOL)load {
     if (!loaded_) {
-        NSString *filepath = [self filepath];
-        NSData *data = dataForFile(filepath);
-        if (data != nil) {
-            CRCrashReport *report = [[CRCrashReport alloc] initWithData:data filterType:CRCrashReportFilterTypePackage];
-            if (report != nil) {
-                // Symbolicate (and blame) if necessary.
-                if (!fileIsSymbolicated(filepath, report)) {
-                    // Symbolicate.
-                    NSString *outputFilepath = symbolicateFile(filepath, report);
-                    if (outputFilepath != nil) {
-                        // Update name used for determining viewed state.
-                        if ([self isViewed]) {
-                            deleteViewedState(filepath);
-                            saveViewedState(outputFilepath);
-                        }
+        CRCrashReport *report = [self report];
+        if (report != nil) {
+            NSString *filepath = [self filepath];
 
-                        // Update path for this crash log instance.
-                        [filepath_ release];
-                        filepath_ = [outputFilepath retain];
-                    } else {
-                        [report release];
-                        return NO;
+            // Symbolicate (and blame) if necessary.
+            if (!fileIsSymbolicated(filepath, report)) {
+                // Symbolicate.
+                NSString *outputFilepath = symbolicateFile(filepath, report);
+                if (outputFilepath != nil) {
+                    // Update name used for determining viewed state.
+                    if ([self isViewed]) {
+                        deleteViewedState(filepath);
+                        saveViewedState(outputFilepath);
                     }
+
+                    // Update path for this crash log instance.
+                    [filepath_ release];
+                    filepath_ = [outputFilepath retain];
                 } else {
-                    // Reprocess blame for log files that were symbolicated with
-                    // older versions of CrashReporter.
-                    // NOTE: The output format changed with the release of
-                    //       v1.8.0 (libcrashreport v1.0.0). Must reprocess
-                    //       blame in order to retrieve blamable binary images.
-                    // NOTE: Give users a two-week window to upgrade.
-                    // TODO: Consider removing this at some point in the future.
-                    const NSTimeInterval intervalAsOf20140901 = 431222400.0;
-                    if ([[self logDate] timeIntervalSinceReferenceDate] < intervalAsOf20140901) {
-                        [report blame];
-                    }
+                    return NO;
                 }
-
-                // Determine path for victim.
-                NSString *victimPath = [[report processInfo] objectForKey:@"Path"];
-
-                // Collect victim and potential suspects.
-                NSMutableDictionary *blamableBinaries = [[NSMutableDictionary alloc] init];
-                for (CRBinaryImage *binaryImage in [[report binaryImages] allValues]) {
-                    NSString *path = [binaryImage path];
-                    if ([path isEqualToString:victimPath]) {
-                        NSAssert(victim_ == nil, @"ERROR: Two binary images have the exact same path.");
-                        victim_ = [binaryImage retain];
-                    } else if ([binaryImage isBlamable]) {
-                        // Filter out trusted packages.
-                        NSString *identifier = binaryImage.package.identifier;
-                        if (![identifier isEqualToString:@"mobilesubstrate"]) {
-                            [blamableBinaries setObject:binaryImage forKey:path];
-                        }
-                    }
+            } else {
+                // Reprocess blame for log files that were symbolicated with
+                // older versions of CrashReporter.
+                // NOTE: The output format changed with the release of
+                //       v1.8.0 (libcrashreport v1.0.0). Must reprocess
+                //       blame in order to retrieve blamable binary images.
+                // NOTE: Give users a two-week window to upgrade.
+                // TODO: Consider removing this at some point in the future.
+                const NSTimeInterval intervalAsOf20140901 = 431222400.0;
+                if ([[self logDate] timeIntervalSinceReferenceDate] < intervalAsOf20140901) {
+                    [report blame];
                 }
-
-                // Collect suspects.
-                NSMutableArray *suspects = [[NSMutableArray alloc] init];
-                NSArray *suspectPaths = [[report properties] objectForKey:kCrashReportBlame];
-                for (NSString *suspectPath in suspectPaths) {
-                    CRBinaryImage *binaryImage = [blamableBinaries objectForKey:suspectPath];
-                    if (binaryImage != nil) {
-                        [suspects addObject:binaryImage];
-                        [blamableBinaries removeObjectForKey:suspectPath];
-                    }
-                }
-                suspects_ = suspects;
-
-                // Collect potential suspects.
-                potentialSuspects_ = [[[blamableBinaries allValues] sortedArrayUsingFunction:compareBinaryImagePaths context:NULL] retain];
-                [blamableBinaries release];
-
-                // Ensure that we at least have information for the victim.
-                // NOTE: Some reports do not contain binary image information.
-                if (victim_ == nil) {
-                    victim_ = [[CRBinaryImage alloc] initWithPath:victimPath address:0 size:0 architecture:nil uuid:nil];
-                }
-
-                // Clean-up.
-                [report release];
-
-                loaded_ = YES;
             }
+
+            // Determine path for victim.
+            NSString *victimPath = [[report processInfo] objectForKey:@"Path"];
+
+            // Collect victim and potential suspects.
+            NSMutableDictionary *blamableBinaries = [[NSMutableDictionary alloc] init];
+            for (CRBinaryImage *binaryImage in [[report binaryImages] allValues]) {
+                NSString *path = [binaryImage path];
+                if ([path isEqualToString:victimPath]) {
+                    NSAssert(victim_ == nil, @"ERROR: Two binary images have the exact same path.");
+                    victim_ = [binaryImage retain];
+                } else if ([binaryImage isBlamable]) {
+                    // Filter out trusted packages.
+                    NSString *identifier = binaryImage.package.identifier;
+                    if (![identifier isEqualToString:@"mobilesubstrate"]) {
+                        [blamableBinaries setObject:binaryImage forKey:path];
+                    }
+                }
+            }
+
+            // Collect suspects.
+            NSMutableArray *suspects = [[NSMutableArray alloc] init];
+            NSArray *suspectPaths = [[report properties] objectForKey:kCrashReportBlame];
+            for (NSString *suspectPath in suspectPaths) {
+                CRBinaryImage *binaryImage = [blamableBinaries objectForKey:suspectPath];
+                if (binaryImage != nil) {
+                    [suspects addObject:binaryImage];
+                    [blamableBinaries removeObjectForKey:suspectPath];
+                }
+            }
+            suspects_ = suspects;
+
+            // Collect potential suspects.
+            potentialSuspects_ = [[[blamableBinaries allValues] sortedArrayUsingFunction:compareBinaryImagePaths context:NULL] retain];
+            [blamableBinaries release];
+
+            // Ensure that we at least have information for the victim.
+            // NOTE: Some reports do not contain binary image information.
+            if (victim_ == nil) {
+                victim_ = [[CRBinaryImage alloc] initWithPath:victimPath address:0 size:0 architecture:nil uuid:nil];
+            }
+
+            loaded_ = YES;
         }
     }
 
@@ -209,8 +213,75 @@ static NSInteger compareBinaryImagePaths(CRBinaryImage *binaryImage1, CRBinaryIm
 
 #pragma mark - Properties
 
+- (CRCrashReport *)report {
+    if (report_ == nil) {
+        NSString *filepath = [self filepath];
+        NSData *data = dataForFile(filepath);
+        if (data != nil) {
+            report_ = [[CRCrashReport alloc] initWithData:data filterType:CRCrashReportFilterTypePackage];
+        }
+    }
+    return report_;
+}
+
 - (CrashLogType)type {
-    return CrashLogTypeApp;
+    if (type_ == CrashLogTypeUnknown) {
+        type_ = CrashLogTypeService;
+
+        // Determine bundle path.
+        // NOTE: Process may not be from a bundle.
+        NSString *bundlePath = nil;
+        NSString *processPath = [[[self report] processInfo] objectForKey:@"Path"];
+        NSArray *components = [processPath componentsSeparatedByString:@"/"];
+        for (NSUInteger n = [components count]; n > 0; --n) {
+            NSString *component = [components objectAtIndex:(n - 1)];
+            if (
+                [component hasSuffix:@".app"] ||
+                [component hasSuffix:@".appex"]
+               ) {
+                bundlePath = [[components subarrayWithRange:NSMakeRange(0, n)] componentsJoinedByString:@"/"];
+                break;
+            }
+        }
+
+        if (bundlePath != nil) {
+            // Use bundle path to determine type.
+            NSBundle *bundle = [NSBundle bundleWithPath:bundlePath];
+            if (bundle != nil) {
+                char *executablePath = realpath([[bundle executablePath] UTF8String], NULL);
+                if (executablePath != NULL) {
+                    if (strcmp(executablePath, [processPath UTF8String]) == 0) {
+                        NSDictionary *infoDictionary = [bundle infoDictionary];
+                        id object = [infoDictionary objectForKey:@"CFBundlePackageType"];
+                        if ([object isKindOfClass:[NSString class]]) {
+                            NSString *packageType = object;
+                            if ([packageType isEqualToString:@"APPL"]) {
+                                type_ = CrashLogTypeApp;
+                            } else if ([packageType isEqualToString:@"XPC!"]) {
+                                object = [infoDictionary objectForKey:@"NSExtension"];
+                                if (object != nil) {
+                                    type_ = CrashLogTypeAppExtension;
+                                }
+                            }
+                        }
+                    }
+
+                    free(executablePath);
+                }
+            } else {
+                // Bundle no longer installed; make intelligent guess.
+                // NOTE: This should always work for AppStore app bundles, but may be
+                //       incorrect for other app bundles.
+                if ([bundlePath hasSuffix:@".app"]) {
+                    type_ = CrashLogTypeApp;
+                } else if ([bundlePath hasSuffix:@".appex"]) {
+                    type_ = CrashLogTypeAppExtension;
+                }
+            }
+        }
+    }
+
+    return type_;
 }
 
 - (BOOL)isSymbolicated {
