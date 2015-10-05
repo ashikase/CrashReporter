@@ -11,10 +11,10 @@
 
 #import "CrashLog.h"
 
-#import <RegexKitLite/RegexKitLite.h>
 #import <libcrashreport/libcrashreport.h>
 #import <libpackageinfo/libpackageinfo.h>
 #import "crashlog_util.h"
+#include <pcre.h>
 
 NSString * const kViewedCrashLogs = @"viewedCrashLogs";
 
@@ -72,36 +72,92 @@ static void saveViewedState(NSString *filepath) {
 
 #pragma mark - Creation & Destruction
 
+// TODO: Versions of the following static functions also exist in
+//       libcrashreport. Consider combining and moving to the Common module.
+static pcre *prepareRegularExpression(const char *pattern) {
+    const char *errptr = NULL;
+    int erroffset;
+    pcre *code = pcre_compile(pattern, 0, &errptr, &erroffset, NULL);
+    if (code == NULL) {
+        fprintf(stderr, "ERROR: Failed to compile regular expression: %s\n", errptr);
+    }
+    return code;
+}
+
+static NSString *stringFromMatch(const char *subject, int *ovector, unsigned groupIndex) {
+    unsigned index = 2 * groupIndex;
+    return [[[NSString alloc] initWithBytes:(void *)(subject + ovector[index]) length:(ovector[index + 1] - ovector[index]) encoding:NSUTF8StringEncoding] autorelease];
+}
+
+static int intFromString(const char *string, int length) {
+    int result = 0;
+    int i;
+    for (i = 0; i < length; ++i) {
+        char c = string[i];
+        if ((c >= '0') && (c <= '9')) {
+            result = result * 10 + (c - '0');
+        } else {
+            break;
+        }
+    }
+    return result;
+}
+
+static int intFromMatch(const char *subject, int *ovector, unsigned groupIndex) {
+    char buf[11];
+    unsigned index = 2 * groupIndex;
+    unsigned length = (ovector[index + 1] - ovector[index]);
+    strncpy(buf, (subject + ovector[index]), length);
+    buf[length] = '\0';
+    return intFromString(buf, strlen(buf));
+}
+
 // NOTE: Filename part of path must be of the form [app_name]_date_device-name.
 //       The device-name cannot contain underscores.
 // TODO: Is it possible for device-name to have an underscore?
 + (instancetype)crashLogWithFilepath:(NSString *)filepath {
-    NSString *basename = [[filepath lastPathComponent] stringByDeletingPathExtension];
-    NSArray *matches = [basename captureComponentsMatchedByRegex:@"(.+)_(\\d{4})-(\\d{2})-(\\d{2})-(\\d{2})(\\d{2})(\\d{2})_[^_]+"];
-    if ([matches count] == 8) {
-        return [[[self alloc] initWithFilepath:filepath matches:matches] autorelease];
-    } else {
-        return nil;
+    id object = nil;
+
+    static const char * const kRegexLogNameDate = "(.+)_(\\d{4})-(\\d{2})-(\\d{2})-(\\d{2})(\\d{2})(\\d{2})_[^_]+";
+    const char *basename = [[[filepath lastPathComponent] stringByDeletingPathExtension] UTF8String];
+    pcre *regex = prepareRegularExpression(kRegexLogNameDate);
+    if (regex != NULL) {
+        // NOTE: Ovector element count must be a multiple of three, per pcre's
+        //       documentation. The first two-thirds of the vector contains the matches,
+        //       in (offset, length) pairs. The last third of the vector is used by pcre
+        //       as workspace, and ignored by us.
+        int ovector[24];
+        const int numMatches = pcre_exec(regex, NULL, basename, strlen(basename), 0, 0, ovector, 24);
+        if (numMatches == 8) {
+            // Determine the log name.
+            NSString *name = stringFromMatch(basename, ovector, 1);
+
+            // Parse the log date.
+            NSDateComponents *components = [[NSDateComponents alloc] init];
+            [components setYear:intFromMatch(basename, ovector, 2)];
+            [components setMonth:intFromMatch(basename, ovector, 3)];
+            [components setDay:intFromMatch(basename, ovector, 4)];
+            [components setHour:intFromMatch(basename, ovector, 5)];
+            [components setMinute:intFromMatch(basename, ovector, 6)];
+            [components setSecond:intFromMatch(basename, ovector, 7)];
+            NSDate *date = [calendar() dateFromComponents:components];
+            [components release];
+
+            object = [[[self alloc] initWithFilepath:filepath name:name date:date] autorelease];
+        }
+
+        free(regex);
     }
+
+    return object;
 }
 
-- (instancetype)initWithFilepath:(NSString *)filepath matches:(NSArray *)matches {
+- (instancetype)initWithFilepath:(NSString *)filepath name:(NSString *)name date:(NSDate *)date {
     self = [super init];
     if (self != nil) {
         filepath_ = [filepath copy];
-        logName_ = [[matches objectAtIndex:1] copy];
-
-        // Parse the date.
-        NSDateComponents *components = [[NSDateComponents alloc] init];
-        [components setYear:[[matches objectAtIndex:2] integerValue]];
-        [components setMonth:[[matches objectAtIndex:3] integerValue]];
-        [components setDay:[[matches objectAtIndex:4] integerValue]];
-        [components setHour:[[matches objectAtIndex:5] integerValue]];
-        [components setMinute:[[matches objectAtIndex:6] integerValue]];
-        [components setSecond:[[matches objectAtIndex:7] integerValue]];
-        logDate_ = [[calendar() dateFromComponents:components] retain];
-        [components release];
-
+        logName_ = [name copy];
+        logDate_ = [date retain];
         type_ = CrashLogTypeUnknown;
     }
     return self;
