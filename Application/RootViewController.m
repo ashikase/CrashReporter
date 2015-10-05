@@ -25,7 +25,6 @@
 #include <dlfcn.h>
 #include <errno.h>
 #include <launch.h>
-#include <vproc.h>
 #include "paths.h"
 
 #include "font-awesome.h"
@@ -69,6 +68,9 @@ typedef enum {
     VPROC_GSK_ALLJOBS,
     // ...
 } vproc_gsk_t;
+
+typedef void * vproc_err_t;
+typedef struct vproc_s * vproc_t;
 
 extern vproc_err_t vproc_swap_complex(vproc_t vp, vproc_gsk_t key, launch_data_t inval, launch_data_t *outval);
 
