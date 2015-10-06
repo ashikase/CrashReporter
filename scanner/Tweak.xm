@@ -98,6 +98,13 @@ static void processDylibs() {
                 // NOTE: This is used to differentiate the file from other
                 //       versions (or other dylibs with the same filename).
                 NSString *digest = md5(path);
+                if (digest == nil) {
+                    // Failed to calculate MD5 digest.
+                    // NOTE: This can occur if the dylib is a dead symbolic link.
+                    // TODO: Consider displaying a notification about the dead link.
+                    NSLog(@"WARNING: Possible dead symbolic link: %@", path);
+                    continue;
+                }
 
                 // Record that dylib has been scanned.
                 [scannedDylibs setObject:digest forKey:filename];
