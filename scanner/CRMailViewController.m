@@ -11,6 +11,8 @@
 
 #import <MessageUI/MessageUI.h>
 #import <libpackageinfo/libpackageinfo.h>
+#include <objc/runtime.h>
+#import "CRCannotEmailAlertItem.h"
 
 static NSString *addressFromString(NSString *string) {
     NSString *address = nil;
@@ -45,15 +47,20 @@ static NSString *addressFromString(NSString *string) {
 @synthesize window = window_;
 
 + (void)showWithPackage:(PIPackage *)package reason:(CRMailReason)reason {
-    CRMailViewController *viewController = [[CRMailViewController alloc] initWithPackage:package reason:reason];
+    BOOL canSendMail = [MFMailComposeViewController canSendMail];
+    if (canSendMail) {
+        CRMailViewController *viewController = [[CRMailViewController alloc] initWithPackage:package reason:reason];
 
-    UIWindow *window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
-    window.rootViewController = viewController;
-    [window makeKeyAndVisible];
+        UIWindow *window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
+        window.rootViewController = viewController;
+        [window makeKeyAndVisible];
 
-    viewController.window = window;
-    [viewController release];
-    [window release];
+        viewController.window = window;
+        [viewController release];
+        [window release];
+    } else {
+        [objc_getClass("CRCannotEmailAlertItem") show];
+    }
 }
 
 - (instancetype)initWithPackage:(PIPackage *)package reason:(CRMailReason)reason {
@@ -119,7 +126,7 @@ static NSString *addressFromString(NSString *string) {
         case CRMailReasonMissingFilter:
             string = [NSString stringWithFormat:
                 @"Your tweak, \"%@\" (%@, version %@) is missing a filter file.\n\n"
-                "Without a filter file, your tweak will be loaded into every process controlled by launchd, not only apps but daemons as well. This can lead to crashing and other issues.\n\n"
+                "Without a filter file, your tweak will be loaded into *every* process controlled by launchd, not only apps but daemons as well. This can lead to crashing and other issues.\n\n"
                 "Even if you absolutely require that your tweak be loaded into all processes, please do so via an appropriately-constructed filter file.\n\n"
                 "Note that even if your tweak operates properly when loaded into daemons, it may cause other tweaks to also be loaded, and those other tweaks may *not* be designed to work with daemons. This is especially a problem if your tweak links to UIKit. If your tweak uses UIKit, be sure to either avoid targetting non-apps (e.g. daemons), or avoid directly linking to UIKit (use dlopen() instead, making sure to do so outside of the tweak's constructor).",
                 package_.name, package_.identifier, package_.version];
