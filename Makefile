@@ -1,4 +1,4 @@
-SUBPROJECTS = Application as_root monitor notifier
+SUBPROJECTS = Application as_root monitor notifier scanner
 PKG_ID = crash-reporter
 
 export ARCHS = armv6 armv7 armv7s
