@@ -160,7 +160,9 @@ static void processDylibs() {
         // Make certain that hooks are installed only when loaded into SpringBoard.
         NSString *identifier = [[NSBundle mainBundle] bundleIdentifier];
         if ([identifier isEqualToString:@"com.apple.springboard"]) {
-            %init();
+            if (IOS_GTE(6_0)) {
+                %init();
+            }
         }
     }
 }
