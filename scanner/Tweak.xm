@@ -141,7 +141,14 @@ static void processDylibs() {
 - (void)applicationDidFinishLaunching:(UIApplication *)application {
     %orig();
 
-    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_BACKGROUND, 0), ^{
+    dispatch_queue_t queue;
+    if (IOS_LT(5_0)) {
+        queue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_LOW, 0);
+    } else {
+        queue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_BACKGROUND, 0);
+    }
+
+    dispatch_async(queue, ^{
         processDylibs();
     });
 }
