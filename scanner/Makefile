@@ -2,6 +2,7 @@ TWEAK_NAME = scanner
 scanner_INSTALL_PATH = /Applications/CrashReporter.app
 scanner_FILES = \
 	CRAlertItem.mm \
+	CRCannotEmailAlertItem.mm \
 	CRMailViewController.m \
 	CRMissingFilterAlertItem.mm \
 	Tweak.mm

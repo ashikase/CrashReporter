@@ -11,6 +11,13 @@
 
 %hook CRAlertItem
 
+%new
++ (void)show {
+    CRAlertItem *alert = [[self alloc] init];
+    [[objc_getClass("SBAlertItemsController") sharedInstance] activateAlertItem:alert];
+    [alert release];
+}
+
 // Prevent alert from showing on lock screen.
 - (BOOL)shouldShowInLockScreen { return NO; }
 
