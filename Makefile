@@ -7,6 +7,7 @@ export TARGET = iphone:clang
 export TARGET_IPHONEOS_DEPLOYMENT_VERSION = 3.0
 
 export ADDITIONAL_CFLAGS += -I$(THEOS_PROJECT_DIR)/common  -I$(THEOS_PROJECT_DIR)/Libraries/Common -include firmware.h
+export ADDITIONAL_LDFLAGS = -L$(THEOS)/lib/arm
 
 include theos/makefiles/common.mk
 include theos/makefiles/aggregate.mk
