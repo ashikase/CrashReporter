@@ -300,7 +300,11 @@ int main(int argc, char **argv, char **envp) {
         [notification setAlertAction:nil];
 
         // NOTE: Notification will be shown immediately as no fire date was set.
-        [SBSLocalNotificationClient scheduleLocalNotification:notification bundleIdentifier:@"crash-reporter"];
+        if (IOS_LT(9_0)) {
+            // FIXME: The following method no longer exists in iOS 9.
+            //        Find an alternative.
+            [SBSLocalNotificationClient scheduleLocalNotification:notification bundleIdentifier:@"crash-reporter"];
+        }
         [notification release];
 
         dlclose(handle);
