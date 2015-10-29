@@ -290,37 +290,40 @@ int main(int argc, char **argv, char **envp) {
 
         // Load UIKit framework.
         void *handle = dlopen("/System/Library/Frameworks/UIKit.framework/UIKit", RTLD_LAZY);
+        if (handle != NULL) {
+            // Send the notification.
+            UILocalNotification *notification = [objc_getClass("UILocalNotification") new];
+            [notification setAlertBody:body];
+            [notification setUserInfo:[NSDictionary dictionaryWithObjectsAndKeys:filepath, @"filepath", nil]];
 
-        // Send the notification.
-        UILocalNotification *notification = [objc_getClass("UILocalNotification") new];
-        [notification setAlertBody:body];
-        [notification setUserInfo:[NSDictionary dictionaryWithObjectsAndKeys:filepath, @"filepath", nil]];
+            // Increment and request update of icon badge number.
+            NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+            NSInteger crashesSinceLastLaunch = 1 + [defaults integerForKey:@kCrashesSinceLastLaunch];
+            [defaults setInteger:crashesSinceLastLaunch forKey:@kCrashesSinceLastLaunch];
+            [defaults synchronize];
+            [notification setApplicationIconBadgeNumber:crashesSinceLastLaunch];
 
-        // Increment and request update of icon badge number.
-        NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-        NSInteger crashesSinceLastLaunch = 1 + [defaults integerForKey:@kCrashesSinceLastLaunch];
-        [defaults setInteger:crashesSinceLastLaunch forKey:@kCrashesSinceLastLaunch];
-        [defaults synchronize];
-        [notification setApplicationIconBadgeNumber:crashesSinceLastLaunch];
+            // NOTE: Passing nil as the action will cause iOS to display "View" (localized).
+            [notification setHasAction:YES];
+            [notification setAlertAction:nil];
 
-        // NOTE: Passing nil as the action will cause iOS to display "View" (localized).
-        [notification setHasAction:YES];
-        [notification setAlertAction:nil];
+            // NOTE: Notification will be shown immediately as no fire date was set.
+            if (IOS_LT(9_0)) {
+                [SBSLocalNotificationClient scheduleLocalNotification:notification bundleIdentifier:@"crash-reporter"];
+            } else {
+                notificationHasCompleted = NO;
 
-        // NOTE: Notification will be shown immediately as no fire date was set.
-        if (IOS_LT(9_0)) {
-            [SBSLocalNotificationClient scheduleLocalNotification:notification bundleIdentifier:@"crash-reporter"];
-        } else {
-            notificationHasCompleted = NO;
+                void *handle = dlopen("/System/Library/PrivateFrameworks/UserNotificationServices.framework/UserNotificationServices", RTLD_LAZY);
+                if (handle != NULL) {
+                    [[objc_getClass("UNSNotificationSchedulerConnection") sharedInstance] addScheduledLocalNotifications:
+                        [NSArray arrayWithObject:notification] forBundleIdentifier:@"crash-reporter" withCompletion:^(){ notificationHasCompleted = YES; }];
+                    dlclose(handle);
+                }
+            }
+            [notification release];
 
-            // NOTE: No need to dlclose items from shared cache.
-            dlopen("/System/Library/PrivateFrameworks/UserNotificationServices.framework/UserNotificationServices", RTLD_LAZY);
-            [[objc_getClass("UNSNotificationSchedulerConnection") sharedInstance] addScheduledLocalNotifications:
-                [NSArray arrayWithObject:notification] forBundleIdentifier:@"crash-reporter" withCompletion:^(){ notificationHasCompleted = YES; }];
+            dlclose(handle);
         }
-        [notification release];
-
-        dlclose(handle);
     }
 
     // Post a Darwin notification.
