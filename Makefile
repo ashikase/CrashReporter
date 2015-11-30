@@ -1,7 +1,7 @@
 SUBPROJECTS = Application as_root monitor notifier scanner
 PKG_ID = crash-reporter
 
-export ARCHS = armv6 armv7 armv7s
+export ARCHS = armv6 arm64
 export SDKVERSION = 7.1
 export TARGET = iphone:clang
 export TARGET_IPHONEOS_DEPLOYMENT_VERSION = 3.0
