@@ -25,7 +25,7 @@ CrashReporter_FILES = \
     pastie.m
 CrashReporter_CFLAGS = -F$(THEOS)/Frameworks -I$(THEOS_PROJECT_DIR)/Libraries
 CrashReporter_LDFLAGS = -F$(THEOS)/Frameworks
-CrashReporter_LIBRARIES = crashreport icucore packageinfo pcre
+CrashReporter_LIBRARIES = crashreport icucore packageinfo
 CrashReporter_FRAMEWORKS = CoreGraphics MessageUI SystemConfiguration TechSupport UIKit
 
 include $(THEOS_MAKE_PATH)/common.mk

@@ -14,7 +14,8 @@
 #import <libcrashreport/libcrashreport.h>
 #import <libpackageinfo/libpackageinfo.h>
 #import "crashlog_util.h"
-#include <pcre.h>
+
+#include <unicode/uregex.h>
 
 NSString * const kViewedCrashLogs = @"viewedCrashLogs";
 
@@ -74,19 +75,58 @@ static void saveViewedState(NSString *filepath) {
 
 // TODO: Versions of the following static functions also exist in
 //       libcrashreport. Consider combining and moving to the Common module.
-static pcre *prepareRegularExpression(const char *pattern) {
-    const char *errptr = NULL;
-    int erroffset;
-    pcre *code = pcre_compile(pattern, 0, &errptr, &erroffset, NULL);
-    if (code == NULL) {
-        fprintf(stderr, "ERROR: Failed to compile regular expression: %s\n", errptr);
+static URegularExpression *prepareRegularExpression(const char *pattern) {
+    UParseError error;
+    UErrorCode status = U_ZERO_ERROR;
+    URegularExpression *regex = uregex_openC(pattern, 0, &error, &status);
+    if (U_FAILURE(status)) {
+        fprintf(stderr, "ERROR: Failed to compile regular expression: %s\n", u_errorName(status));
     }
-    return code;
+    return regex;
 }
 
-static NSString *stringFromMatch(const char *subject, int *ovector, unsigned groupIndex) {
-    unsigned index = 2 * groupIndex;
-    return [[[NSString alloc] initWithBytes:(void *)(subject + ovector[index]) length:(ovector[index + 1] - ovector[index]) encoding:NSUTF8StringEncoding] autorelease];
+static BOOL matchesRegularExpression(URegularExpression *regex, NSString *string) {
+    BOOL result = NO;
+
+    const UChar *data = (const uint16_t *)[string cStringUsingEncoding:NSUTF16StringEncoding];
+    const size_t size = [string length];
+
+    UErrorCode status = U_ZERO_ERROR;
+    uregex_setText(regex, data, size, &status);
+    if (U_SUCCESS(status)) {
+        status = U_ZERO_ERROR;
+        UBool matches = uregex_matches(regex, 0, &status);
+        if (U_SUCCESS(status)) {
+            result = (BOOL)matches;
+        } else {
+            fprintf(stderr, "ERROR: Failed to check for match against regular expression: %s\n", u_errorName(status));
+        }
+    } else {
+        fprintf(stderr, "ERROR: Failed to set string to match against regular expression: %s\n", u_errorName(status));
+    }
+
+    return result;
+}
+
+
+static NSString *newStringFromMatch(URegularExpression *regex, unsigned groupIndex) {
+    NSString *result = nil;
+
+    UErrorCode status = U_ZERO_ERROR;
+    int32_t length = uregex_group(regex, groupIndex, NULL, 0, &status);
+    if (status == U_BUFFER_OVERFLOW_ERROR) {
+        UChar *buf = (UChar *)malloc(length * sizeof(UChar));
+        if (buf != NULL) {
+            status = U_ZERO_ERROR;
+            uregex_group(regex, groupIndex, buf, length, &status);
+            if (U_SUCCESS(status)) {
+                result = [[NSString alloc] initWithCharacters:(const unichar *)buf length:length];
+            }
+            free(buf);
+        }
+    }
+
+    return result;
 }
 
 static int intFromString(const char *string, int length) {
@@ -103,13 +143,17 @@ static int intFromString(const char *string, int length) {
     return result;
 }
 
-static int intFromMatch(const char *subject, int *ovector, unsigned groupIndex) {
-    char buf[11];
-    unsigned index = 2 * groupIndex;
-    unsigned length = (ovector[index + 1] - ovector[index]);
-    strncpy(buf, (subject + ovector[index]), length);
-    buf[length] = '\0';
-    return intFromString(buf, strlen(buf));
+static int intFromMatch(URegularExpression *regex, unsigned groupIndex) {
+    int result = 0;
+
+    NSString *string = newStringFromMatch(regex, groupIndex);
+    if (string != nil) {
+        const char *cstr = [string UTF8String];
+        result = intFromString(cstr, strlen(cstr));
+        [string release];
+    }
+
+    return result;
 }
 
 // NOTE: Filename part of path must be of the form [app_name]_date_device-name.
@@ -119,34 +163,32 @@ static int intFromMatch(const char *subject, int *ovector, unsigned groupIndex) 
     id object = nil;
 
     static const char * const kRegexLogNameDate = "(.+)_(\\d{4})-(\\d{2})-(\\d{2})-(\\d{2})(\\d{2})(\\d{2})_[^_]+";
-    const char *basename = [[[filepath lastPathComponent] stringByDeletingPathExtension] UTF8String];
-    pcre *regex = prepareRegularExpression(kRegexLogNameDate);
+    NSString *basename = [[filepath lastPathComponent] stringByDeletingPathExtension];
+
+    URegularExpression *regex = prepareRegularExpression(kRegexLogNameDate);
     if (regex != NULL) {
-        // NOTE: Ovector element count must be a multiple of three, per pcre's
-        //       documentation. The first two-thirds of the vector contains the matches,
-        //       in (offset, length) pairs. The last third of the vector is used by pcre
-        //       as workspace, and ignored by us.
-        int ovector[24];
-        const int numMatches = pcre_exec(regex, NULL, basename, strlen(basename), 0, 0, ovector, 24);
-        if (numMatches == 8) {
+        if (matchesRegularExpression(regex, basename)) {
             // Determine the log name.
-            NSString *name = stringFromMatch(basename, ovector, 1);
+            NSString *name = newStringFromMatch(regex, 1);
+            if (name != nil) {
+                // Parse the log date.
+                NSDateComponents *components = [[NSDateComponents alloc] init];
+                [components setYear:intFromMatch(regex, 2)];
+                [components setMonth:intFromMatch(regex, 3)];
+                [components setDay:intFromMatch(regex, 4)];
+                [components setHour:intFromMatch(regex, 5)];
+                [components setMinute:intFromMatch(regex, 6)];
+                [components setSecond:intFromMatch(regex, 7)];
+                NSDate *date = [calendar() dateFromComponents:components];
+                [components release];
 
-            // Parse the log date.
-            NSDateComponents *components = [[NSDateComponents alloc] init];
-            [components setYear:intFromMatch(basename, ovector, 2)];
-            [components setMonth:intFromMatch(basename, ovector, 3)];
-            [components setDay:intFromMatch(basename, ovector, 4)];
-            [components setHour:intFromMatch(basename, ovector, 5)];
-            [components setMinute:intFromMatch(basename, ovector, 6)];
-            [components setSecond:intFromMatch(basename, ovector, 7)];
-            NSDate *date = [calendar() dateFromComponents:components];
-            [components release];
+                object = [[[self alloc] initWithFilepath:filepath name:name date:date] autorelease];
 
-            object = [[[self alloc] initWithFilepath:filepath name:name date:date] autorelease];
+                [name release];
+            }
         }
 
-        free(regex);
+        uregex_close(regex);
     }
 
     return object;
