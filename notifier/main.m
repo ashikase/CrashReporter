@@ -80,7 +80,7 @@ int main(int argc, char **argv, char **envp) {
     }
     
     CRException *exception = [report exception];
-    if ([[exception type] integerValue] == 20) {
+    if ([[exception type] isEqualToString:@"00000020"]) {
         //Simulated Crash No Need To Report
         return 0;
     }
