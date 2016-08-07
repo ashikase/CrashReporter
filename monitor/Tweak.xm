@@ -16,6 +16,20 @@
 + (NSTask *)launchedTaskWithLaunchPath:(NSString *)path arguments:(NSArray *)arguments;
 @end
 
+static void launchNotifierWithPath(NSString *filepath) {
+    // NOTE: Must be done via a separate binary as a certain entitlement
+    //       is required for sending local notifications by proxy.
+    NSString *launchPath = @"/Applications/CrashReporter.app/notifier_";
+    if ([[NSFileManager defaultManager] isExecutableFileAtPath:launchPath]) {
+        NSArray *arguments = [NSArray arrayWithObject:filepath];
+        if ([NSTask launchedTaskWithLaunchPath:launchPath arguments:arguments] == nil) {
+            NSLog(@"ERROR: Unable to launch notifier task.");
+        }
+    } else {
+        NSLog(@"ERROR: notifier binary is missing or is not executable.");
+    }
+}
+
 BOOL hasPrefix(const char *string, const char *suffix) {
     return (strncmp(string, suffix, strlen(suffix)) == 0);
 }
@@ -77,28 +91,42 @@ int $close(int fildes) {
             //       close() method (for a yet unresearched reason).
             fd$ = -1;
 
-            if (crashLogWritten$) {
-                // Launch notifier.
-                // NOTE: Must be done via a separate binary as a certain entitlement
-                //       is required for sending local notifications by proxy.
-                NSString *launchPath = @"/Applications/CrashReporter.app/notifier_";
-                if ([[NSFileManager defaultManager] isExecutableFileAtPath:launchPath]) {
-                    NSArray *arguments = [NSArray arrayWithObject:filepath$];
-                    if ([NSTask launchedTaskWithLaunchPath:launchPath arguments:arguments] == nil) {
-                        NSLog(@"ERROR: Unable to launch notifier task.");
-                    }
-                } else {
-                    NSLog(@"ERROR: notifier binary is missing or is not executable.");
+            // NOTE: As of iOS 9.3, ReportCrash (CrashReporterSupport) writes
+            //       the log file to a temporary file, which is then renamed
+            //       at a later point.
+            if (IOS_LT(9_3)) {
+                if (crashLogWritten$) {
+                    launchNotifierWithPath(filepath$);
                 }
-            }
 
-            // Clean-up.
-            [filepath$ release];
-            filepath$ = nil;
+                // Clean-up.
+                [filepath$ release];
+                filepath$ = nil;
+            }
         }
     }
     return result;
 }
+
+%hook NSFileManager %group GFirmware_GTE_93
+
+- (BOOL)moveItemAtURL:(NSURL *)srcURL toURL:(NSURL *)dstURL error:(NSError * _Nullable *)error {
+    BOOL moved = %orig();
+
+    if ([[srcURL path] isEqualToString:filepath$]) {
+        if (moved) {
+            launchNotifierWithPath([dstURL path]);
+        }
+
+        // Clean-up.
+        [filepath$ release];
+        filepath$ = nil;
+    }
+
+    return moved;
+}
+
+%end %end
 
 __attribute__((constructor)) static void init() {
     NSAutoreleasePool *pool = [NSAutoreleasePool new];
@@ -125,6 +153,10 @@ __attribute__((constructor)) static void init() {
         }
 
         dlclose(handle);
+    }
+
+    if (IOS_GTE(9_3)) {
+        %init(GFirmware_GTE_93);
     }
 
     [pool release];
