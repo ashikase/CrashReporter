@@ -30,11 +30,21 @@ static void launchNotifierWithPath(NSString *filepath) {
     }
 }
 
-BOOL hasPrefix(const char *string, const char *suffix) {
+static BOOL crashLogFound$ = NO;
+static BOOL crashLogWritten$ = NO;
+static NSString *filepath$ = nil;
+static int fd$ = -1;
+
+static void cleanup() {
+    [filepath$ release];
+    filepath$ = nil;
+}
+
+static BOOL hasPrefix(const char *string, const char *suffix) {
     return (strncmp(string, suffix, strlen(suffix)) == 0);
 }
 
-BOOL hasSuffix(const char *string, const char *suffix) {
+static BOOL hasSuffix(const char *string, const char *suffix) {
     if ((string != NULL) && (suffix != NULL)) {
         size_t lenString = strlen(string);
         size_t lenSuffix = strlen(suffix);
@@ -45,11 +55,6 @@ BOOL hasSuffix(const char *string, const char *suffix) {
 
     return NO;
 }
-
-static BOOL crashLogFound$ = NO;
-static BOOL crashLogWritten$ = NO;
-static NSString *filepath$ = nil;
-static int fd$ = -1;
 
 // NOTE: Third parameter is technically variadic (...), but the only time when
 //       more than two parameters are passed is when oflag includes O_CREAT,
@@ -98,10 +103,7 @@ int $close(int fildes) {
                 if (crashLogWritten$) {
                     launchNotifierWithPath(filepath$);
                 }
-
-                // Clean-up.
-                [filepath$ release];
-                filepath$ = nil;
+                cleanup();
             }
         }
     }
@@ -117,10 +119,7 @@ int $close(int fildes) {
         if (moved) {
             launchNotifierWithPath([dstURL path]);
         }
-
-        // Clean-up.
-        [filepath$ release];
-        filepath$ = nil;
+        cleanup();
     }
 
     return moved;
