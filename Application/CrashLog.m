@@ -156,17 +156,21 @@ static int intFromMatch(URegularExpression *regex, unsigned groupIndex) {
     return result;
 }
 
-// NOTE: Filename part of path must be of the form [app_name]_date_device-name.
-//       The device-name cannot contain underscores.
-// TODO: Is it possible for device-name to have an underscore?
 + (instancetype)crashLogWithFilepath:(NSString *)filepath {
     id object = nil;
 
-    static const char * const kRegexLogNameDate = "(.+)_(\\d{4})-(\\d{2})-(\\d{2})-(\\d{2})(\\d{2})(\\d{2})_[^_]+";
-    NSString *basename = [[filepath lastPathComponent] stringByDeletingPathExtension];
+    // NOTE: For iOS < 9.3, the format of the filename is appname_datetime_devicename.
+    //       For iOS >= 9.3, the format of the filename is appname-datetime.
+    static const char * const kRegexLogNameDatePre93 = "(.+)_(\\d{4})-(\\d{2})-(\\d{2})-(\\d{2})(\\d{2})(\\d{2})_[^_]+";
+    static const char * const kRegexLogNameDate = "(.+)-(\\d{4})-(\\d{2})-(\\d{2})-(\\d{2})(\\d{2})(\\d{2})";
 
-    URegularExpression *regex = prepareRegularExpression(kRegexLogNameDate);
+    const char * const pattern = IOS_LT(9_3) ? kRegexLogNameDatePre93 : kRegexLogNameDate;
+    URegularExpression *regex = prepareRegularExpression(pattern);
     if (regex != NULL) {
+        NSString *basename = [filepath lastPathComponent];
+        while ([[basename pathExtension] length] > 0) {
+            basename = [basename stringByDeletingPathExtension];
+        }
         if (matchesRegularExpression(regex, basename)) {
             // Determine the log name.
             NSString *name = newStringFromMatch(regex, 1);
