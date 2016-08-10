@@ -33,6 +33,18 @@ static NSArray *crashLogGroupsForDirectory(NSString *directory) {
                 NSString *filepath = [directory stringByAppendingPathComponent:filename];
                 CrashLog *crashLog = [CrashLog crashLogWithFilepath:filepath];
                 if (crashLog != nil) {
+                    // Filter out non crash-related logs.
+                    // NOTE: Determining the bug type requires parsing the crash
+                    //       report, which is time consuming.
+                    // NOTE: Not required on iOS versions before 9.3, where the
+                    //       filenames of crash-relatd logs differ from other
+                    //       log types.
+                    if (IOS_GTE(9_3)) {
+                        if ([crashLog bugType] == CrashLogBugTypeOther) {
+                            continue;
+                        }
+                    }
+
                     // Store filepath for "known viewed" check below.
                     [existentFilepaths addObject:filepath];
 

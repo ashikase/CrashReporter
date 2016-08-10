@@ -61,6 +61,7 @@ static void saveViewedState(NSString *filepath) {
 @synthesize logName = logName_;
 @synthesize logDate = logDate_;
 @synthesize type = type_;
+@synthesize bugType = bugType_;
 @synthesize victim = victim_;
 @synthesize suspects = suspects_;
 @synthesize potentialSuspects = potentialSuspects_;
@@ -205,6 +206,7 @@ static int intFromMatch(URegularExpression *regex, unsigned groupIndex) {
         logName_ = [name copy];
         logDate_ = [date retain];
         type_ = CrashLogTypeUnknown;
+        bugType_ = CrashLogBugTypeUnknown;
     }
     return self;
 }
@@ -384,6 +386,24 @@ static NSInteger compareBinaryImagePaths(CRBinaryImage *binaryImage1, CRBinaryIm
     }
 
     return type_;
+}
+
+- (CrashLogBugType)bugType {
+    if (bugType_ == CrashLogBugTypeUnknown) {
+        CRCrashReportType type = [[self report] type];
+        switch (type) {
+            case CRCrashReportTypeCrash:
+                bugType_ = CrashLogBugTypeCrash;
+                break;
+            case CRCrashReportTypeLowMemory:
+                bugType_ = CrashLogBugTypeLowMemory;
+                break;
+            default:
+                bugType_ = CrashLogBugTypeOther;
+        }
+    }
+
+    return bugType_;
 }
 
 - (BOOL)isSymbolicated {

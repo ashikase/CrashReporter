@@ -20,6 +20,13 @@ typedef enum : NSUInteger {
     CrashLogTypeService
 } CrashLogType;
 
+typedef enum : NSUInteger {
+    CrashLogBugTypeUnknown,
+    CrashLogBugTypeCrash,
+    CrashLogBugTypeLowMemory,
+    CrashLogBugTypeOther
+} CrashLogBugType;
+
 @class CRBinaryImage;
 
 @interface CrashLog : NSObject
@@ -27,6 +34,7 @@ typedef enum : NSUInteger {
 @property(nonatomic, readonly) NSString *logName;
 @property(nonatomic, readonly) NSDate *logDate;
 @property(nonatomic, readonly) CrashLogType type;
+@property(nonatomic, readonly) CrashLogBugType bugType;
 @property(nonatomic, readonly) CRBinaryImage *victim;
 @property(nonatomic, readonly) NSArray *suspects;
 @property(nonatomic, readonly) NSArray *potentialSuspects;
