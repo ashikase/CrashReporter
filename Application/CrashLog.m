@@ -278,7 +278,7 @@ static NSInteger compareBinaryImagePaths(CRBinaryImage *binaryImage1, CRBinaryIm
                 } else if ([binaryImage isBlamable]) {
                     // Filter out trusted packages.
                     NSString *identifier = binaryImage.package.identifier;
-                    if (![identifier isEqualToString:@"mobilesubstrate"]) {
+                    if (![identifier isEqualToString:@"mobilesubstrate"] && ![identifier isEqualToString:@"crash-reporter"]) {
                         [blamableBinaries setObject:binaryImage forKey:path];
                     }
                 }
