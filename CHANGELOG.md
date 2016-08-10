@@ -1,5 +1,14 @@
 Release Notes
 
+> # Version v1.14.0
+> ## Released 2016-08-10
+> - - -
+> * NEW: iOS 9.3.x
+>     * Updated to support iOS 9.3.x.
+>         * There may be a delay when opening the app or returning to the first screen. This is due to how CrashReporter must now filter out non crash-related log files.
+
+- - -
+
 > # Version v1.13.0
 > ## Released 2015-11-30
 > - - -
