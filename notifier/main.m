@@ -309,22 +309,23 @@ int main(int argc, char **argv, char **envp) {
 
             // NOTE: Notification will be shown immediately as no fire date was set.
             if (IOS_LT(9_0)) {
-                [SBSLocalNotificationClient scheduleLocalNotification:notification bundleIdentifier:@"crash-reporter"];
+                [objc_getClass("SBSLocalNotificationClient") scheduleLocalNotification:notification bundleIdentifier:@"crash-reporter"];
             } else {
-		void *handle = dlopen("/System/Library/PrivateFrameworks/UserNotificationServices.framework/UserNotificationServices", RTLD_LAZY);
-                if (handle != NULL) {
-			if(Class $UNSNotificationScheduler = objc_getClass("UNSNotificationScheduler")) {
-				UNSNotificationScheduler* notificationScheduler = [[$UNSNotificationScheduler alloc] initWithBundleIdentifier:@"com.saurik.Cydia"];
-				if([notificationScheduler respondsToSelector:@selector(_addScheduledLocalNotifications:withCompletion:)]) {
-					notificationHasCompleted = NO;
-					[notificationScheduler _addScheduledLocalNotifications:@[notification] withCompletion:^(){
-						notificationHasCompleted = YES;
-					}];
-				}
-			}
-			dlclose(handle);
-		}
-            }
+		    void *handle = dlopen("/System/Library/PrivateFrameworks/UserNotificationServices.framework/UserNotificationServices", RTLD_LAZY);
+		    if (handle != NULL) {
+			    Class $UNSNotificationScheduler = objc_getClass("UNSNotificationScheduler");
+			    if($UNSNotificationScheduler) {
+				    UNSNotificationScheduler* notificationScheduler = [[$UNSNotificationScheduler alloc] initWithBundleIdentifier:@"com.saurik.Cydia"];
+				    if([notificationScheduler respondsToSelector:@selector(_addScheduledLocalNotifications:withCompletion:)]) {
+					    notificationHasCompleted = NO;
+					    [notificationScheduler _addScheduledLocalNotifications:@[notification] withCompletion:^(){
+						    notificationHasCompleted = YES;
+					    }];
+				    }
+			    }
+			    dlclose(handle);
+		    }
+	    }
             [notification release];
 
             dlclose(handle);
