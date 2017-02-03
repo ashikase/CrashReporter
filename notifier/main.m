@@ -315,7 +315,7 @@ int main(int argc, char **argv, char **envp) {
 		    if (handle != NULL) {
 			    Class $UNSNotificationScheduler = objc_getClass("UNSNotificationScheduler");
 			    if($UNSNotificationScheduler) {
-				    UNSNotificationScheduler* notificationScheduler = [[$UNSNotificationScheduler alloc] initWithBundleIdentifier:@"com.saurik.Cydia"];
+				    UNSNotificationScheduler* notificationScheduler = [[$UNSNotificationScheduler alloc] initWithBundleIdentifier:@"crash-reporter"];
 				    if([notificationScheduler respondsToSelector:@selector(_addScheduledLocalNotifications:withCompletion:)]) {
 					    notificationHasCompleted = NO;
 					    [notificationScheduler _addScheduledLocalNotifications:@[notification] withCompletion:^(){
