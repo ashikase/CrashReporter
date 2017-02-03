@@ -37,7 +37,7 @@ extern mach_port_t SBSSpringBoardServerPort();
 
 // Firmware >= 9.0 & 10.0
 @interface UNSNotificationScheduler : NSObject
-@property (nonatomic, copy) NSString *bundleIdentifier;
+- (id)initWithBundleIdentifier:(id)bundleIdentifier;
 - (void)_addScheduledLocalNotifications:(NSArray *)notifications withCompletion:(id)completion;
 @end
 
@@ -311,20 +311,19 @@ int main(int argc, char **argv, char **envp) {
             if (IOS_LT(9_0)) {
                 [SBSLocalNotificationClient scheduleLocalNotification:notification bundleIdentifier:@"crash-reporter"];
             } else {
-                void *handle = dlopen("/System/Library/PrivateFrameworks/UserNotificationServices.framework/UserNotificationServices", RTLD_LAZY);
+		void *handle = dlopen("/System/Library/PrivateFrameworks/UserNotificationServices.framework/UserNotificationServices", RTLD_LAZY);
                 if (handle != NULL) {
-                    if(Class $UNSNotificationScheduler = objc_getClass("UNSNotificationScheduler")) {
-                        UNSNotificationScheduler* notificationScheduler = [[$UNSNotificationScheduler alloc] init];
-                        if([notificationScheduler respondsToSelector:@selector(setBundleIdentifier:)]) {
-                            [notificationScheduler setBundleIdentifier:@"crash-reporter"];
-                            if([notificationScheduler respondsToSelector:@selector(_addScheduledLocalNotifications:withCompletion:)]) {
-                                notificationHasCompleted = NO;
-                                [notificationScheduler _addScheduledLocalNotifications:@[notification] withCompletion:^(){ notificationHasCompleted = YES; }];
-                            }
-                        }
-					}
-                    dlclose(handle);
-                }
+			if(Class $UNSNotificationScheduler = objc_getClass("UNSNotificationScheduler")) {
+				UNSNotificationScheduler* notificationScheduler = [[$UNSNotificationScheduler alloc] initWithBundleIdentifier:@"com.saurik.Cydia"];
+				if([notificationScheduler respondsToSelector:@selector(_addScheduledLocalNotifications:withCompletion:)]) {
+					notificationHasCompleted = NO;
+					[notificationScheduler _addScheduledLocalNotifications:@[notification] withCompletion:^(){
+						notificationHasCompleted = YES;
+					}];
+				}
+			}
+			dlclose(handle);
+		}
             }
             [notification release];
 
