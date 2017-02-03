@@ -35,10 +35,10 @@ extern mach_port_t SBSSpringBoardServerPort();
 + (void)scheduleLocalNotification:(id)notification bundleIdentifier:(id)bundleIdentifier;
 @end
 
-// Firmware >= 9.0
-@interface UNSNotificationSchedulerConnection : NSObject
-+ (instancetype)sharedInstance;
-- (void)addScheduledLocalNotifications:(NSArray *)notifications forBundleIdentifier:(NSString *)bundleIdentifier withCompletion:(id)completion;
+// Firmware >= 9.0 & 10.0
+@interface UNSNotificationScheduler : NSObject
+- (id)initWithBundleIdentifier:(id)bundleIdentifier;
+- (void)_addScheduledLocalNotifications:(NSArray *)notifications withCompletion:(id)completion;
 @end
 
 int main(int argc, char **argv, char **envp) {
@@ -309,17 +309,23 @@ int main(int argc, char **argv, char **envp) {
 
             // NOTE: Notification will be shown immediately as no fire date was set.
             if (IOS_LT(9_0)) {
-                [SBSLocalNotificationClient scheduleLocalNotification:notification bundleIdentifier:@"crash-reporter"];
+                [objc_getClass("SBSLocalNotificationClient") scheduleLocalNotification:notification bundleIdentifier:@"crash-reporter"];
             } else {
-                notificationHasCompleted = NO;
-
-                void *handle = dlopen("/System/Library/PrivateFrameworks/UserNotificationServices.framework/UserNotificationServices", RTLD_LAZY);
-                if (handle != NULL) {
-                    [[objc_getClass("UNSNotificationSchedulerConnection") sharedInstance] addScheduledLocalNotifications:
-                        [NSArray arrayWithObject:notification] forBundleIdentifier:@"crash-reporter" withCompletion:^(){ notificationHasCompleted = YES; }];
-                    dlclose(handle);
-                }
-            }
+		    void *handle = dlopen("/System/Library/PrivateFrameworks/UserNotificationServices.framework/UserNotificationServices", RTLD_LAZY);
+		    if (handle != NULL) {
+			    Class $UNSNotificationScheduler = objc_getClass("UNSNotificationScheduler");
+			    if($UNSNotificationScheduler) {
+				    UNSNotificationScheduler* notificationScheduler = [[$UNSNotificationScheduler alloc] initWithBundleIdentifier:@"crash-reporter"];
+				    if([notificationScheduler respondsToSelector:@selector(_addScheduledLocalNotifications:withCompletion:)]) {
+					    notificationHasCompleted = NO;
+					    [notificationScheduler _addScheduledLocalNotifications:@[notification] withCompletion:^(){
+						    notificationHasCompleted = YES;
+					    }];
+				    }
+			    }
+			    dlclose(handle);
+		    }
+	    }
             [notification release];
 
             dlclose(handle);
