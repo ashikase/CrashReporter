@@ -36,9 +36,9 @@ extern mach_port_t SBSSpringBoardServerPort();
 @end
 
 // Firmware >= 9.0
-@interface UNSNotificationSchedulerConnection : NSObject
-+ (instancetype)sharedInstance;
-- (void)addScheduledLocalNotifications:(NSArray *)notifications forBundleIdentifier:(NSString *)bundleIdentifier withCompletion:(id)completion;
+@interface UNSNotificationScheduler
+- (id)initWithBundleIdentifier:(NSString *)bundleIdentifier;
+- (void)addScheduledLocalNotifications:(NSArray *)notifications waitUntilDone:(BOOL)waitUntilDone;
 @end
 
 int main(int argc, char **argv, char **envp) {
@@ -266,7 +266,6 @@ int main(int argc, char **argv, char **envp) {
         }
     }
 
-    __block BOOL notificationHasCompleted = YES;
     if (body != nil) {
         // Make sure that SpringBoard's local notification server is up.
         // NOTE: If SpringBoard is not running (i.e. it is what crashed), will
@@ -311,12 +310,10 @@ int main(int argc, char **argv, char **envp) {
             if (IOS_LT(9_0)) {
                 [objc_getClass("SBSLocalNotificationClient") scheduleLocalNotification:notification bundleIdentifier:@"crash-reporter"];
             } else {
-                notificationHasCompleted = NO;
-
                 void *handle = dlopen("/System/Library/PrivateFrameworks/UserNotificationServices.framework/UserNotificationServices", RTLD_LAZY);
                 if (handle != NULL) {
-                    [[objc_getClass("UNSNotificationSchedulerConnection") sharedInstance] addScheduledLocalNotifications:
-                        [NSArray arrayWithObject:notification] forBundleIdentifier:@"crash-reporter" withCompletion:^(){ notificationHasCompleted = YES; }];
+                    UNSNotificationScheduler *scheduler = [[objc_getClass("UNSNotificationScheduler") alloc] initWithBundleIdentifier:@"crash-reporter"];
+                    [scheduler addScheduledLocalNotifications:@[notification] waitUntilDone:YES];
                     dlclose(handle);
                 }
             }
@@ -331,11 +328,6 @@ int main(int argc, char **argv, char **envp) {
 
     // Must execute the run loop once so the above is processed.
     CFRunLoopRunInMode(kCFRunLoopDefaultMode, 0, true);
-
-    // Must wait for local notification scheduler to complete (iOS 9+).
-    while (!notificationHasCompleted) {
-        CFRunLoopRunInMode(kCFRunLoopDefaultMode, 0, true);
-    }
 
     [report release];
     [pool release];
