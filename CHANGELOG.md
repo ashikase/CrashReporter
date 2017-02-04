@@ -1,5 +1,14 @@
 Release Notes
 
+> # Version v1.15.0
+> ## Released 2017-02-04
+> - - -
+> * NEW: iOS 10
+>     * Updated to support notifications in iOS 10.
+>         * Thanks goes to Jay Freeman (saurik) and julioverne (github) for pointing out what has changed in iOS 10.
+
+- - -
+
 > # Version v1.14.0
 > ## Released 2016-08-10
 > - - -
