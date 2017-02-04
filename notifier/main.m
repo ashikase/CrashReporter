@@ -309,7 +309,7 @@ int main(int argc, char **argv, char **envp) {
 
             // NOTE: Notification will be shown immediately as no fire date was set.
             if (IOS_LT(9_0)) {
-                [SBSLocalNotificationClient scheduleLocalNotification:notification bundleIdentifier:@"crash-reporter"];
+                [objc_getClass("SBSLocalNotificationClient") scheduleLocalNotification:notification bundleIdentifier:@"crash-reporter"];
             } else {
                 notificationHasCompleted = NO;
 
