@@ -10,6 +10,8 @@
 @interface SBAlertItem : NSObject <UIAlertViewDelegate>
 @property(readonly, retain) UIAlertView *alertSheet;
 - (void)dismiss;
+- (UIAlertController *) alertController; ( iOS10 )
+- (void) deactivateForButton; ( iOS10 )
 @end
 
 @interface SBAlertItemsController : NSObject
