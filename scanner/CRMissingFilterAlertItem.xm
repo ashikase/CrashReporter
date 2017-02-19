@@ -42,33 +42,68 @@
 }
 
 - (void)configure:(BOOL)configure requirePasscodeForActions:(BOOL)require {
-    UIAlertView *alertView = [self alertSheet];
-    alertView.delegate = self;
-    alertView.title = @"CrashReporter";
 
-    NSString *path = self.path;
-    PIDebianPackage *package = [PIDebianPackage packageForFile:path];
-    if (package != nil) {
-        alertView.message = [NSString stringWithFormat:
-            @"The following tweak has no filter file:\n\n"
-            "%@\n\n"
-            "This can lead to crashing and other issues on your device.\n\n"
-            "It is strongly recommended that you report this to the developer of the tweak.",
-            package.name];
-
-        alertView.tag = 1;
-        [alertView addButtonWithTitle:@"Contact Developer"];
+    if ([self respondsToSelector:@selector(alertController)]) {
+        UIAlertController *alertController = [self alertController];
+        [alertController setTitle:@"CrashReporter"];
+        
+        NSString *path = self.path;
+        PIDebianPackage *package = [PIDebianPackage packageForFile:path];
+        if (package != nil) {
+            [alertController setMessage:[NSString stringWithFormat:
+                @"The following tweak has no filter file:\n\n"
+                "%@\n\n"
+                "This can lead to crashing and other issues on your device.\n\n"
+                "It is strongly recommended that you report this to the developer of the tweak.",
+                package.name]];
+                
+                [alertController addAction:[UIAlertAction actionWithTitle:@"Contact Developer" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
+                    NSString *path = self.path;
+                    PIDebianPackage *package = [PIDebianPackage packageForFile:path];
+                    [CRMailViewController showWithPackage:package reason:CRMailReasonMissingFilter];
+                }]];
+        } else {
+            [alertController setMessage:[NSString stringWithFormat:
+                @"The following tweak has no filter file:\n\n"
+                "%@\n\n"
+                "This can lead to crashing and other issues on your device.\n\n"
+                "It is strongly recommended that you report this to the developer of the tweak.\n\n"
+                "(The package that this tweak is from cannot be found or is no longer installed. You will need to determine for yourself whom to contact.)",
+                [path lastPathComponent]];
+        }
+        [alertController addAction:[UIAlertAction actionWithTitle:@"Dismiss" style:UIAlertActionStyleCancel handler:^(UIAlertAction *action) {
+        
+        }]];
+        
     } else {
-        alertView.message = [NSString stringWithFormat:
-            @"The following tweak has no filter file:\n\n"
-            "%@\n\n"
-            "This can lead to crashing and other issues on your device.\n\n"
-            "It is strongly recommended that you report this to the developer of the tweak.\n\n"
-            "(The package that this tweak is from cannot be found or is no longer installed. You will need to determine for yourself whom to contact.)",
-            [path lastPathComponent]];
-    }
+        UIAlertView *alertView = [self alertSheet];
+        alertView.delegate = self;
+        alertView.title = @"CrashReporter";
 
-    [alertView addButtonWithTitle:@"Dismiss"];
+        NSString *path = self.path;
+        PIDebianPackage *package = [PIDebianPackage packageForFile:path];
+        if (package != nil) {
+            alertView.message = [NSString stringWithFormat:
+                @"The following tweak has no filter file:\n\n"
+                "%@\n\n"
+                "This can lead to crashing and other issues on your device.\n\n"
+                "It is strongly recommended that you report this to the developer of the tweak.",
+                package.name];
+
+            alertView.tag = 1;
+            [alertView addButtonWithTitle:@"Contact Developer"];
+        } else {
+            alertView.message = [NSString stringWithFormat:
+                @"The following tweak has no filter file:\n\n"
+                "%@\n\n"
+                "This can lead to crashing and other issues on your device.\n\n"
+                "It is strongly recommended that you report this to the developer of the tweak.\n\n"
+                "(The package that this tweak is from cannot be found or is no longer installed. You will need to determine for yourself whom to contact.)",
+                [path lastPathComponent]];
+        }
+
+        [alertView addButtonWithTitle:@"Dismiss"];
+    }
 }
 
 - (void)dealloc {
