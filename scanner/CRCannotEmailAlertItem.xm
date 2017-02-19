@@ -14,10 +14,23 @@
 #pragma mark - Overrides
 
 - (void)configure:(BOOL)configure requirePasscodeForActions:(BOOL)require {
-    UIAlertView *alertView = [self alertSheet];
-    alertView.title = @"CrashReporter";
-    alertView.message = @"Cannot send email from this device.";
-    [alertView addButtonWithTitle:@"Dismiss"];
+    if ([self respondsToSelector:@selector(alertController)]) {
+        
+        UIAlertController *alertController = [self alertController];
+        [alertController setTitle:@"CrashReporter"];
+        [alertController setMessage:@"Cannot send email from this device."];
+        [alertController addAction:[UIAlertAction actionWithTitle:@"Dismiss" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
+        
+        }]];
+        
+        
+    } else {
+        UIAlertView *alertView = [self alertSheet];
+        alertView.title = @"CrashReporter";
+        alertView.message = @"Cannot send email from this device.";
+        [alertView addButtonWithTitle:@"Dismiss"];
+    }
+    
 }
 
 %end
