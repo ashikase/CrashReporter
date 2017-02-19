@@ -19,7 +19,7 @@
         UIAlertController *alertController = [self alertController];
         [alertController setTitle:@"CrashReporter"];
         [alertController setMessage:@"Cannot send email from this device."];
-        [alertController addAction:[UIAlertAction actionWithTitle:@"Dismiss" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
+        [alertController addAction:[UIAlertAction actionWithTitle:@"Dismiss" style:UIAlertActionStyleCancel handler:^(UIAlertAction *action) {
         
         }]];
         
