@@ -8,13 +8,37 @@
  */
 
 @interface SBAlertItem : NSObject <UIAlertViewDelegate>
-@property(readonly, retain) UIAlertView *alertSheet;
 - (void)dismiss;
+@end
+
+@interface SBAlertItem (Firmware_LT_100)
+- (UIAlertView *)alertSheet;
+@end
+
+@interface SBAlertItem (Firmware_GTE_100)
+- (id)alertController;
+- (void)deactivateForButton;
 @end
 
 @interface SBAlertItemsController : NSObject
 + (id)sharedInstance;
 - (void)activateAlertItem:(id)item;
+@end
+
+typedef NS_ENUM(NSInteger, UIAlertActionStyle) {
+    UIAlertActionStyleDefault = 0,
+    UIAlertActionStyleCancel,
+    UIAlertActionStyleDestructive
+};
+
+@interface UIAlertAction : NSObject <NSCopying>
++ (instancetype)actionWithTitle:(NSString *)title style:(UIAlertActionStyle)style handler:(void (^)(UIAlertAction *action))handler;
+@end
+
+@interface UIAlertController : UIViewController
+- (void)addAction:(UIAlertAction *)action;
+@property (nonatomic, copy) NSString *title;
+@property (nonatomic, copy) NSString *message;
 @end
 
 @interface CRAlertItem : SBAlertItem @end

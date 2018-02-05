@@ -16,6 +16,11 @@
 @property (nonatomic, copy) NSString *path;
 @end
 
+static void presentEmailForPath(NSString *path) {
+    PIDebianPackage *package = [PIDebianPackage packageForFile:path];
+    [CRMailViewController showWithPackage:package reason:CRMailReasonMissingFilter];
+}
+
 %hook CRMissingFilterAlertItem
 
 %new
@@ -31,9 +36,7 @@
 - (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
     if (alertView.tag == 1) {
         if (buttonIndex == 0) {
-            NSString *path = self.path;
-            PIDebianPackage *package = [PIDebianPackage packageForFile:path];
-            [CRMailViewController showWithPackage:package reason:CRMailReasonMissingFilter];
+            presentEmailForPath(self.path);
         }
     }
 
@@ -42,24 +45,22 @@
 }
 
 - (void)configure:(BOOL)configure requirePasscodeForActions:(BOOL)require {
-    UIAlertView *alertView = [self alertSheet];
-    alertView.delegate = self;
-    alertView.title = @"CrashReporter";
+    NSString *title = @"CrashReporter";
+    NSString *message = nil;
+    NSString *buttonTitle = @"Dismiss";
+    NSString *otherButtonTitle = @"Contact Developer";
 
     NSString *path = self.path;
     PIDebianPackage *package = [PIDebianPackage packageForFile:path];
     if (package != nil) {
-        alertView.message = [NSString stringWithFormat:
+        message = [NSString stringWithFormat:
             @"The following tweak has no filter file:\n\n"
             "%@\n\n"
             "This can lead to crashing and other issues on your device.\n\n"
             "It is strongly recommended that you report this to the developer of the tweak.",
             package.name];
-
-        alertView.tag = 1;
-        [alertView addButtonWithTitle:@"Contact Developer"];
     } else {
-        alertView.message = [NSString stringWithFormat:
+        message = [NSString stringWithFormat:
             @"The following tweak has no filter file:\n\n"
             "%@\n\n"
             "This can lead to crashing and other issues on your device.\n\n"
@@ -68,7 +69,34 @@
             [path lastPathComponent]];
     }
 
-    [alertView addButtonWithTitle:@"Dismiss"];
+    if (IOS_LT(10_0)) {
+        UIAlertView *alertView = [self alertSheet];
+        [alertView setDelegate:self];
+        [alertView setTitle:title];
+        [alertView setMessage:message];
+
+        if (package != nil) {
+            [alertView setTag:1];
+            [alertView addButtonWithTitle:otherButtonTitle];
+        }
+
+        [alertView addButtonWithTitle:buttonTitle];
+    } else {
+        UIAlertController *alertController = [self alertController];
+        [alertController setTitle:title];
+        [alertController setMessage:message];
+
+        if (package != nil) {
+            [alertController addAction:[objc_getClass("UIAlertAction") actionWithTitle:otherButtonTitle style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
+                presentEmailForPath(self.path);
+                [self deactivateForButton];
+            }]];
+        }
+
+        [alertController addAction:[objc_getClass("UIAlertAction") actionWithTitle:buttonTitle style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
+            [self deactivateForButton];
+        }]];
+    }
 }
 
 - (void)dealloc {
