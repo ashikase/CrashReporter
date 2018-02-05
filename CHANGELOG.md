@@ -1,5 +1,14 @@
 Release Notes
 
+> # Version v1.15.1
+> ## Released 2018-02-05
+> - - -
+> * FIX: iOS 10
+>     * Scanner component would cause a crash when trying to alert user about discovered unfiltered tweaks.
+>         * Thanks goes to iMokhles (github) for reminding me about this issue.
+
+- - -
+
 > # Version v1.15.0
 > ## Released 2017-02-04
 > - - -
