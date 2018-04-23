@@ -28,6 +28,8 @@ CrashReporter_LDFLAGS = -F$(THEOS)/Frameworks
 CrashReporter_LIBRARIES = crashreport icucore packageinfo
 CrashReporter_FRAMEWORKS = CoreGraphics MessageUI SystemConfiguration TechSupport UIKit
 
+CrashReporter_CODESIGN_FLAGS="-SEntitlements.plist"
+
 include $(THEOS_MAKE_PATH)/common.mk
 include $(THEOS_MAKE_PATH)/application.mk
 
