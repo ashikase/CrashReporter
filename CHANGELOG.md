@@ -1,5 +1,15 @@
 Release Notes
 
+> # Version v1.16.0
+> ## Released 2018-04-23
+> - - -
+> * FIX: iOS 11
+>     * Added initial support for iOS 11.x.
+>     * This may also work on iOS 10.3.x, but is untested due to lack of a 10.3.x device.
+>     * This fix required removing the "Safe Mode" feature on iOS 10.3.x and up.
+
+- - -
+
 > # Version v1.15.1
 > ## Released 2018-02-05
 > - - -
