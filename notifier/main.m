@@ -78,6 +78,12 @@ int main(int argc, char **argv, char **envp) {
         fprintf(stderr, "ERROR: Could not load crash log file \"%s\".\n", [filepath UTF8String]);
         return 1;
     }
+    
+    CRException *exception = [report exception];
+    if ([[exception type] isEqualToString:@"00000020"]) {
+        //Simulated Crash No Need To Report
+        return 0;
+    }
 
     if (!isDebugMode) {
         // Check freshness of crash log.
